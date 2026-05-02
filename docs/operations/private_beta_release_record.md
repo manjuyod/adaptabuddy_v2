@@ -5,78 +5,79 @@ This is the latest candidate record. Use `docs/operations/private_beta_release_e
 ## Candidate
 
 - Release lane: `Production Beta Readiness`
-- Evidence timestamp (UTC): `2026-05-02T16:46:22Z`
-- Release candidate ID: `unavailable`
-- Commit SHA: `unavailable`
-- Short SHA: `unavailable`
-- Release owner: `unassigned`
-- Environment owner: `unassigned`
-- Rollback owner: `unassigned`
-- Target host: `http://127.0.0.1:3001`
+- Evidence timestamp (UTC): `2026-05-02T17:12:30Z`
+- Release candidate ID: `rc-3db65a2-20260502`
+- Commit SHA: `3db65a2f56c5a7a92cf0c6b72d3ab1d0496e1ba2`
+- Short SHA: `3db65a2`
+- Commit summary: `3db65a2 2026-05-02 10:11:29 -0700 chore: prepare wave 6 beta closure candidate`
+- Release owner: `user`
+- Environment owner: `user`
+- Rollback owner: `user`
+- Target host: `http://127.0.0.1:3000`
 - Target Supabase project: `vezfyhbrrpokheqipepa`
 - Final decision: `HOLD`
 
-Release-confidence evidence is complete for the local container, deployment smoke, live Supabase E2E, Playwright E2E, authenticated analytics probe, and live DB migration/security posture. Promotion remains blocked because the candidate has no immutable git commit metadata and owner/audit signoff is still unavailable.
+Wave 6 remediated the high-severity npm audit blocker without a semver-major framework, auth, or test-tool upgrade. `next` and `eslint-config-next` are aligned at `15.5.15`; the lockfile now resolves prior high-severity transitive findings for `flatted`, `minimatch`, `picomatch`, and `rollup` to fixed versions. Promotion remains blocked because Docker Desktop's Linux engine was unavailable for Docker build/runtime smoke in this environment.
 
 ## Gate Results
 
 | Gate | Result | Evidence |
 | --- | --- | --- |
-| Candidate metadata | `FAIL` | Git HEAD was unavailable/no commits, so release candidate ID, commit SHA, and short SHA remain `unavailable` |
-| Dependency install | `PASS_WITH_ACCEPTED_RISK` | Previous baseline `npm ci` exited 0; npm reported high-severity advisories that still need owner/audit disposition before promotion |
-| Typecheck | `PASS` | Previous baseline `npm run typecheck` exited 0 |
-| Lint | `PASS` | Previous baseline `npm run lint` exited 0 |
-| Workspace tests | `PASS` | Previous baseline `npm run test` exited 0 |
-| Web production build | `PASS` | Previous baseline `npm run build --workspace apps/web` exited 0 |
-| Docker runtime availability | `PASS` | Docker version/context check passed with `desktop-linux` on `linux/amd64` |
-| Docker build | `PASS` | `docker build --secret id=build_env,src=.env -t adaptabuddy-web:engine-27-smoke .` exited 0 |
-| Docker runtime smoke | `PASS` | Candidate container ran on port `3001` |
-| Local deploy smoke | `PASS` | `npm run verify:deploy:smoke -- http://127.0.0.1:3001` exited 0 |
-| Live Supabase E2E | `PASS` | `RUN_SUPABASE_E2E_VERIFICATION=1 npm run test --workspace apps/web -- tests/supabase-e2e-verification.test.ts` passed `1/1` after live DB migrations |
-| Playwright browser E2E | `PASS` | `RUN_PLAYWRIGHT_E2E=1 npm run test:e2e:playwright` passed `7/7` after Engine 29 hardening |
-| Authenticated analytics evidence | `PASS` | Signed-in browser `GET /api/v0/reporting/analytics` returned HTTP `200`, body `status:"success"`, `availability:"unavailable"`, `analyticsPresent:false`, `Cache-Control: no-store`, and `x-request-id` present |
-| Migration parity | `PASS` | Supabase migration list now includes numbered migrations `017_engine_15_session_traces` and `018_engine_24_replay_debug_input_material`, plus live parity repair/hardening migrations `engine_session_trace_live_parity` and `restrict_complete_session_atomic_execute` |
-| Live DB security posture | `PASS` | Deoxys confirmed `engine_session_traces.input_material` exists; authenticated has SELECT only on `engine_session_traces`; `complete_session_atomic` execute grants are `anon=false`, `authenticated=false`, `service_role=true` |
+| Candidate metadata | `PASS` | `git rev-parse HEAD` returned `3db65a2f56c5a7a92cf0c6b72d3ab1d0496e1ba2`; `git rev-parse --short HEAD` returned `3db65a2` |
+| Dependency install | `PASS_WITH_ACCEPTED_RISK` | `npm ci` exited 0; npm reported 2 low and 6 moderate advisories whose automatic fixes require breaking upgrades |
+| High-severity audit | `PASS` | `npm audit --audit-level=high` exited 0 after remediation; remaining advisories are low/moderate only |
+| Typecheck | `PASS` | `npm run typecheck` exited 0 |
+| Lint | `PASS` | `npm run lint` exited 0 with no ESLint warnings or errors; Next reported the existing `next lint` deprecation notice |
+| Workspace tests | `PASS` | `npm run test` exited 0; app, contracts, and core tests passed, with opt-in live smoke tests skipped by unset flags |
+| Web production build | `PASS` | `npm run build --workspace apps/web` exited 0 on Next `15.5.15` |
+| Local deploy smoke | `PASS` | Built app served on `http://127.0.0.1:3000`; `npm run verify:deploy:smoke` exited 0 |
+| Docker runtime availability | `BLOCKED` | `docker version` failed against `desktop-linux`: Docker Desktop Linux engine pipe was unavailable |
+| Docker build | `BLOCKED` | Not run because Docker runtime availability failed |
+| Docker runtime smoke | `BLOCKED` | Not run because Docker runtime availability failed |
+| Environment readiness | `PASS_WITH_ACCEPTED_RISK` | `.env` contains required Supabase keys; target URL matches `vezfyhbrrpokheqipepa`; Docker runtime remains blocked |
+| Migration parity | `PASS_WITH_ACCEPTED_RISK` | No DB migrations changed in candidate; local latest migration file remains `verification_checklist.sql`; live Supabase E2E and Playwright passed against target project |
+| Live Supabase E2E | `PASS` | `RUN_SUPABASE_E2E_VERIFICATION=1 npm run test --workspace apps/web -- tests/supabase-e2e-verification.test.ts` passed `1/1` |
+| Playwright browser E2E | `PASS` | `RUN_PLAYWRIGHT_E2E=1 npm run test:e2e:playwright` passed `7/7` |
+| Authenticated analytics evidence | `PASS` | Passing Playwright suite includes authenticated `GET /api/v0/reporting/analytics` assertions for HTTP `200`, `status:"success"`, and `Cache-Control: no-store` |
+| Owner signoff | `HOLD` | User is assigned as release, environment, and rollback owner; final decision remains `HOLD` due Docker blocker |
 
 ## Route-Level Smoke Evidence
 
 | Route | Method | Expected result | Current evidence |
 | --- | --- | --- | --- |
-| `/offline` | `GET` | `200` | Covered by `npm run verify:deploy:smoke -- http://127.0.0.1:3001`; command exited 0 |
-| `/api/health` | `GET` | `200` plus `status`, `timestamp`, `supabase`, `x-request-id`, and `Cache-Control: no-store` | Covered by `npm run verify:deploy:smoke -- http://127.0.0.1:3001`; command exited 0 |
+| `/offline` | `GET` | `200` | Covered by `npm run verify:deploy:smoke`; command exited 0 |
+| `/api/health` | `GET` | `200` plus `status`, `timestamp`, `supabase`, `x-request-id`, and `Cache-Control: no-store` | Covered by `npm run verify:deploy:smoke`; command exited 0 with `supabase:"connected"` |
 | `/api/v0/sessions/generate` | `GET` smoke probe; `POST` authenticated flow | `405` for smoke method-boundary probe; authenticated success via live Supabase E2E | Covered by deploy smoke and live Supabase E2E; both passed |
 | `/api/v0/sessions/complete` | `GET` smoke probe; `POST` authenticated flow | `405` for smoke method-boundary probe; authenticated success via live Supabase E2E | Covered by deploy smoke and live Supabase E2E; both passed |
-| `/api/v0/reporting/analytics` | `POST` smoke probe; `GET` authenticated flow | `405` for smoke method-boundary probe; authenticated analytics where credentials/env allow | Smoke probe passed; signed-in browser GET returned HTTP `200`, `status:"success"`, `availability:"unavailable"`, `analyticsPresent:false`, `Cache-Control: no-store`, and `x-request-id` present |
+| `/api/v0/reporting/analytics` | `POST` smoke probe; `GET` authenticated flow | `405` for smoke method-boundary probe; authenticated analytics where credentials/env allow | Smoke probe passed; authenticated analytics covered by Playwright E2E |
 
 ## Environment Readiness
 
 | Check | Result | Evidence |
 | --- | --- | --- |
-| Required Supabase env keys | `PASS` | `.env` supplied the Docker build secret and live verification credentials |
-| Target Supabase project | `PASS` | Configured target is `vezfyhbrrpokheqipepa` |
-| Live Supabase connectivity | `PASS` | Live Supabase E2E passed `1/1` |
-| Docker runtime availability | `PASS` | Docker context/version check passed for `desktop-linux` on `linux/amd64` |
-| Release owners assigned | `FAIL` | Release, environment, and rollback owners are `unassigned` |
-| Audit/security exception review | `BLOCKED` | High-severity npm audit findings still need triage or explicit accepted-risk approval before promotion |
+| Required Supabase env keys | `PASS` | `.env` contains `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and a service-role key |
+| Target Supabase project | `PASS` | Configured target URL matches `vezfyhbrrpokheqipepa.supabase.co` |
+| Live Supabase connectivity | `PASS` | Live Supabase E2E passed `1/1`; Playwright passed `7/7` |
+| Release test user available | `PASS` | Live Supabase E2E and Playwright authenticated with configured test credentials |
+| Docker runtime available | `BLOCKED` | Docker Desktop Linux engine was unavailable on the active `desktop-linux` context |
+| Audit/security exceptions reviewed | `PASS_WITH_ACCEPTED_RISK` | High-severity findings are remediated; remaining low/moderate findings require breaking upgrades and are not promotion blockers for a `HOLD` decision |
 
 ## Engine 23-29 Status
 
 | Engine spec | Candidate status | Evidence |
 | --- | --- | --- |
 | Engine 23 app replay invocation alignment | `REVALIDATED` | Completed spec is archived; live Supabase E2E, deploy smoke, and Playwright evidence passed |
-| Engine 24 replay bundle and beta debug evidence | `REVALIDATED` | Completed spec is archived; live migrations include replay debug input material and trace parity hardening |
-| Engine 25 `stats_json` compatibility sunset map | `REVALIDATED` | Completed spec is archived; live migration parity and beta flows passed |
-| Engine 26 cycle/session orchestration reliability | `REVALIDATED` | Completed spec is archived; live generate/complete flows passed through Supabase E2E and Playwright |
-| Engine 27 private beta release evidence pack | `COMPLETE` | Evidence pack is filled with release-confidence evidence, explicit final decision, blockers, and owner signoff status |
-| Engine 28 cross-language replay certification | `COMPLETE` | Completed spec is archived; certification manifest and independent TypeScript verifier are checked in and verified |
-| Engine 29 pre-beta Playwright E2E hardening | `COMPLETE` | Completed spec is archived; `RUN_PLAYWRIGHT_E2E=1 npm run test:e2e:playwright` passed `7/7` with required Chromium desktop/mobile coverage |
+| Engine 24 replay bundle and beta debug evidence | `REVALIDATED` | Completed spec is archived; live generate/complete flows passed against target Supabase |
+| Engine 25 `stats_json` compatibility sunset map | `REVALIDATED` | Completed spec is archived; normalized/read-model flows passed through unit, live E2E, and browser coverage |
+| Engine 26 cycle/session orchestration reliability | `REVALIDATED` | Completed spec is archived; generate/complete/idempotency/browser paths passed through release gates |
+| Engine 27 private beta release evidence pack | `COMPLETE_WITH_HOLD` | Evidence pack is updated for immutable candidate `3db65a2`; Docker blocker prevents promotion |
+| Engine 28 cross-language replay certification | `COMPLETE` | Completed spec is archived; no engine boundary changes in this candidate |
+| Engine 29 pre-beta Playwright E2E hardening | `COMPLETE` | `RUN_PLAYWRIGHT_E2E=1 npm run test:e2e:playwright` passed `7/7` |
 
 ## Promotion Blockers
 
-1. Create a real release candidate commit so `git rev-parse --short HEAD` and `git log -1` can identify the artifact.
-2. Assign release, environment, and rollback owners before promotion.
-3. Triage `npm audit --audit-level=high`, or record explicit owner-approved accepted risk.
-4. Capture owner signoff against the immutable candidate commit and final deployment target.
+1. Start Docker Desktop with the Linux engine available on `desktop-linux`, then rerun Docker build and runtime smoke against `adaptabuddy-web:rc-3db65a2-20260502`.
+2. If a future promote decision is desired, rerun the release evidence sequence against the same immutable candidate or a new candidate commit after any further changes.
 
 ## Accepted Risks
 
@@ -84,21 +85,19 @@ No accepted risks are approved for promotion. The current candidate remains `HOL
 
 | Risk | Status | Notes |
 | --- | --- | --- |
-| Missing immutable candidate metadata | `NOT_ACCEPTED_FOR_PROMOTION` | Local-working-tree evidence supports Engine 27 implementation acceptance but cannot promote a release without commit metadata |
-| Release, environment, and rollback owners unassigned | `NOT_ACCEPTED_FOR_PROMOTION` | Owner approval is required for promotion |
-| High-severity npm audit findings | `NOT_ACCEPTED_FOR_PROMOTION` | Requires owner review before any promote decision |
+| Docker runtime unavailable | `NOT_ACCEPTED_FOR_PROMOTION` | Docker build/runtime smoke is required before promotion |
+| Remaining low/moderate npm advisories | `ACCEPTED_FOR_HOLD_ONLY` | `@supabase/ssr`, `vitest`, and nested `next`/`postcss` audit fixes require breaking or inappropriate major changes; high-severity audit gate passes |
 
 ## Owner Signoff
 
 | Owner | Decision | Name | Timestamp (UTC) | Notes |
 | --- | --- | --- | --- | --- |
-| Release owner | `HOLD` | `unassigned` | `2026-05-02T06:12:04Z` | Release-confidence gates passed, but immutable candidate metadata, owner assignment, and audit disposition remain blockers |
-| Environment owner | `HOLD` | `unassigned` | `2026-05-02T06:12:04Z` | Live Supabase and Docker evidence passed; owner signoff still unavailable |
-| Rollback owner | `NOT_READY` | `unassigned` | `2026-05-02T06:12:04Z` | No rollback owner assigned |
+| Release owner | `HOLD` | `user` | `2026-05-02T17:12:30Z` | Quality, live Supabase, Playwright, and local smoke gates passed; Docker remains blocked |
+| Environment owner | `HOLD` | `user` | `2026-05-02T17:12:30Z` | Supabase target checks passed; Docker environment is unavailable |
+| Rollback owner | `READY` | `user` | `2026-05-02T17:12:30Z` | Rollback owner assigned; no promotion executed |
 
 ## Non-Blocking Notes
 
-- Engine 27 implementation acceptance is complete and the spec is archived.
-- The candidate should not be promoted until the blockers above are resolved against an immutable commit.
-- Engine 28 cross-language replay certification is complete and archived.
-- Engine 29 pre-beta Playwright E2E hardening is complete and archived.
+- No engine public API, Rust engine behavior, or DB schema changes were made for Wave 6.
+- Context7 was not required because remediation avoided semver-major framework, auth, and test-tool upgrades.
+- A direct ad hoc signed-in analytics probe under `next start` was attempted but not used for evidence because the browser saw an empty rendered body; the managed Playwright release suite did validate authenticated analytics successfully.
