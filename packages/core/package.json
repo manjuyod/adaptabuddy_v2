@@ -1,0 +1,17 @@
+{
+  "name": "@adaptabuddy/core",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "@adaptabuddy/contracts": "file:../contracts"
+  },
+  "devDependencies": {
+    "vitest": "^1.6.0"
+  }
+}

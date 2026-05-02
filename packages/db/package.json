@@ -1,0 +1,10 @@
+{
+  "name": "@adaptabuddy/db",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "sql/schema_notes.md",
+  "scripts": {
+    "test": "echo \"(no tests yet)\""
+  }
+}

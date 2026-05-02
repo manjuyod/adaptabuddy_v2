@@ -1,0 +1,46 @@
+name: CI Quality Gates
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ci-quality-gates-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  required-gates:
+    name: ${{ matrix.gate.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        gate:
+          - name: Typecheck
+            run: npm run typecheck
+          - name: Lint
+            run: npm run lint
+          - name: Test
+            run: npm run test
+          - name: Build (apps/web)
+            run: npm run build --workspace apps/web
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ${{ matrix.gate.name }}
+        run: ${{ matrix.gate.run }}

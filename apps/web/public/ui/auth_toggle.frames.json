@@ -1,0 +1,43 @@
+{
+  "sprite": "/ui/auth_toggle.png",
+  "frameWidth": 256,
+  "frameHeight": 64,
+  "frames": {
+    "signin_idle": {
+      "x": 0,
+      "y": 0,
+      "w": 256,
+      "h": 64
+    },
+    "signin_hover": {
+      "x": 256,
+      "y": 0,
+      "w": 256,
+      "h": 64
+    },
+    "signin_pressed": {
+      "x": 512,
+      "y": 0,
+      "w": 256,
+      "h": 64
+    },
+    "signup_idle": {
+      "x": 768,
+      "y": 0,
+      "w": 256,
+      "h": 64
+    },
+    "signup_hover": {
+      "x": 1024,
+      "y": 0,
+      "w": 256,
+      "h": 64
+    },
+    "signup_pressed": {
+      "x": 1280,
+      "y": 0,
+      "w": 256,
+      "h": 64
+    }
+  }
+}

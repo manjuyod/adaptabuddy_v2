@@ -1,0 +1,3357 @@
+{
+  "manifestVersion": "engine-28-replay-certification-v1",
+  "canonicalizationVersion": "canon-replay-v1",
+  "hashAlgorithm": "sha256",
+  "hashFormat": "sha256:<lowercase-hex>",
+  "generatedFrom": {
+    "rustCrate": "packages/engine-rs",
+    "command": "cargo run --quiet --manifest-path packages/engine-rs/Cargo.toml --bin inspect_engine -- <fixture-name>",
+    "generatedAt": "1970-01-01T00:00:00.000Z"
+  },
+  "certificationScope": {
+    "certifies": [
+      "canonical referenceHash derivation",
+      "canonical inputHash derivation",
+      "canonical outputHash derivation with replayReceipt excluded",
+      "metadata and complete-session note exclusion from replay input material",
+      "typed failure classification for canonicalization and numeric policy failures"
+    ],
+    "doesNotCertify": [
+      "independent full operation reimplementation",
+      "heuristic decision parity outside the checked Rust public outputs"
+    ]
+  },
+  "fixtures": [
+    {
+      "fixtureId": "initialize-cycle-baseline",
+      "fixtureClass": "initialize-cycle-baseline",
+      "description": "Baseline initialize_cycle replay fixture with ratio and kg fixed-point material.",
+      "certificationMetadata": {
+        "materialScope": "canonical replay material and public output hash certification",
+        "fullOperationParity": "provided by Rust execution output; verifier certifies canonical material and hashes only",
+        "replayMaterialExcludes": [
+          "metadata"
+        ]
+      },
+      "input": {
+        "schemaVersion": "engine.v1",
+        "operation": "initialize_cycle",
+        "determinism": {
+          "seed": "seed-initialize-cycle",
+          "effectiveAt": "2026-03-29T10:00:00.000Z",
+          "ruleVersion": "rules-2026-03",
+          "referenceHash": "sha256:7d34baf77f4052e9341b76e9535c2a2627e50217825a830c2a7cd54476610757",
+          "canonicalizationVersion": "canon-replay-v1"
+        },
+        "referenceSnapshot": {
+          "exercises": [
+            {
+              "equipment": [
+                "barbell",
+                "bench"
+              ],
+              "id": "bench-press",
+              "movementPattern": "push",
+              "name": "Bench Press",
+              "slug": "bench-press",
+              "tags": [
+                "compound"
+              ]
+            },
+            {
+              "equipment": [
+                "barbell"
+              ],
+              "id": "barbell-row",
+              "movementPattern": "pull",
+              "name": "Barbell Row",
+              "slug": "barbell-row",
+              "tags": [
+                "compound"
+              ]
+            }
+          ],
+          "programs": [
+            {
+              "daysPerWeek": 3,
+              "id": "program-strength",
+              "name": "Strength Builder",
+              "slug": "strength"
+            },
+            {
+              "daysPerWeek": 3,
+              "id": "program-hypertrophy",
+              "name": "Hypertrophy Builder",
+              "slug": "hypertrophy"
+            }
+          ],
+          "referenceVersion": "2026-03"
+        },
+        "stateSnapshot": {
+          "activeProgramState": {
+            "currentDayIndex": 0,
+            "currentMicrocycle": 1,
+            "programId": "program-strength"
+          },
+          "athleteProfile": {
+            "availableDaysPerWeek": 3,
+            "classArchetype": "hybrid",
+            "goalBias": "strength",
+            "height": 178,
+            "trainingAge": 3,
+            "weight": 82.5
+          },
+          "gamificationState": {
+            "adherenceStreak": 6,
+            "completedSessionCount": 12,
+            "lastAdherenceOutcomeClassification": "complete_clean",
+            "lastAwardedAt": "2026-02-10T10:00:00.000Z",
+            "level": 3,
+            "missedSessionCount": 0,
+            "xp": 140
+          },
+          "injuryState": {
+            "activeLimitations": [],
+            "blockedMovementPatterns": []
+          },
+          "performanceState": {
+            "knownLifts": {
+              "bench-press": {
+                "estimated1RM": 112.5,
+                "lastReps": 5,
+                "lastWeight": 100
+              }
+            }
+          },
+          "progressionState": {
+            "records": []
+          },
+          "readinessState": {
+            "muscleFatigue": {
+              "back": 12,
+              "chest": 20
+            },
+            "systemicFatigue": "moderate"
+          },
+          "recentCompletions": []
+        },
+        "policySnapshot": {
+          "classArchetypeBias": 0.1,
+          "fatigueBlockThreshold": "severe",
+          "noveltyBudget": 1,
+          "seededTieBreakBand": 0.05
+        },
+        "request": {
+          "macrocycleWeeks": 8,
+          "profile": {
+            "availableDaysPerWeek": 3,
+            "classChoice": "hybrid",
+            "fatiguePreference": "moderate",
+            "goalBias": "strength",
+            "injuryMuscleGroupSlugs": [
+              "shoulders"
+            ]
+          },
+          "selectedPrograms": [
+            {
+              "days": [
+                {
+                  "dayIndex": 0,
+                  "name": "Strength Day 1",
+                  "programDayId": "day-strength-1",
+                  "slots": [
+                    {
+                      "movementPattern": "push",
+                      "muscleTargets": {
+                        "chest": 0.6,
+                        "shoulders": 0.4
+                      },
+                      "repsMax": 5,
+                      "repsMin": 3,
+                      "setsMax": 5,
+                      "setsMin": 4,
+                      "slotId": "slot-strength-main",
+                      "slotIndex": 0,
+                      "slotType": "main",
+                      "tagsRequired": [
+                        "compound"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "programId": "program-strength",
+              "weight": 0.7
+            },
+            {
+              "days": [
+                {
+                  "dayIndex": 0,
+                  "name": "Hypertrophy Day 1",
+                  "programDayId": "day-hypertrophy-1",
+                  "slots": [
+                    {
+                      "movementPattern": "pull",
+                      "muscleTargets": {
+                        "back": 0.8
+                      },
+                      "repsMax": 12,
+                      "repsMin": 8,
+                      "setsMax": 4,
+                      "setsMin": 3,
+                      "slotId": "slot-hypertrophy-main",
+                      "slotIndex": 0,
+                      "slotType": "main",
+                      "tagsRequired": [
+                        "compound"
+                      ]
+                    },
+                    {
+                      "movementPattern": "push",
+                      "muscleTargets": {
+                        "shoulders": 0.6
+                      },
+                      "repsMax": 15,
+                      "repsMin": 10,
+                      "setsMax": 3,
+                      "setsMin": 2,
+                      "slotId": "slot-hypertrophy-accessory",
+                      "slotIndex": 1,
+                      "slotType": "accessory",
+                      "tagsRequired": [
+                        "hypertrophy"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "programId": "program-hypertrophy",
+              "weight": 0.3
+            }
+          ]
+        },
+        "metadata": {
+          "correlationId": "trace-initialize-cycle"
+        }
+      },
+      "output": {
+        "schemaVersion": "engine.v1",
+        "operation": "initialize_cycle",
+        "result": {
+          "initialGamificationState": {
+            "adherenceStreak": 6,
+            "completedSessionCount": 12,
+            "lastAdherenceOutcomeClassification": "complete_clean",
+            "lastAwardedAt": "2026-02-10T10:00:00.000Z",
+            "level": 3,
+            "missedSessionCount": 0,
+            "xp": 140
+          },
+          "macrocycle": {
+            "currentMesocycleIndex": 0,
+            "currentMicrocycleIndex": 0,
+            "currentSessionIndex": 0,
+            "mesocycleCount": 2,
+            "sessions": [
+              {
+                "classArchetype": "hybrid",
+                "macroWeek": 1,
+                "mesocycleIndex": 0,
+                "microcycleIndex": 0,
+                "plannedDayOfWeek": 0,
+                "programDayId": "day-strength-1",
+                "programDayName": "Strength Day 1",
+                "programId": "program-strength",
+                "sessionId": "program-strength-w1-d1",
+                "sessionIndex": 0,
+                "slotPayload": [
+                  {
+                    "movementPattern": "push",
+                    "muscleTargets": {
+                      "chest": 0.6,
+                      "shoulders": 0.4
+                    },
+                    "repsMax": 5,
+                    "repsMin": 3,
+                    "setsMax": 5,
+                    "setsMin": 4,
+                    "slotId": "slot-strength-main",
+                    "slotIndex": 0,
+                    "slotType": "main",
+                    "sourceProgramDayId": "day-strength-1",
+                    "sourceProgramId": "program-strength",
+                    "tagsRequired": [
+                      "compound"
+                    ]
+                  }
+                ]
+              },
+              {
+                "classArchetype": "hybrid",
+                "macroWeek": 1,
+                "mesocycleIndex": 0,
+                "microcycleIndex": 0,
+                "plannedDayOfWeek": 1,
+                "programDayId": "day-strength-1",
+                "programDayName": "Strength Day 1",
+                "programId": "program-strength",
+                "sessionId": "program-strength-w1-d2",
+                "sessionIndex": 1,
+                "slotPayload": [
+                  {
+                    "movementPattern": "push",
+                    "muscleTargets": {
+                      "chest": 0.6,
+                      "shoulders": 0.4
+                    },
+                    "repsMax": 5,
+                    "repsMin": 3,
+                    "setsMax": 5,
+                    "setsMin": 4,
+                    "slotId": "slot-strength-main",
+                    "slotIndex": 0,
+                    "slotType": "main",
+                    "sourceProgramDayId": "day-strength-1",
+                    "sourceProgramId": "program-strength",
+                    "tagsRequired": [
+                      "compound"
+                    ]
+                  }
+                ]
+              },
+              {
+                "classArchetype": "hybrid",
+                "macroWeek": 1,
+                "mesocycleIndex": 0,
+                "microcycleIndex": 0,
+                "plannedDayOfWeek": 2,
+                "programDayId": "day-strength-1",
+                "programDayName": "Strength Day 1",
+                "programId": "program-strength",
+                "sessionId": "program-strength-w1-d3",
+                "sessionIndex": 2,
+                "slotPayload": [
+                  {
+                    "movementPattern": "push",
+                    "muscleTargets": {
+                      "chest": 0.6,
+                      "shoulders": 0.4
+                    },
+                    "repsMax": 5,
+                    "repsMin": 3,
+                    "setsMax": 5,
+                    "setsMin": 4,
+                    "slotId": "slot-strength-main",
+                    "slotIndex": 0,
+                    "slotType": "main",
+                    "sourceProgramDayId": "day-strength-1",
+                    "sourceProgramId": "program-strength",
+                    "tagsRequired": [
+                      "compound"
+                    ]
+                  }
+                ]
+              },
+              {
+                "classArchetype": "hybrid",
+                "macroWeek": 2,
+                "mesocycleIndex": 0,
+                "microcycleIndex": 1,
+                "plannedDayOfWeek": 0,
+                "programDayId": "day-strength-1",
+                "programDayName": "Strength Day 1",
+                "programId": "program-strength",
+                "sessionId": "program-strength-w2-d1",
+                "sessionIndex": 3,
+                "slotPayload": [
+                  {
+                    "movementPattern": "push",
+                    "muscleTargets": {
+                      "chest": 0.6,
+                      "shoulders": 0.4
+                    },
+                    "repsMax": 5,
+                    "repsMin": 3,
+                    "setsMax": 5,
+                    "setsMin": 4,
+                    "slotId": "slot-strength-main",
+                    "slotIndex": 0,
+                    "slotType": "main",
+                    "sourceProgramDayId": "day-strength-1",
+                    "sourceProgramId": "program-strength",
+                    "tagsRequired": [
+                      "compound"
+                    ]
+                  }
+                ]
+              },
+              {
+                "classArchetype": "hybrid",
+                "macroWeek": 2,
+                "mesocycleIndex": 0,
+                "microcycleIndex": 1,
+                "plannedDayOfWeek": 1,
+                "programDayId": "day-strength-1",
+                "programDayName": "Strength Day 1",
+                "programId": "program-strength",
+                "sessionId": "program-strength-w2-d2",
+                "sessionIndex": 4,
+                "slotPayload": [
+                  {
+                    "movementPattern": "push",
+                    "muscleTargets": {
+                      "chest": 0.6,
+                      "shoulders": 0.4
+                    },
+                    "repsMax": 5,
+                    "repsMin": 3,
+                    "setsMax": 5,
+                    "setsMin": 4,
+                    "slotId": "slot-strength-main",
+                    "slotIndex": 0,
+                    "slotType": "main",
+                    "sourceProgramDayId": "day-strength-1",
+                    "sourceProgramId": "program-strength",
+                    "tagsRequired": [
+                      "compound"
+                    ]
+                  }
+                ]
+              },
+              {
+                "classArchetype": "hybrid",
+                "macroWeek": 2,
+                "mesocycleIndex": 0,
+                "microcycleIndex": 1,
+                "plannedDayOfWeek": 2,
+                "programDayId": "day-strength-1",
+                "programDayName": "Strength Day 1",
+                "programId": "program-strength",
+                "sessionId": "program-strength-w2-d3",
+                "sessionIndex": 5,
+                "slotPayload": [
+                  {
+                    "movementPattern": "push",
+                    "muscleTargets": {
+                      "chest": 0.6,
+                      "shoulders": 0.4
+                    },
+                    "repsMax": 5,
+                    "repsMin": 3,
+                    "setsMax": 5,
+                    "setsMin": 4,
+                    "slotId": "slot-strength-main",
+                    "slotIndex": 0,
+                    "slotType": "main",
+                    "sourceProgramDayId": "day-strength-1",
+                    "sourceProgramId": "program-strength",
+                    "tagsRequired": [
+                      "compound"
+                    ]
+                  }
+                ]
+              },
+              {
+                "classArchetype": "hybrid",
+                "macroWeek": 3,
+                "mesocycleIndex": 0,
+                "microcycleIndex": 2,
+                "plannedDayOfWeek": 0,
+                "programDayId": "day-strength-1",
+                "programDayName": "Strength Day 1",
+                "programId": "program-strength",
+                "sessionId": "program-strength-w3-d1",
+                "sessionIndex": 6,
+                "slotPayload": [
+                  {
+                    "movementPattern": "push",
+                    "muscleTargets": {
+                      "chest": 0.6,
+                      "shoulders": 0.4
+                    },
+                    "repsMax": 5,
+                    "repsMin": 3,
+                    "setsMax": 5,
+                    "setsMin": 4,
+                    "slotId": "slot-strength-main",
+                    "slotIndex": 0,
+                    "slotType": "main",
+                    "sourceProgramDayId": "day-strength-1",
+                    "sourceProgramId": "program-strength",
+                    "tagsRequired": [
+                      "compound"
+                    ]
+                  }
+                ]
+              },
+              {
+                "classArchetype": "hybrid",
+                "macroWeek": 3,
+                "mesocycleIndex": 0,
+                "microcycleIndex": 2,
+                "plannedDayOfWeek": 1,
+                "programDayId": "day-strength-1",
+                "programDayName": "Strength Day 1",
+                "programId": "program-strength",
+                "sessionId": "program-strength-w3-d2",
+                "sessionIndex": 7,
+                "slotPayload": [
+                  {
+                    "movementPattern": "push",
+                    "muscleTargets": {
+                      "chest": 0.6,
+                      "shoulders": 0.4
+                    },
+                    "repsMax": 5,
+                    "repsMin": 3,
+                    "setsMax": 5,
+                    "setsMin": 4,
+                    "slotId": "slot-strength-main",
+                    "slotIndex": 0,
+                    "slotType": "main",
+                    "sourceProgramDayId": "day-strength-1",
+                    "sourceProgramId": "program-strength",
+                    "tagsRequired": [
+                      "compound"
+                    ]
+                  }
+                ]
+              },
+              {
+                "classArchetype": "hybrid",
+                "macroWeek": 3,
+                "mesocycleIndex": 0,
+                "microcycleIndex": 2,
+                "plannedDayOfWeek": 2,
+                "programDayId": "day-strength-1",
+                "programDayName": "Strength Day 1",
+                "programId": "program-strength",
+                "sessionId": "program-strength-w3-d3",
+                "sessionIndex": 8,
+                "slotPayload": [
+                  {
+                    "movementPattern": "push",
+                    "muscleTargets": {
+                      "chest": 0.6,
+                      "shoulders": 0.4
+                    },
+                    "repsMax": 5,
+                    "repsMin": 3,
+                    "setsMax": 5,
+                    "setsMin": 4,
+                    "slotId": "slot-strength-main",
+                    "slotIndex": 0,
+                    "slotType": "main",
+                    "sourceProgramDayId": "day-strength-1",
+                    "sourceProgramId": "program-strength",
+                    "tagsRequired": [
+                      "compound"
+                    ]
+                  }
+                ]
+              },
+              {
+                "classArchetype": "hybrid",
+                "macroWeek": 4,
+                "mesocycleIndex": 0,
+                "microcycleIndex": 3,
+                "plannedDayOfWeek": 0,
+                "programDayId": "day-strength-1",
+                "programDayName": "Strength Day 1",
+                "programId": "program-strength",
+                "sessionId": "program-strength-w4-d1",
+                "sessionIndex": 9,
+                "slotPayload": [
+                  {
+                    "movementPattern": "push",
+                    "muscleTargets": {
+                      "chest": 0.6,
+                      "shoulders": 0.4
+                    },
+                    "repsMax": 5,
+                    "repsMin": 3,
+                    "setsMax": 5,
+                    "setsMin": 4,
+                    "slotId": "slot-strength-main",
+                    "slotIndex": 0,
+                    "slotType": "main",
+                    "sourceProgramDayId": "day-strength-1",
+                    "sourceProgramId": "program-strength",
+                    "tagsRequired": [
+                      "compound"
+                    ]
+                  }
+                ]
+              },
+              {
+                "classArchetype": "hybrid",
+                "macroWeek": 4,
+                "mesocycleIndex": 0,
+                "microcycleIndex": 3,
+                "plannedDayOfWeek": 1,
+                "programDayId": "day-strength-1",
+                "programDayName": "Strength Day 1",
+                "programId": "program-strength",
+                "sessionId": "program-strength-w4-d2",
+                "sessionIndex": 10,
+                "slotPayload": [
+                  {
+                    "movementPattern": "push",
+                    "muscleTargets": {
+                      "chest": 0.6,
+                      "shoulders": 0.4
+                    },
+                    "repsMax": 5,
+                    "repsMin": 3,
+                    "setsMax": 5,
+                    "setsMin": 4,
+                    "slotId": "slot-strength-main",
+                    "slotIndex": 0,
+                    "slotType": "main",
+                    "sourceProgramDayId": "day-strength-1",
+                    "sourceProgramId": "program-strength",
+                    "tagsRequired": [
+                      "compound"
+                    ]
+                  }
+                ]
+              },
+              {
+                "classArchetype": "hybrid",
+                "macroWeek": 4,
+                "mesocycleIndex": 0,
+                "microcycleIndex": 3,
+                "plannedDayOfWeek": 2,
+                "programDayId": "day-strength-1",
+                "programDayName": "Strength Day 1",
+                "programId": "program-strength",
+                "sessionId": "program-strength-w4-d3",
+                "sessionIndex": 11,
+                "slotPayload": [
+                  {
+                    "movementPattern": "push",
+                    "muscleTargets": {
+                      "chest": 0.6,
+                      "shoulders": 0.4
+                    },
+                    "repsMax": 5,
+                    "repsMin": 3,
+                    "setsMax": 5,
+                    "setsMin": 4,
+                    "slotId": "slot-strength-main",
+                    "slotIndex": 0,
+                    "slotType": "main",
+                    "sourceProgramDayId": "day-strength-1",
+                    "sourceProgramId": "program-strength",
+                    "tagsRequired": [
+                      "compound"
+                    ]
+                  }
+                ]
+              },
+              {
+                "classArchetype": "hybrid",
+                "macroWeek": 5,
+                "mesocycleIndex": 1,
+                "microcycleIndex": 0,
+                "plannedDayOfWeek": 0,
+                "programDayId": "day-strength-1",
+                "programDayName": "Strength Day 1",
+                "programId": "program-strength",
+                "sessionId": "program-strength-w5-d1",
+                "sessionIndex": 12,
+                "slotPayload": [
+                  {
+                    "movementPattern": "push",
+                    "muscleTargets": {
+                      "chest": 0.6,
+                      "shoulders": 0.4
+                    },
+                    "repsMax": 5,
+                    "repsMin": 3,
+                    "setsMax": 5,
+                    "setsMin": 4,
+                    "slotId": "slot-strength-main",
+                    "slotIndex": 0,
+                    "slotType": "main",
+                    "sourceProgramDayId": "day-strength-1",
+                    "sourceProgramId": "program-strength",
+                    "tagsRequired": [
+                      "compound"
+                    ]
+                  }
+                ]
+              },
+              {
+                "classArchetype": "hybrid",
+                "macroWeek": 5,
+                "mesocycleIndex": 1,
+                "microcycleIndex": 0,
+                "plannedDayOfWeek": 1,
+                "programDayId": "day-strength-1",
+                "programDayName": "Strength Day 1",
+                "programId": "program-strength",
+                "sessionId": "program-strength-w5-d2",
+                "sessionIndex": 13,
+                "slotPayload": [
+                  {
+                    "movementPattern": "push",
+                    "muscleTargets": {
+                      "chest": 0.6,
+                      "shoulders": 0.4
+                    },
+                    "repsMax": 5,
+                    "repsMin": 3,
+                    "setsMax": 5,
+                    "setsMin": 4,
+                    "slotId": "slot-strength-main",
+                    "slotIndex": 0,
+                    "slotType": "main",
+                    "sourceProgramDayId": "day-strength-1",
+                    "sourceProgramId": "program-strength",
+                    "tagsRequired": [
+                      "compound"
+                    ]
+                  }
+                ]
+              },
+              {
+                "classArchetype": "hybrid",
+                "macroWeek": 5,
+                "mesocycleIndex": 1,
+                "microcycleIndex": 0,
+                "plannedDayOfWeek": 2,
+                "programDayId": "day-strength-1",
+                "programDayName": "Strength Day 1",
+                "programId": "program-strength",
+                "sessionId": "program-strength-w5-d3",
+                "sessionIndex": 14,
+                "slotPayload": [
+                  {
+                    "movementPattern": "push",
+                    "muscleTargets": {
+                      "chest": 0.6,
+                      "shoulders": 0.4
+                    },
+                    "repsMax": 5,
+                    "repsMin": 3,
+                    "setsMax": 5,
+                    "setsMin": 4,
+                    "slotId": "slot-strength-main",
+                    "slotIndex": 0,
+                    "slotType": "main",
+                    "sourceProgramDayId": "day-strength-1",
+                    "sourceProgramId": "program-strength",
+                    "tagsRequired": [
+                      "compound"
+                    ]
+                  }
+                ]
+              },
+              {
+                "classArchetype": "hybrid",
+                "macroWeek": 6,
+                "mesocycleIndex": 1,
+                "microcycleIndex": 1,
+                "plannedDayOfWeek": 0,
+                "programDayId": "day-strength-1",
+                "programDayName": "Strength Day 1",
+                "programId": "program-strength",
+                "sessionId": "program-strength-w6-d1",
+                "sessionIndex": 15,
+                "slotPayload": [
+                  {
+                    "movementPattern": "push",
+                    "muscleTargets": {
+                      "chest": 0.6,
+                      "shoulders": 0.4
+                    },
+                    "repsMax": 5,
+                    "repsMin": 3,
+                    "setsMax": 5,
+                    "setsMin": 4,
+                    "slotId": "slot-strength-main",
+                    "slotIndex": 0,
+                    "slotType": "main",
+                    "sourceProgramDayId": "day-strength-1",
+                    "sourceProgramId": "program-strength",
+                    "tagsRequired": [
+                      "compound"
+                    ]
+                  }
+                ]
+              },
+              {
+                "classArchetype": "hybrid",
+                "macroWeek": 6,
+                "mesocycleIndex": 1,
+                "microcycleIndex": 1,
+                "plannedDayOfWeek": 1,
+                "programDayId": "day-strength-1",
+                "programDayName": "Strength Day 1",
+                "programId": "program-strength",
+                "sessionId": "program-strength-w6-d2",
+                "sessionIndex": 16,
+                "slotPayload": [
+                  {
+                    "movementPattern": "push",
+                    "muscleTargets": {
+                      "chest": 0.6,
+                      "shoulders": 0.4
+                    },
+                    "repsMax": 5,
+                    "repsMin": 3,
+                    "setsMax": 5,
+                    "setsMin": 4,
+                    "slotId": "slot-strength-main",
+                    "slotIndex": 0,
+                    "slotType": "main",
+                    "sourceProgramDayId": "day-strength-1",
+                    "sourceProgramId": "program-strength",
+                    "tagsRequired": [
+                      "compound"
+                    ]
+                  }
+                ]
+              },
+              {
+                "classArchetype": "hybrid",
+                "macroWeek": 6,
+                "mesocycleIndex": 1,
+                "microcycleIndex": 1,
+                "plannedDayOfWeek": 2,
+                "programDayId": "day-strength-1",
+                "programDayName": "Strength Day 1",
+                "programId": "program-strength",
+                "sessionId": "program-strength-w6-d3",
+                "sessionIndex": 17,
+                "slotPayload": [
+                  {
+                    "movementPattern": "push",
+                    "muscleTargets": {
+                      "chest": 0.6,
+                      "shoulders": 0.4
+                    },
+                    "repsMax": 5,
+                    "repsMin": 3,
+                    "setsMax": 5,
+                    "setsMin": 4,
+                    "slotId": "slot-strength-main",
+                    "slotIndex": 0,
+                    "slotType": "main",
+                    "sourceProgramDayId": "day-strength-1",
+                    "sourceProgramId": "program-strength",
+                    "tagsRequired": [
+                      "compound"
+                    ]
+                  }
+                ]
+              },
+              {
+                "classArchetype": "hybrid",
+                "macroWeek": 7,
+                "mesocycleIndex": 1,
+                "microcycleIndex": 2,
+                "plannedDayOfWeek": 0,
+                "programDayId": "day-strength-1",
+                "programDayName": "Strength Day 1",
+                "programId": "program-strength",
+                "sessionId": "program-strength-w7-d1",
+                "sessionIndex": 18,
+                "slotPayload": [
+                  {
+                    "movementPattern": "push",
+                    "muscleTargets": {
+                      "chest": 0.6,
+                      "shoulders": 0.4
+                    },
+                    "repsMax": 5,
+                    "repsMin": 3,
+                    "setsMax": 5,
+                    "setsMin": 4,
+                    "slotId": "slot-strength-main",
+                    "slotIndex": 0,
+                    "slotType": "main",
+                    "sourceProgramDayId": "day-strength-1",
+                    "sourceProgramId": "program-strength",
+                    "tagsRequired": [
+                      "compound"
+                    ]
+                  }
+                ]
+              },
+              {
+                "classArchetype": "hybrid",
+                "macroWeek": 7,
+                "mesocycleIndex": 1,
+                "microcycleIndex": 2,
+                "plannedDayOfWeek": 1,
+                "programDayId": "day-strength-1",
+                "programDayName": "Strength Day 1",
+                "programId": "program-strength",
+                "sessionId": "program-strength-w7-d2",
+                "sessionIndex": 19,
+                "slotPayload": [
+                  {
+                    "movementPattern": "push",
+                    "muscleTargets": {
+                      "chest": 0.6,
+                      "shoulders": 0.4
+                    },
+                    "repsMax": 5,
+                    "repsMin": 3,
+                    "setsMax": 5,
+                    "setsMin": 4,
+                    "slotId": "slot-strength-main",
+                    "slotIndex": 0,
+                    "slotType": "main",
+                    "sourceProgramDayId": "day-strength-1",
+                    "sourceProgramId": "program-strength",
+                    "tagsRequired": [
+                      "compound"
+                    ]
+                  }
+                ]
+              },
+              {
+                "classArchetype": "hybrid",
+                "macroWeek": 7,
+                "mesocycleIndex": 1,
+                "microcycleIndex": 2,
+                "plannedDayOfWeek": 2,
+                "programDayId": "day-strength-1",
+                "programDayName": "Strength Day 1",
+                "programId": "program-strength",
+                "sessionId": "program-strength-w7-d3",
+                "sessionIndex": 20,
+                "slotPayload": [
+                  {
+                    "movementPattern": "push",
+                    "muscleTargets": {
+                      "chest": 0.6,
+                      "shoulders": 0.4
+                    },
+                    "repsMax": 5,
+                    "repsMin": 3,
+                    "setsMax": 5,
+                    "setsMin": 4,
+                    "slotId": "slot-strength-main",
+                    "slotIndex": 0,
+                    "slotType": "main",
+                    "sourceProgramDayId": "day-strength-1",
+                    "sourceProgramId": "program-strength",
+                    "tagsRequired": [
+                      "compound"
+                    ]
+                  }
+                ]
+              },
+              {
+                "classArchetype": "hybrid",
+                "macroWeek": 8,
+                "mesocycleIndex": 1,
+                "microcycleIndex": 3,
+                "plannedDayOfWeek": 0,
+                "programDayId": "day-strength-1",
+                "programDayName": "Strength Day 1",
+                "programId": "program-strength",
+                "sessionId": "program-strength-w8-d1",
+                "sessionIndex": 21,
+                "slotPayload": [
+                  {
+                    "movementPattern": "push",
+                    "muscleTargets": {
+                      "chest": 0.6,
+                      "shoulders": 0.4
+                    },
+                    "repsMax": 5,
+                    "repsMin": 3,
+                    "setsMax": 5,
+                    "setsMin": 4,
+                    "slotId": "slot-strength-main",
+                    "slotIndex": 0,
+                    "slotType": "main",
+                    "sourceProgramDayId": "day-strength-1",
+                    "sourceProgramId": "program-strength",
+                    "tagsRequired": [
+                      "compound"
+                    ]
+                  }
+                ]
+              },
+              {
+                "classArchetype": "hybrid",
+                "macroWeek": 8,
+                "mesocycleIndex": 1,
+                "microcycleIndex": 3,
+                "plannedDayOfWeek": 1,
+                "programDayId": "day-strength-1",
+                "programDayName": "Strength Day 1",
+                "programId": "program-strength",
+                "sessionId": "program-strength-w8-d2",
+                "sessionIndex": 22,
+                "slotPayload": [
+                  {
+                    "movementPattern": "push",
+                    "muscleTargets": {
+                      "chest": 0.6,
+                      "shoulders": 0.4
+                    },
+                    "repsMax": 5,
+                    "repsMin": 3,
+                    "setsMax": 5,
+                    "setsMin": 4,
+                    "slotId": "slot-strength-main",
+                    "slotIndex": 0,
+                    "slotType": "main",
+                    "sourceProgramDayId": "day-strength-1",
+                    "sourceProgramId": "program-strength",
+                    "tagsRequired": [
+                      "compound"
+                    ]
+                  }
+                ]
+              },
+              {
+                "classArchetype": "hybrid",
+                "macroWeek": 8,
+                "mesocycleIndex": 1,
+                "microcycleIndex": 3,
+                "plannedDayOfWeek": 2,
+                "programDayId": "day-strength-1",
+                "programDayName": "Strength Day 1",
+                "programId": "program-strength",
+                "sessionId": "program-strength-w8-d3",
+                "sessionIndex": 23,
+                "slotPayload": [
+                  {
+                    "movementPattern": "push",
+                    "muscleTargets": {
+                      "chest": 0.6,
+                      "shoulders": 0.4
+                    },
+                    "repsMax": 5,
+                    "repsMin": 3,
+                    "setsMax": 5,
+                    "setsMin": 4,
+                    "slotId": "slot-strength-main",
+                    "slotIndex": 0,
+                    "slotType": "main",
+                    "sourceProgramDayId": "day-strength-1",
+                    "sourceProgramId": "program-strength",
+                    "tagsRequired": [
+                      "compound"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "totalWeeks": 8
+          },
+          "primaryProgramId": "program-strength",
+          "programBlend": [
+            {
+              "programId": "program-strength",
+              "role": "primary",
+              "weight": 0.7
+            },
+            {
+              "programId": "program-hypertrophy",
+              "role": "secondary",
+              "weight": 0.3
+            }
+          ],
+          "resolvedClassArchetype": "hybrid"
+        },
+        "statePatch": {
+          "gamificationState": {
+            "adherenceStreak": 6,
+            "completedSessionCount": 12,
+            "lastAdherenceOutcomeClassification": "complete_clean",
+            "lastAwardedAt": "2026-02-10T10:00:00.000Z",
+            "level": 3,
+            "missedSessionCount": 0,
+            "xp": 140
+          }
+        },
+        "events": [],
+        "decisionLog": [
+          {
+            "details": {
+              "injuryMuscleGroupSlugs": [
+                "shoulders"
+              ],
+              "macrocycleWeeks": 8
+            },
+            "inputsUsed": [
+              {
+                "path": "request.profile.classChoice"
+              },
+              {
+                "path": "request.profile.availableDaysPerWeek"
+              },
+              {
+                "path": "request.profile.fatiguePreference"
+              }
+            ],
+            "outcome": "hybrid",
+            "ruleId": "initialize_profile",
+            "stepType": "initialize"
+          },
+          {
+            "candidateId": "program-strength",
+            "details": {
+              "fatigueAccessoryCap": 1,
+              "primaryProgramId": "program-strength"
+            },
+            "inputsUsed": [
+              {
+                "path": "request.selectedPrograms"
+              }
+            ],
+            "outcome": "primary_selected",
+            "ruleId": "program_blend",
+            "stepType": "blend"
+          },
+          {
+            "candidateId": "program-strength",
+            "computedValue": 24,
+            "details": {
+              "mesocycleCount": 2,
+              "sessionCount": 24
+            },
+            "inputsUsed": [
+              {
+                "path": "request.macrocycleWeeks"
+              },
+              {
+                "path": "request.selectedPrograms.days"
+              }
+            ],
+            "outcome": "expanded",
+            "ruleId": "macrocycle_expansion",
+            "stepType": "expand_cycle"
+          }
+        ],
+        "replayReceipt": {
+          "inputHash": "sha256:f0dea6dcadd1a6eed757f7adc16911b7a3392cff91f2283b10eb39acf2153c81",
+          "outputHash": "sha256:c0fdb2c08248e609c6e887f916f78b12b921daa8dc09ddee37117c5421ec98d1",
+          "seedUsed": "seed-initialize-cycle",
+          "effectiveAt": "2026-03-29T10:00:00.000Z",
+          "implementationVersion": "engine-rs-mvp-0",
+          "policyVersion": "policy-2026-02",
+          "referenceHash": "sha256:7d34baf77f4052e9341b76e9535c2a2627e50217825a830c2a7cd54476610757"
+        }
+      },
+      "expected": {
+        "referenceHash": "sha256:7d34baf77f4052e9341b76e9535c2a2627e50217825a830c2a7cd54476610757",
+        "inputHash": "sha256:f0dea6dcadd1a6eed757f7adc16911b7a3392cff91f2283b10eb39acf2153c81",
+        "outputHash": "sha256:c0fdb2c08248e609c6e887f916f78b12b921daa8dc09ddee37117c5421ec98d1"
+      }
+    },
+    {
+      "fixtureId": "plan-baseline",
+      "fixtureClass": "plan-session-baseline-empty-events",
+      "description": "Baseline plan_session fixture; output events is an empty array and remains replay material.",
+      "certificationMetadata": {
+        "materialScope": "canonical replay material and public output hash certification",
+        "fullOperationParity": "provided by Rust execution output; verifier certifies canonical material and hashes only",
+        "replayMaterialExcludes": [
+          "metadata"
+        ]
+      },
+      "input": {
+        "schemaVersion": "engine.v1",
+        "operation": "plan_session",
+        "determinism": {
+          "seed": "seed-plan-session-baseline",
+          "effectiveAt": "2026-02-13T10:00:00.000Z",
+          "ruleVersion": "rules-2026-02",
+          "referenceHash": "sha256:ba49fccccc6a22098b9cdd5dd9b26eb51617a0e52ab69183e4e64609dfe21fb4",
+          "canonicalizationVersion": "canon-replay-v1"
+        },
+        "referenceSnapshot": {
+          "exercises": [
+            {
+              "equipment": [
+                "barbell",
+                "bench"
+              ],
+              "id": "bench-press",
+              "movementPattern": "push",
+              "name": "Bench Press",
+              "slug": "bench-press",
+              "tags": [
+                "compound"
+              ]
+            },
+            {
+              "equipment": [
+                "dumbbells",
+                "bench"
+              ],
+              "id": "incline-dumbbell-press",
+              "movementPattern": "push",
+              "name": "Incline Dumbbell Press",
+              "slug": "incline-dumbbell-press",
+              "tags": [
+                "compound"
+              ]
+            },
+            {
+              "equipment": [
+                "barbell"
+              ],
+              "id": "barbell-row",
+              "movementPattern": "pull",
+              "name": "Barbell Row",
+              "slug": "barbell-row",
+              "tags": [
+                "compound"
+              ]
+            }
+          ],
+          "programs": [
+            {
+              "daysPerWeek": 3,
+              "id": "program-upper-1",
+              "name": "Upper Strength",
+              "slug": "upper-strength"
+            }
+          ],
+          "referenceVersion": "2026-02"
+        },
+        "stateSnapshot": {
+          "activeProgramState": {
+            "currentDayIndex": 1,
+            "currentMicrocycle": 2,
+            "programId": "program-upper-1"
+          },
+          "athleteProfile": {
+            "availableDaysPerWeek": 3,
+            "classArchetype": "hybrid",
+            "goalBias": "strength",
+            "height": 178,
+            "trainingAge": 3,
+            "weight": 82.5
+          },
+          "gamificationState": {
+            "adherenceStreak": 6,
+            "completedSessionCount": 12,
+            "lastAdherenceOutcomeClassification": "complete_clean",
+            "lastAwardedAt": "2026-02-10T10:00:00.000Z",
+            "level": 3,
+            "missedSessionCount": 0,
+            "xp": 140
+          },
+          "injuryState": {
+            "activeLimitations": [],
+            "blockedMovementPatterns": []
+          },
+          "performanceState": {
+            "knownLifts": {
+              "bench-press": {
+                "estimated1RM": 112.5,
+                "lastReps": 5,
+                "lastWeight": 100
+              }
+            }
+          },
+          "progressionState": {
+            "records": [
+              {
+                "consecutiveStallOrRegressionCount": 0,
+                "consecutiveSuccessfulCompletions": 1,
+                "currentAction": "maintain",
+                "exerciseId": "bench-press",
+                "lastCompletedAt": "2026-02-10T10:00:00.000Z",
+                "lastSessionOutcomeClassification": "complete_clean",
+                "previousPerformanceReference": {
+                  "reps": 5,
+                  "weight": 100
+                },
+                "swapRecommendationCount": 0,
+                "trend": "improving"
+              }
+            ]
+          },
+          "readinessState": {
+            "muscleFatigue": {
+              "back": 12,
+              "chest": 20
+            },
+            "systemicFatigue": "moderate"
+          },
+          "recentCompletions": [
+            {
+              "completedAt": "2026-02-10T10:00:00.000Z",
+              "exerciseId": "bench-press",
+              "quality": "complete_clean"
+            }
+          ]
+        },
+        "policySnapshot": {
+          "classArchetypeBias": 0.1,
+          "fatigueBlockThreshold": "severe",
+          "noveltyBudget": 1,
+          "seededTieBreakBand": 0.05
+        },
+        "request": {
+          "microcycleIndex": 2,
+          "programId": "program-upper-1",
+          "sessionFocus": "upper_push"
+        },
+        "metadata": {
+          "correlationId": "trace-plan-session-baseline"
+        }
+      },
+      "output": {
+        "schemaVersion": "engine.v1",
+        "operation": "plan_session",
+        "result": {
+          "progressionActionSummary": [
+            {
+              "action": "overload",
+              "exerciseId": "bench-press",
+              "trend": "improving"
+            },
+            {
+              "action": "maintain",
+              "exerciseId": "incline-dumbbell-press",
+              "trend": "stalled"
+            }
+          ],
+          "recommendedMovementFamily": "upper_push",
+          "recommendedSessionId": "program-upper-1-upper-push-m2",
+          "scoreBreakdown": {
+            "classBias": 0.1,
+            "fatigueCompatibility": 0.88,
+            "novelty": 0.02,
+            "progressionNeed": 0.92
+          },
+          "selectedExerciseIds": [
+            "bench-press",
+            "incline-dumbbell-press"
+          ],
+          "sessionRationale": "Fresh enough to overload the main push pattern while preserving shoulder safety."
+        },
+        "statePatch": {},
+        "events": [],
+        "decisionLog": [
+          {
+            "details": {
+              "enumeratedCandidateIds": [
+                "bench-press",
+                "incline-dumbbell-press",
+                "barbell-row"
+              ],
+              "preferredScopeBucket": "push",
+              "resolvedFocus": "upper_push",
+              "survivingScopeBucket": "push",
+              "wideningApplied": false
+            },
+            "inputsUsed": [
+              {
+                "path": "request.sessionFocus"
+              },
+              {
+                "path": "referenceSnapshot.exercises"
+              }
+            ],
+            "outcome": "preferred_scope",
+            "ruleId": "candidate_scope",
+            "stepType": "scope"
+          },
+          {
+            "details": {
+              "blocked": [],
+              "evaluatedCandidateIds": [
+                "bench-press",
+                "incline-dumbbell-press",
+                "barbell-row"
+              ],
+              "survivingCandidateIds": [
+                "bench-press",
+                "incline-dumbbell-press"
+              ]
+            },
+            "inputsUsed": [
+              {
+                "path": "stateSnapshot.injuryState.blockedMovementPatterns"
+              },
+              {
+                "path": "stateSnapshot.injuryState.activeLimitations"
+              },
+              {
+                "path": "stateSnapshot.readinessState.systemicFatigue"
+              }
+            ],
+            "outcome": "survivors_retained",
+            "ruleId": "candidate_filter",
+            "stepType": "filter"
+          },
+          {
+            "candidateId": "bench-press",
+            "computedValue": 0.84,
+            "details": {
+              "breakdown": {
+                "classBias": 0.1,
+                "fatigueCompatibility": 0.88,
+                "novelty": 0.02,
+                "progressionNeed": 0.92
+              },
+              "eligibleForTopBand": true,
+              "rankPosition": 1
+            },
+            "inputsUsed": [
+              {
+                "path": "stateSnapshot.progressionState.records",
+                "stableId": "bench-press"
+              },
+              {
+                "path": "stateSnapshot.readinessState.muscleFatigue",
+                "stableId": "bench-press"
+              },
+              {
+                "path": "policySnapshot.classArchetypeBias"
+              },
+              {
+                "path": "policySnapshot.noveltyBudget"
+              }
+            ],
+            "outcome": "scored",
+            "ruleId": "soft_scoring",
+            "stepType": "score"
+          },
+          {
+            "candidateId": "incline-dumbbell-press",
+            "computedValue": 0.81,
+            "details": {
+              "breakdown": {
+                "classBias": 0.1,
+                "fatigueCompatibility": 0.88,
+                "novelty": 0.02,
+                "progressionNeed": 0.85
+              },
+              "eligibleForTopBand": true,
+              "rankPosition": 2
+            },
+            "inputsUsed": [
+              {
+                "path": "stateSnapshot.progressionState.records",
+                "stableId": "incline-dumbbell-press"
+              },
+              {
+                "path": "stateSnapshot.readinessState.muscleFatigue",
+                "stableId": "incline-dumbbell-press"
+              },
+              {
+                "path": "policySnapshot.classArchetypeBias"
+              },
+              {
+                "path": "policySnapshot.noveltyBudget"
+              }
+            ],
+            "outcome": "scored",
+            "ruleId": "soft_scoring",
+            "stepType": "score"
+          },
+          {
+            "computedValue": 0,
+            "details": {
+              "bandWidth": 0.05,
+              "eligibleCandidateIds": [
+                "bench-press",
+                "incline-dumbbell-press"
+              ],
+              "selectedCandidateId": "bench-press",
+              "selectedIndex": 0,
+              "topScore": 0.84
+            },
+            "inputsUsed": [
+              {
+                "path": "determinism.seed"
+              },
+              {
+                "path": "request.microcycleIndex"
+              }
+            ],
+            "outcome": "selected",
+            "ruleId": "seeded_selection",
+            "stepType": "tie_break"
+          },
+          {
+            "candidateId": "bench-press",
+            "details": {
+              "rankedCandidateIds": [
+                "bench-press",
+                "incline-dumbbell-press"
+              ],
+              "selectedCandidateId": "bench-press"
+            },
+            "outcome": "selected",
+            "ruleId": "final_selection",
+            "stepType": "final_selection"
+          }
+        ],
+        "replayReceipt": {
+          "inputHash": "sha256:e91c90236357dee55876a4cc87d8b0b6411a0402d64195e06875726e62ac5bda",
+          "outputHash": "sha256:2c83284194f6d37c8f4a323d1b5095d022d1162c621ee505810b01c5200442f3",
+          "seedUsed": "seed-plan-session-baseline",
+          "effectiveAt": "2026-02-13T10:00:00.000Z",
+          "implementationVersion": "engine-rs-mvp-0",
+          "policyVersion": "policy-2026-02",
+          "referenceHash": "sha256:ba49fccccc6a22098b9cdd5dd9b26eb51617a0e52ab69183e4e64609dfe21fb4"
+        }
+      },
+      "expected": {
+        "referenceHash": "sha256:ba49fccccc6a22098b9cdd5dd9b26eb51617a0e52ab69183e4e64609dfe21fb4",
+        "inputHash": "sha256:e91c90236357dee55876a4cc87d8b0b6411a0402d64195e06875726e62ac5bda",
+        "outputHash": "sha256:2c83284194f6d37c8f4a323d1b5095d022d1162c621ee505810b01c5200442f3"
+      }
+    },
+    {
+      "fixtureId": "plan-no-solution",
+      "fixtureClass": "plan-session-deterministic-rejection",
+      "description": "Plan-session deterministic rejection fixture.",
+      "certificationMetadata": {
+        "materialScope": "canonical replay material and public output hash certification",
+        "fullOperationParity": "provided by Rust execution output; verifier certifies canonical material and hashes only",
+        "replayMaterialExcludes": [
+          "metadata"
+        ]
+      },
+      "input": {
+        "schemaVersion": "engine.v1",
+        "operation": "plan_session",
+        "determinism": {
+          "seed": "seed-plan-session-baseline",
+          "effectiveAt": "2026-02-13T10:00:00.000Z",
+          "ruleVersion": "rules-2026-02",
+          "referenceHash": "sha256:ba49fccccc6a22098b9cdd5dd9b26eb51617a0e52ab69183e4e64609dfe21fb4",
+          "canonicalizationVersion": "canon-replay-v1"
+        },
+        "referenceSnapshot": {
+          "exercises": [
+            {
+              "equipment": [
+                "barbell",
+                "bench"
+              ],
+              "id": "bench-press",
+              "movementPattern": "push",
+              "name": "Bench Press",
+              "slug": "bench-press",
+              "tags": [
+                "compound"
+              ]
+            },
+            {
+              "equipment": [
+                "dumbbells",
+                "bench"
+              ],
+              "id": "incline-dumbbell-press",
+              "movementPattern": "push",
+              "name": "Incline Dumbbell Press",
+              "slug": "incline-dumbbell-press",
+              "tags": [
+                "compound"
+              ]
+            },
+            {
+              "equipment": [
+                "barbell"
+              ],
+              "id": "barbell-row",
+              "movementPattern": "pull",
+              "name": "Barbell Row",
+              "slug": "barbell-row",
+              "tags": [
+                "compound"
+              ]
+            }
+          ],
+          "programs": [
+            {
+              "daysPerWeek": 3,
+              "id": "program-upper-1",
+              "name": "Upper Strength",
+              "slug": "upper-strength"
+            }
+          ],
+          "referenceVersion": "2026-02"
+        },
+        "stateSnapshot": {
+          "activeProgramState": {
+            "currentDayIndex": 1,
+            "currentMicrocycle": 2,
+            "programId": "program-upper-1"
+          },
+          "athleteProfile": {
+            "availableDaysPerWeek": 3,
+            "classArchetype": "hybrid",
+            "goalBias": "strength",
+            "height": 178,
+            "trainingAge": 3,
+            "weight": 82.5
+          },
+          "gamificationState": {
+            "adherenceStreak": 6,
+            "completedSessionCount": 12,
+            "lastAdherenceOutcomeClassification": "complete_clean",
+            "lastAwardedAt": "2026-02-10T10:00:00.000Z",
+            "level": 3,
+            "missedSessionCount": 0,
+            "xp": 140
+          },
+          "injuryState": {
+            "activeLimitations": [
+              "shoulder",
+              "elbow",
+              "back"
+            ],
+            "blockedMovementPatterns": [
+              "push",
+              "pull"
+            ]
+          },
+          "performanceState": {
+            "knownLifts": {
+              "bench-press": {
+                "estimated1RM": 112.5,
+                "lastReps": 5,
+                "lastWeight": 100
+              }
+            }
+          },
+          "progressionState": {
+            "records": [
+              {
+                "consecutiveStallOrRegressionCount": 0,
+                "consecutiveSuccessfulCompletions": 1,
+                "currentAction": "maintain",
+                "exerciseId": "bench-press",
+                "lastCompletedAt": "2026-02-10T10:00:00.000Z",
+                "lastSessionOutcomeClassification": "complete_clean",
+                "previousPerformanceReference": {
+                  "reps": 5,
+                  "weight": 100
+                },
+                "swapRecommendationCount": 0,
+                "trend": "improving"
+              }
+            ]
+          },
+          "readinessState": {
+            "muscleFatigue": {
+              "back": 12,
+              "chest": 20
+            },
+            "systemicFatigue": "severe"
+          },
+          "recentCompletions": [
+            {
+              "completedAt": "2026-02-10T10:00:00.000Z",
+              "exerciseId": "bench-press",
+              "quality": "complete_clean"
+            }
+          ]
+        },
+        "policySnapshot": {
+          "classArchetypeBias": 0.1,
+          "fatigueBlockThreshold": "moderate",
+          "noveltyBudget": 1,
+          "seededTieBreakBand": 0.05
+        },
+        "request": {
+          "microcycleIndex": 2,
+          "programId": "program-upper-1",
+          "sessionFocus": "upper_push"
+        },
+        "metadata": {
+          "correlationId": "trace-plan-session-baseline"
+        }
+      },
+      "output": {
+        "schemaVersion": "engine.v1",
+        "operation": "plan_session",
+        "result": {
+          "blockedCandidateIds": [
+            "barbell-row",
+            "bench-press",
+            "incline-dumbbell-press"
+          ],
+          "rejectionCode": "injury_blocked",
+          "status": "deterministic_rejection"
+        },
+        "statePatch": {},
+        "events": [],
+        "decisionLog": [
+          {
+            "details": {
+              "enumeratedCandidateIds": [
+                "bench-press",
+                "incline-dumbbell-press",
+                "barbell-row"
+              ],
+              "preferredScopeBucket": "push",
+              "resolvedFocus": "upper_push",
+              "survivingScopeBucket": "push",
+              "wideningApplied": true
+            },
+            "inputsUsed": [
+              {
+                "path": "request.sessionFocus"
+              },
+              {
+                "path": "referenceSnapshot.exercises"
+              }
+            ],
+            "outcome": "widened",
+            "ruleId": "candidate_scope",
+            "stepType": "scope"
+          },
+          {
+            "details": {
+              "blocked": [
+                {
+                  "candidateId": "bench-press",
+                  "category": "fatigue_safety",
+                  "code": "fatigue_blocked",
+                  "detailCode": "severe_systemic_fatigue"
+                },
+                {
+                  "candidateId": "bench-press",
+                  "category": "injury_safety",
+                  "code": "injury_blocked",
+                  "detailCode": "blocked_movement_pattern"
+                },
+                {
+                  "candidateId": "incline-dumbbell-press",
+                  "category": "fatigue_safety",
+                  "code": "fatigue_blocked",
+                  "detailCode": "severe_systemic_fatigue"
+                },
+                {
+                  "candidateId": "incline-dumbbell-press",
+                  "category": "injury_safety",
+                  "code": "injury_blocked",
+                  "detailCode": "blocked_movement_pattern"
+                },
+                {
+                  "candidateId": "barbell-row",
+                  "category": "injury_safety",
+                  "code": "injury_blocked",
+                  "detailCode": "blocked_movement_pattern"
+                }
+              ],
+              "evaluatedCandidateIds": [
+                "bench-press",
+                "incline-dumbbell-press",
+                "barbell-row"
+              ],
+              "survivingCandidateIds": []
+            },
+            "inputsUsed": [
+              {
+                "path": "stateSnapshot.injuryState.blockedMovementPatterns"
+              },
+              {
+                "path": "stateSnapshot.injuryState.activeLimitations"
+              },
+              {
+                "path": "stateSnapshot.readinessState.systemicFatigue"
+              }
+            ],
+            "outcome": "deterministic_rejection",
+            "ruleId": "candidate_filter",
+            "stepType": "filter"
+          }
+        ],
+        "replayReceipt": {
+          "inputHash": "sha256:55cb392e2e8945c4fcfc656ece26d418f5e3ddeb55c02374825ae0e6f5ccffe3",
+          "outputHash": "sha256:ffb96448cf7c7c930be4910f91bb1b46af68f9e4950a5dbb0d5bb08461c5c88b",
+          "seedUsed": "seed-plan-session-baseline",
+          "effectiveAt": "2026-02-13T10:00:00.000Z",
+          "implementationVersion": "engine-rs-mvp-0",
+          "policyVersion": "policy-2026-02",
+          "referenceHash": "sha256:ba49fccccc6a22098b9cdd5dd9b26eb51617a0e52ab69183e4e64609dfe21fb4"
+        }
+      },
+      "expected": {
+        "referenceHash": "sha256:ba49fccccc6a22098b9cdd5dd9b26eb51617a0e52ab69183e4e64609dfe21fb4",
+        "inputHash": "sha256:55cb392e2e8945c4fcfc656ece26d418f5e3ddeb55c02374825ae0e6f5ccffe3",
+        "outputHash": "sha256:ffb96448cf7c7c930be4910f91bb1b46af68f9e4950a5dbb0d5bb08461c5c88b"
+      }
+    },
+    {
+      "fixtureId": "plan-injury-blocked",
+      "fixtureClass": "numeric-boundary-case",
+      "description": "Valid numeric boundary fixture using classArchetypeBias at 0.15.",
+      "certificationMetadata": {
+        "materialScope": "canonical replay material and public output hash certification",
+        "fullOperationParity": "provided by Rust execution output; verifier certifies canonical material and hashes only",
+        "replayMaterialExcludes": [
+          "metadata"
+        ]
+      },
+      "input": {
+        "schemaVersion": "engine.v1",
+        "operation": "plan_session",
+        "determinism": {
+          "seed": "seed-plan-session-baseline",
+          "effectiveAt": "2026-02-13T10:00:00.000Z",
+          "ruleVersion": "rules-2026-02",
+          "referenceHash": "sha256:ba49fccccc6a22098b9cdd5dd9b26eb51617a0e52ab69183e4e64609dfe21fb4",
+          "canonicalizationVersion": "canon-replay-v1"
+        },
+        "referenceSnapshot": {
+          "exercises": [
+            {
+              "equipment": [
+                "barbell",
+                "bench"
+              ],
+              "id": "bench-press",
+              "movementPattern": "push",
+              "name": "Bench Press",
+              "slug": "bench-press",
+              "tags": [
+                "compound"
+              ]
+            },
+            {
+              "equipment": [
+                "dumbbells",
+                "bench"
+              ],
+              "id": "incline-dumbbell-press",
+              "movementPattern": "push",
+              "name": "Incline Dumbbell Press",
+              "slug": "incline-dumbbell-press",
+              "tags": [
+                "compound"
+              ]
+            },
+            {
+              "equipment": [
+                "barbell"
+              ],
+              "id": "barbell-row",
+              "movementPattern": "pull",
+              "name": "Barbell Row",
+              "slug": "barbell-row",
+              "tags": [
+                "compound"
+              ]
+            }
+          ],
+          "programs": [
+            {
+              "daysPerWeek": 3,
+              "id": "program-upper-1",
+              "name": "Upper Strength",
+              "slug": "upper-strength"
+            }
+          ],
+          "referenceVersion": "2026-02"
+        },
+        "stateSnapshot": {
+          "activeProgramState": {
+            "currentDayIndex": 1,
+            "currentMicrocycle": 2,
+            "programId": "program-upper-1"
+          },
+          "athleteProfile": {
+            "availableDaysPerWeek": 3,
+            "classArchetype": "hybrid",
+            "goalBias": "strength",
+            "height": 178,
+            "trainingAge": 3,
+            "weight": 82.5
+          },
+          "gamificationState": {
+            "adherenceStreak": 6,
+            "completedSessionCount": 12,
+            "lastAdherenceOutcomeClassification": "complete_clean",
+            "lastAwardedAt": "2026-02-10T10:00:00.000Z",
+            "level": 3,
+            "missedSessionCount": 0,
+            "xp": 140
+          },
+          "injuryState": {
+            "activeLimitations": [
+              "shoulder"
+            ],
+            "blockedMovementPatterns": [
+              "push"
+            ]
+          },
+          "performanceState": {
+            "knownLifts": {
+              "bench-press": {
+                "estimated1RM": 112.5,
+                "lastReps": 5,
+                "lastWeight": 100
+              }
+            }
+          },
+          "progressionState": {
+            "records": [
+              {
+                "consecutiveStallOrRegressionCount": 0,
+                "consecutiveSuccessfulCompletions": 1,
+                "currentAction": "maintain",
+                "exerciseId": "bench-press",
+                "lastCompletedAt": "2026-02-10T10:00:00.000Z",
+                "lastSessionOutcomeClassification": "complete_clean",
+                "previousPerformanceReference": {
+                  "reps": 5,
+                  "weight": 100
+                },
+                "swapRecommendationCount": 0,
+                "trend": "improving"
+              }
+            ]
+          },
+          "readinessState": {
+            "muscleFatigue": {
+              "back": 12,
+              "chest": 20
+            },
+            "systemicFatigue": "moderate"
+          },
+          "recentCompletions": [
+            {
+              "completedAt": "2026-02-10T10:00:00.000Z",
+              "exerciseId": "bench-press",
+              "quality": "complete_clean"
+            }
+          ]
+        },
+        "policySnapshot": {
+          "classArchetypeBias": 0.15,
+          "fatigueBlockThreshold": "severe",
+          "noveltyBudget": 1,
+          "seededTieBreakBand": 0.05
+        },
+        "request": {
+          "microcycleIndex": 2,
+          "programId": "program-upper-1",
+          "sessionFocus": "upper_push"
+        },
+        "metadata": {
+          "correlationId": "trace-plan-session-baseline"
+        }
+      },
+      "output": {
+        "schemaVersion": "engine.v1",
+        "operation": "plan_session",
+        "result": {
+          "progressionActionSummary": [
+            {
+              "action": "maintain",
+              "exerciseId": "barbell-row",
+              "trend": "stalled"
+            }
+          ],
+          "recommendedMovementFamily": "upper_pull",
+          "recommendedSessionId": "program-upper-1-upper-push-m2",
+          "scoreBreakdown": {
+            "classBias": 0.15,
+            "fatigueCompatibility": 0.9,
+            "novelty": 0.02,
+            "progressionNeed": 0.85
+          },
+          "selectedExerciseIds": [
+            "barbell-row"
+          ],
+          "sessionRationale": "Session leans toward maintain for upper_pull."
+        },
+        "statePatch": {},
+        "events": [],
+        "decisionLog": [
+          {
+            "details": {
+              "enumeratedCandidateIds": [
+                "bench-press",
+                "incline-dumbbell-press",
+                "barbell-row"
+              ],
+              "preferredScopeBucket": "push",
+              "resolvedFocus": "upper_push",
+              "survivingScopeBucket": "pull",
+              "wideningApplied": true
+            },
+            "inputsUsed": [
+              {
+                "path": "request.sessionFocus"
+              },
+              {
+                "path": "referenceSnapshot.exercises"
+              }
+            ],
+            "outcome": "widened",
+            "ruleId": "candidate_scope",
+            "stepType": "scope"
+          },
+          {
+            "details": {
+              "blocked": [
+                {
+                  "candidateId": "bench-press",
+                  "category": "injury_safety",
+                  "code": "injury_blocked",
+                  "detailCode": "blocked_movement_pattern"
+                },
+                {
+                  "candidateId": "incline-dumbbell-press",
+                  "category": "injury_safety",
+                  "code": "injury_blocked",
+                  "detailCode": "blocked_movement_pattern"
+                }
+              ],
+              "evaluatedCandidateIds": [
+                "bench-press",
+                "incline-dumbbell-press",
+                "barbell-row"
+              ],
+              "survivingCandidateIds": [
+                "barbell-row"
+              ]
+            },
+            "inputsUsed": [
+              {
+                "path": "stateSnapshot.injuryState.blockedMovementPatterns"
+              },
+              {
+                "path": "stateSnapshot.injuryState.activeLimitations"
+              },
+              {
+                "path": "stateSnapshot.readinessState.systemicFatigue"
+              }
+            ],
+            "outcome": "survivors_retained",
+            "ruleId": "candidate_filter",
+            "stepType": "filter"
+          },
+          {
+            "candidateId": "barbell-row",
+            "computedValue": 0.87,
+            "details": {
+              "breakdown": {
+                "classBias": 0.15,
+                "fatigueCompatibility": 0.9,
+                "novelty": 0.02,
+                "progressionNeed": 0.85
+              },
+              "eligibleForTopBand": true,
+              "rankPosition": 1
+            },
+            "inputsUsed": [
+              {
+                "path": "stateSnapshot.progressionState.records",
+                "stableId": "barbell-row"
+              },
+              {
+                "path": "stateSnapshot.readinessState.muscleFatigue",
+                "stableId": "barbell-row"
+              },
+              {
+                "path": "policySnapshot.classArchetypeBias"
+              },
+              {
+                "path": "policySnapshot.noveltyBudget"
+              }
+            ],
+            "outcome": "scored",
+            "ruleId": "soft_scoring",
+            "stepType": "score"
+          },
+          {
+            "details": {
+              "bandWidth": 0.05,
+              "eligibleCandidateIds": [
+                "barbell-row"
+              ],
+              "selectedCandidateId": "barbell-row",
+              "topScore": 0.87
+            },
+            "inputsUsed": [
+              {
+                "path": "determinism.seed"
+              },
+              {
+                "path": "request.microcycleIndex"
+              }
+            ],
+            "outcome": "not_needed",
+            "ruleId": "seeded_selection",
+            "stepType": "tie_break"
+          },
+          {
+            "candidateId": "barbell-row",
+            "details": {
+              "rankedCandidateIds": [
+                "barbell-row"
+              ],
+              "selectedCandidateId": "barbell-row"
+            },
+            "outcome": "selected",
+            "ruleId": "final_selection",
+            "stepType": "final_selection"
+          }
+        ],
+        "replayReceipt": {
+          "inputHash": "sha256:30704a4683a5ed2b91bf4f4049bba5aa283fbf1ba803477cff1ab4e7bef9f586",
+          "outputHash": "sha256:1c70159928e56e5a0e124b3e30c818b6c34384af593f6f925eb51a1cf49283e8",
+          "seedUsed": "seed-plan-session-baseline",
+          "effectiveAt": "2026-02-13T10:00:00.000Z",
+          "implementationVersion": "engine-rs-mvp-0",
+          "policyVersion": "policy-2026-02",
+          "referenceHash": "sha256:ba49fccccc6a22098b9cdd5dd9b26eb51617a0e52ab69183e4e64609dfe21fb4"
+        }
+      },
+      "expected": {
+        "referenceHash": "sha256:ba49fccccc6a22098b9cdd5dd9b26eb51617a0e52ab69183e4e64609dfe21fb4",
+        "inputHash": "sha256:30704a4683a5ed2b91bf4f4049bba5aa283fbf1ba803477cff1ab4e7bef9f586",
+        "outputHash": "sha256:1c70159928e56e5a0e124b3e30c818b6c34384af593f6f925eb51a1cf49283e8"
+      }
+    },
+    {
+      "fixtureId": "complete-baseline",
+      "fixtureClass": "complete-session-baseline",
+      "description": "Baseline complete_session fixture.",
+      "certificationMetadata": {
+        "materialScope": "canonical replay material and public output hash certification",
+        "fullOperationParity": "provided by Rust execution output; verifier certifies canonical material and hashes only",
+        "replayMaterialExcludes": [
+          "metadata",
+          "request.session.notes",
+          "request.session.exercises[].sets[].notes"
+        ]
+      },
+      "input": {
+        "schemaVersion": "engine.v1",
+        "operation": "complete_session",
+        "determinism": {
+          "seed": "seed-plan-session-baseline",
+          "effectiveAt": "2026-02-13T10:00:00.000Z",
+          "ruleVersion": "rules-2026-02",
+          "referenceHash": "sha256:ba49fccccc6a22098b9cdd5dd9b26eb51617a0e52ab69183e4e64609dfe21fb4",
+          "canonicalizationVersion": "canon-replay-v1"
+        },
+        "referenceSnapshot": {
+          "exercises": [
+            {
+              "equipment": [
+                "barbell",
+                "bench"
+              ],
+              "id": "bench-press",
+              "movementPattern": "push",
+              "name": "Bench Press",
+              "slug": "bench-press",
+              "tags": [
+                "compound"
+              ]
+            },
+            {
+              "equipment": [
+                "dumbbells",
+                "bench"
+              ],
+              "id": "incline-dumbbell-press",
+              "movementPattern": "push",
+              "name": "Incline Dumbbell Press",
+              "slug": "incline-dumbbell-press",
+              "tags": [
+                "compound"
+              ]
+            },
+            {
+              "equipment": [
+                "barbell"
+              ],
+              "id": "barbell-row",
+              "movementPattern": "pull",
+              "name": "Barbell Row",
+              "slug": "barbell-row",
+              "tags": [
+                "compound"
+              ]
+            }
+          ],
+          "programs": [
+            {
+              "daysPerWeek": 3,
+              "id": "program-upper-1",
+              "name": "Upper Strength",
+              "slug": "upper-strength"
+            }
+          ],
+          "referenceVersion": "2026-02"
+        },
+        "stateSnapshot": {
+          "activeProgramState": {
+            "currentDayIndex": 1,
+            "currentMicrocycle": 2,
+            "programId": "program-upper-1"
+          },
+          "athleteProfile": {
+            "availableDaysPerWeek": 3,
+            "classArchetype": "hybrid",
+            "goalBias": "strength",
+            "height": 178,
+            "trainingAge": 3,
+            "weight": 82.5
+          },
+          "gamificationState": {
+            "adherenceStreak": 6,
+            "completedSessionCount": 12,
+            "lastAdherenceOutcomeClassification": "complete_clean",
+            "lastAwardedAt": "2026-02-10T10:00:00.000Z",
+            "level": 3,
+            "missedSessionCount": 0,
+            "xp": 140
+          },
+          "injuryState": {
+            "activeLimitations": [],
+            "blockedMovementPatterns": []
+          },
+          "performanceState": {
+            "knownLifts": {
+              "bench-press": {
+                "estimated1RM": 112.5,
+                "lastReps": 5,
+                "lastWeight": 100
+              }
+            }
+          },
+          "progressionState": {
+            "records": [
+              {
+                "consecutiveStallOrRegressionCount": 0,
+                "consecutiveSuccessfulCompletions": 1,
+                "currentAction": "maintain",
+                "exerciseId": "bench-press",
+                "lastCompletedAt": "2026-02-10T10:00:00.000Z",
+                "lastSessionOutcomeClassification": "complete_clean",
+                "previousPerformanceReference": {
+                  "reps": 5,
+                  "weight": 100
+                },
+                "swapRecommendationCount": 0,
+                "trend": "improving"
+              }
+            ]
+          },
+          "readinessState": {
+            "muscleFatigue": {
+              "back": 12,
+              "chest": 20
+            },
+            "systemicFatigue": "moderate"
+          },
+          "recentCompletions": [
+            {
+              "completedAt": "2026-02-10T10:00:00.000Z",
+              "exerciseId": "bench-press",
+              "quality": "complete_clean"
+            }
+          ]
+        },
+        "policySnapshot": {
+          "classArchetypeBias": 0.1,
+          "fatigueBlockThreshold": "severe",
+          "noveltyBudget": 1,
+          "seededTieBreakBand": 0.05
+        },
+        "request": {
+          "session": {
+            "completedAt": "2026-02-13T11:10:00.000Z",
+            "exercises": [
+              {
+                "exerciseId": "bench-press",
+                "sets": [
+                  {
+                    "notes": "Top set",
+                    "reps": 5,
+                    "rir": 2,
+                    "setIndex": 0,
+                    "weight": 100
+                  },
+                  {
+                    "reps": 5,
+                    "rir": 1,
+                    "setIndex": 1,
+                    "weight": 100
+                  }
+                ],
+                "slotId": "slot-bench-1"
+              }
+            ],
+            "notes": "Felt solid",
+            "overallRpe": 8,
+            "programDayId": "program-day-upper-1",
+            "seed": "seed-plan-session-baseline",
+            "startedAt": "2026-02-13T10:00:00.000Z"
+          }
+        },
+        "metadata": {
+          "correlationId": "trace-plan-session-baseline"
+        }
+      },
+      "output": {
+        "schemaVersion": "engine.v1",
+        "operation": "complete_session",
+        "result": {
+          "awardedXpSummary": {
+            "reason": "completed_recommended_session",
+            "streakDelta": 1,
+            "xpDelta": 15
+          },
+          "levelUpIndicator": false,
+          "sessionOutcomeClassification": "complete_compromised",
+          "updatedProgressionActionSummary": [
+            {
+              "action": "maintain",
+              "exerciseId": "bench-press",
+              "trend": "improving"
+            }
+          ],
+          "warnings": [
+            "future_choices_tightened"
+          ]
+        },
+        "statePatch": {
+          "gamificationState": {
+            "adherenceStreak": 7,
+            "completedSessionCount": 13,
+            "lastAdherenceOutcomeClassification": "complete_compromised",
+            "lastAwardedAt": "2026-02-13T11:10:00.000Z",
+            "level": 3,
+            "missedSessionCount": 0,
+            "xp": 155
+          },
+          "progressionState": {
+            "bench-press": {
+              "consecutiveStallOrRegressionCount": 0,
+              "consecutiveSuccessfulCompletions": 2,
+              "currentAction": "maintain",
+              "lastCompletedAt": "2026-02-13T11:10:00.000Z",
+              "lastSessionOutcomeClassification": "complete_compromised",
+              "lastSuccessfulLoad": {
+                "reps": 5,
+                "weight": 100
+              },
+              "swapRecommendationCount": 0,
+              "trend": "improving"
+            }
+          },
+          "readinessState": {
+            "systemicFatigue": "moderate"
+          }
+        },
+        "events": [],
+        "decisionLog": [
+          {
+            "details": {
+              "primaryExerciseId": "bench-press",
+              "progressionActionBefore": "maintain",
+              "progressionTrendBefore": "improving",
+              "sessionOutcomeClassification": "complete_compromised"
+            },
+            "inputsUsed": [
+              {
+                "path": "request.session.overallRpe"
+              },
+              {
+                "path": "request.session.exercises",
+                "stableId": "bench-press"
+              },
+              {
+                "path": "stateSnapshot.progressionState.records",
+                "stableId": "bench-press"
+              },
+              {
+                "path": "stateSnapshot.readinessState.systemicFatigue"
+              }
+            ],
+            "outcome": "complete_compromised",
+            "ruleId": "completion_quality",
+            "stepType": "classify"
+          },
+          {
+            "candidateId": "bench-press",
+            "details": {
+              "gamificationUpdate": {
+                "adherenceStreakAfter": 7,
+                "adherenceStreakBefore": 6,
+                "completedSessionCountAfter": 13,
+                "completedSessionCountBefore": 12,
+                "lastAdherenceOutcomeClassificationAfter": "complete_compromised",
+                "lastAwardedAtAfter": "2026-02-13T11:10:00.000Z",
+                "levelAfter": 3,
+                "levelBefore": 3,
+                "missedSessionCountAfter": 0,
+                "missedSessionCountBefore": 0,
+                "xpAfter": 155,
+                "xpBefore": 140
+              },
+              "progressionUpdates": [
+                {
+                  "actionAfter": "maintain",
+                  "actionBefore": "maintain",
+                  "consecutiveStallOrRegressionCountAfter": 0,
+                  "consecutiveStallOrRegressionCountBefore": 0,
+                  "consecutiveSuccessfulCompletionsAfter": 2,
+                  "consecutiveSuccessfulCompletionsBefore": 1,
+                  "exerciseId": "bench-press",
+                  "lastCompletedAtAfter": "2026-02-13T11:10:00.000Z",
+                  "lastSessionOutcomeClassificationAfter": "complete_compromised",
+                  "swapRecommendationCountAfter": 0,
+                  "swapRecommendationCountBefore": 0,
+                  "trendAfter": "improving",
+                  "trendBefore": "improving"
+                }
+              ],
+              "readinessUpdate": {
+                "systemicFatigueAfter": "moderate",
+                "systemicFatigueBefore": "moderate"
+              },
+              "recentCompletionUpdate": {
+                "retainedCompletions": [
+                  {
+                    "completedAt": "2026-02-10T10:00:00.000Z",
+                    "exerciseId": "bench-press",
+                    "quality": "complete_clean"
+                  },
+                  {
+                    "completedAt": "2026-02-13T11:10:00.000Z",
+                    "exerciseId": "bench-press",
+                    "quality": "complete_compromised"
+                  }
+                ]
+              },
+              "touchedBuckets": [
+                "progressionState",
+                "readinessState",
+                "gamificationState"
+              ]
+            },
+            "inputsUsed": [
+              {
+                "path": "stateSnapshot.progressionState.records",
+                "stableId": "bench-press"
+              },
+              {
+                "path": "stateSnapshot.readinessState.systemicFatigue"
+              },
+              {
+                "path": "stateSnapshot.gamificationState"
+              },
+              {
+                "path": "stateSnapshot.recentCompletions"
+              }
+            ],
+            "outcome": "applied",
+            "ruleId": "state_update",
+            "stepType": "state_update"
+          },
+          {
+            "computedValue": 15,
+            "details": {
+              "levelAfter": 3,
+              "levelBefore": 3,
+              "levelUp": false,
+              "streakDelta": 1
+            },
+            "inputsUsed": [
+              {
+                "path": "stateSnapshot.gamificationState.xp"
+              },
+              {
+                "path": "stateSnapshot.gamificationState.adherenceStreak"
+              }
+            ],
+            "outcome": "applied",
+            "ruleId": "completion_reward",
+            "stepType": "award_xp"
+          }
+        ],
+        "replayReceipt": {
+          "inputHash": "sha256:78bbdd3421d5604e241a75f3386abf3d41a1e470893d56d5f53802dd85413b68",
+          "outputHash": "sha256:c16a32f0275696f2c037069e30ae026e54751ba9e8dcac5cd20951e817d8e6d4",
+          "seedUsed": "seed-plan-session-baseline",
+          "effectiveAt": "2026-02-13T10:00:00.000Z",
+          "implementationVersion": "engine-rs-mvp-0",
+          "policyVersion": "policy-2026-02",
+          "referenceHash": "sha256:ba49fccccc6a22098b9cdd5dd9b26eb51617a0e52ab69183e4e64609dfe21fb4"
+        }
+      },
+      "expected": {
+        "referenceHash": "sha256:ba49fccccc6a22098b9cdd5dd9b26eb51617a0e52ab69183e4e64609dfe21fb4",
+        "inputHash": "sha256:78bbdd3421d5604e241a75f3386abf3d41a1e470893d56d5f53802dd85413b68",
+        "outputHash": "sha256:c16a32f0275696f2c037069e30ae026e54751ba9e8dcac5cd20951e817d8e6d4"
+      }
+    },
+    {
+      "fixtureId": "complete-note-only-variant",
+      "fixtureClass": "complete-session-note-only-non-material",
+      "description": "Complete-session variant that changes free-text notes and metadata only.",
+      "certificationMetadata": {
+        "materialScope": "canonical replay material and public output hash certification",
+        "fullOperationParity": "provided by Rust execution output; verifier certifies canonical material and hashes only",
+        "replayMaterialExcludes": [
+          "metadata",
+          "request.session.notes",
+          "request.session.exercises[].sets[].notes"
+        ]
+      },
+      "input": {
+        "schemaVersion": "engine.v1",
+        "operation": "complete_session",
+        "determinism": {
+          "seed": "seed-plan-session-baseline",
+          "effectiveAt": "2026-02-13T10:00:00.000Z",
+          "ruleVersion": "rules-2026-02",
+          "referenceHash": "sha256:ba49fccccc6a22098b9cdd5dd9b26eb51617a0e52ab69183e4e64609dfe21fb4",
+          "canonicalizationVersion": "canon-replay-v1"
+        },
+        "referenceSnapshot": {
+          "exercises": [
+            {
+              "equipment": [
+                "barbell",
+                "bench"
+              ],
+              "id": "bench-press",
+              "movementPattern": "push",
+              "name": "Bench Press",
+              "slug": "bench-press",
+              "tags": [
+                "compound"
+              ]
+            },
+            {
+              "equipment": [
+                "dumbbells",
+                "bench"
+              ],
+              "id": "incline-dumbbell-press",
+              "movementPattern": "push",
+              "name": "Incline Dumbbell Press",
+              "slug": "incline-dumbbell-press",
+              "tags": [
+                "compound"
+              ]
+            },
+            {
+              "equipment": [
+                "barbell"
+              ],
+              "id": "barbell-row",
+              "movementPattern": "pull",
+              "name": "Barbell Row",
+              "slug": "barbell-row",
+              "tags": [
+                "compound"
+              ]
+            }
+          ],
+          "programs": [
+            {
+              "daysPerWeek": 3,
+              "id": "program-upper-1",
+              "name": "Upper Strength",
+              "slug": "upper-strength"
+            }
+          ],
+          "referenceVersion": "2026-02"
+        },
+        "stateSnapshot": {
+          "activeProgramState": {
+            "currentDayIndex": 1,
+            "currentMicrocycle": 2,
+            "programId": "program-upper-1"
+          },
+          "athleteProfile": {
+            "availableDaysPerWeek": 3,
+            "classArchetype": "hybrid",
+            "goalBias": "strength",
+            "height": 178,
+            "trainingAge": 3,
+            "weight": 82.5
+          },
+          "gamificationState": {
+            "adherenceStreak": 6,
+            "completedSessionCount": 12,
+            "lastAdherenceOutcomeClassification": "complete_clean",
+            "lastAwardedAt": "2026-02-10T10:00:00.000Z",
+            "level": 3,
+            "missedSessionCount": 0,
+            "xp": 140
+          },
+          "injuryState": {
+            "activeLimitations": [],
+            "blockedMovementPatterns": []
+          },
+          "performanceState": {
+            "knownLifts": {
+              "bench-press": {
+                "estimated1RM": 112.5,
+                "lastReps": 5,
+                "lastWeight": 100
+              }
+            }
+          },
+          "progressionState": {
+            "records": [
+              {
+                "consecutiveStallOrRegressionCount": 0,
+                "consecutiveSuccessfulCompletions": 1,
+                "currentAction": "maintain",
+                "exerciseId": "bench-press",
+                "lastCompletedAt": "2026-02-10T10:00:00.000Z",
+                "lastSessionOutcomeClassification": "complete_clean",
+                "previousPerformanceReference": {
+                  "reps": 5,
+                  "weight": 100
+                },
+                "swapRecommendationCount": 0,
+                "trend": "improving"
+              }
+            ]
+          },
+          "readinessState": {
+            "muscleFatigue": {
+              "back": 12,
+              "chest": 20
+            },
+            "systemicFatigue": "moderate"
+          },
+          "recentCompletions": [
+            {
+              "completedAt": "2026-02-10T10:00:00.000Z",
+              "exerciseId": "bench-press",
+              "quality": "complete_clean"
+            }
+          ]
+        },
+        "policySnapshot": {
+          "classArchetypeBias": 0.1,
+          "fatigueBlockThreshold": "severe",
+          "noveltyBudget": 1,
+          "seededTieBreakBand": 0.05
+        },
+        "request": {
+          "session": {
+            "completedAt": "2026-02-13T11:10:00.000Z",
+            "exercises": [
+              {
+                "exerciseId": "bench-press",
+                "sets": [
+                  {
+                    "notes": "Different non-material set note",
+                    "reps": 5,
+                    "rir": 2,
+                    "setIndex": 0,
+                    "weight": 100
+                  },
+                  {
+                    "reps": 5,
+                    "rir": 1,
+                    "setIndex": 1,
+                    "weight": 100
+                  }
+                ],
+                "slotId": "slot-bench-1"
+              }
+            ],
+            "notes": "Different non-material session note",
+            "overallRpe": 8,
+            "programDayId": "program-day-upper-1",
+            "seed": "seed-plan-session-baseline",
+            "startedAt": "2026-02-13T10:00:00.000Z"
+          }
+        },
+        "metadata": {
+          "correlationId": "trace-complete-session-note-only-variant"
+        }
+      },
+      "output": {
+        "schemaVersion": "engine.v1",
+        "operation": "complete_session",
+        "result": {
+          "awardedXpSummary": {
+            "reason": "completed_recommended_session",
+            "streakDelta": 1,
+            "xpDelta": 15
+          },
+          "levelUpIndicator": false,
+          "sessionOutcomeClassification": "complete_compromised",
+          "updatedProgressionActionSummary": [
+            {
+              "action": "maintain",
+              "exerciseId": "bench-press",
+              "trend": "improving"
+            }
+          ],
+          "warnings": [
+            "future_choices_tightened"
+          ]
+        },
+        "statePatch": {
+          "gamificationState": {
+            "adherenceStreak": 7,
+            "completedSessionCount": 13,
+            "lastAdherenceOutcomeClassification": "complete_compromised",
+            "lastAwardedAt": "2026-02-13T11:10:00.000Z",
+            "level": 3,
+            "missedSessionCount": 0,
+            "xp": 155
+          },
+          "progressionState": {
+            "bench-press": {
+              "consecutiveStallOrRegressionCount": 0,
+              "consecutiveSuccessfulCompletions": 2,
+              "currentAction": "maintain",
+              "lastCompletedAt": "2026-02-13T11:10:00.000Z",
+              "lastSessionOutcomeClassification": "complete_compromised",
+              "lastSuccessfulLoad": {
+                "reps": 5,
+                "weight": 100
+              },
+              "swapRecommendationCount": 0,
+              "trend": "improving"
+            }
+          },
+          "readinessState": {
+            "systemicFatigue": "moderate"
+          }
+        },
+        "events": [],
+        "decisionLog": [
+          {
+            "details": {
+              "primaryExerciseId": "bench-press",
+              "progressionActionBefore": "maintain",
+              "progressionTrendBefore": "improving",
+              "sessionOutcomeClassification": "complete_compromised"
+            },
+            "inputsUsed": [
+              {
+                "path": "request.session.overallRpe"
+              },
+              {
+                "path": "request.session.exercises",
+                "stableId": "bench-press"
+              },
+              {
+                "path": "stateSnapshot.progressionState.records",
+                "stableId": "bench-press"
+              },
+              {
+                "path": "stateSnapshot.readinessState.systemicFatigue"
+              }
+            ],
+            "outcome": "complete_compromised",
+            "ruleId": "completion_quality",
+            "stepType": "classify"
+          },
+          {
+            "candidateId": "bench-press",
+            "details": {
+              "gamificationUpdate": {
+                "adherenceStreakAfter": 7,
+                "adherenceStreakBefore": 6,
+                "completedSessionCountAfter": 13,
+                "completedSessionCountBefore": 12,
+                "lastAdherenceOutcomeClassificationAfter": "complete_compromised",
+                "lastAwardedAtAfter": "2026-02-13T11:10:00.000Z",
+                "levelAfter": 3,
+                "levelBefore": 3,
+                "missedSessionCountAfter": 0,
+                "missedSessionCountBefore": 0,
+                "xpAfter": 155,
+                "xpBefore": 140
+              },
+              "progressionUpdates": [
+                {
+                  "actionAfter": "maintain",
+                  "actionBefore": "maintain",
+                  "consecutiveStallOrRegressionCountAfter": 0,
+                  "consecutiveStallOrRegressionCountBefore": 0,
+                  "consecutiveSuccessfulCompletionsAfter": 2,
+                  "consecutiveSuccessfulCompletionsBefore": 1,
+                  "exerciseId": "bench-press",
+                  "lastCompletedAtAfter": "2026-02-13T11:10:00.000Z",
+                  "lastSessionOutcomeClassificationAfter": "complete_compromised",
+                  "swapRecommendationCountAfter": 0,
+                  "swapRecommendationCountBefore": 0,
+                  "trendAfter": "improving",
+                  "trendBefore": "improving"
+                }
+              ],
+              "readinessUpdate": {
+                "systemicFatigueAfter": "moderate",
+                "systemicFatigueBefore": "moderate"
+              },
+              "recentCompletionUpdate": {
+                "retainedCompletions": [
+                  {
+                    "completedAt": "2026-02-10T10:00:00.000Z",
+                    "exerciseId": "bench-press",
+                    "quality": "complete_clean"
+                  },
+                  {
+                    "completedAt": "2026-02-13T11:10:00.000Z",
+                    "exerciseId": "bench-press",
+                    "quality": "complete_compromised"
+                  }
+                ]
+              },
+              "touchedBuckets": [
+                "progressionState",
+                "readinessState",
+                "gamificationState"
+              ]
+            },
+            "inputsUsed": [
+              {
+                "path": "stateSnapshot.progressionState.records",
+                "stableId": "bench-press"
+              },
+              {
+                "path": "stateSnapshot.readinessState.systemicFatigue"
+              },
+              {
+                "path": "stateSnapshot.gamificationState"
+              },
+              {
+                "path": "stateSnapshot.recentCompletions"
+              }
+            ],
+            "outcome": "applied",
+            "ruleId": "state_update",
+            "stepType": "state_update"
+          },
+          {
+            "computedValue": 15,
+            "details": {
+              "levelAfter": 3,
+              "levelBefore": 3,
+              "levelUp": false,
+              "streakDelta": 1
+            },
+            "inputsUsed": [
+              {
+                "path": "stateSnapshot.gamificationState.xp"
+              },
+              {
+                "path": "stateSnapshot.gamificationState.adherenceStreak"
+              }
+            ],
+            "outcome": "applied",
+            "ruleId": "completion_reward",
+            "stepType": "award_xp"
+          }
+        ],
+        "replayReceipt": {
+          "inputHash": "sha256:78bbdd3421d5604e241a75f3386abf3d41a1e470893d56d5f53802dd85413b68",
+          "outputHash": "sha256:c16a32f0275696f2c037069e30ae026e54751ba9e8dcac5cd20951e817d8e6d4",
+          "seedUsed": "seed-plan-session-baseline",
+          "effectiveAt": "2026-02-13T10:00:00.000Z",
+          "implementationVersion": "engine-rs-mvp-0",
+          "policyVersion": "policy-2026-02",
+          "referenceHash": "sha256:ba49fccccc6a22098b9cdd5dd9b26eb51617a0e52ab69183e4e64609dfe21fb4"
+        }
+      },
+      "expected": {
+        "referenceHash": "sha256:ba49fccccc6a22098b9cdd5dd9b26eb51617a0e52ab69183e4e64609dfe21fb4",
+        "inputHash": "sha256:78bbdd3421d5604e241a75f3386abf3d41a1e470893d56d5f53802dd85413b68",
+        "outputHash": "sha256:c16a32f0275696f2c037069e30ae026e54751ba9e8dcac5cd20951e817d8e6d4"
+      }
+    }
+  ],
+  "negativeFixtures": [
+    {
+      "fixtureId": "unsupported-canonicalization-version",
+      "expectedFailureKind": "unsupported_canonicalization_version",
+      "description": "Input uses an unsupported canonicalization policy selector.",
+      "input": {
+        "schemaVersion": "engine.v1",
+        "operation": "plan_session",
+        "determinism": {
+          "seed": "seed-plan-session-baseline",
+          "effectiveAt": "2026-02-13T10:00:00.000Z",
+          "ruleVersion": "rules-2026-02",
+          "referenceHash": "sha256:ba49fccccc6a22098b9cdd5dd9b26eb51617a0e52ab69183e4e64609dfe21fb4",
+          "canonicalizationVersion": "canon-replay-v99"
+        },
+        "referenceSnapshot": {
+          "exercises": [
+            {
+              "equipment": [
+                "barbell",
+                "bench"
+              ],
+              "id": "bench-press",
+              "movementPattern": "push",
+              "name": "Bench Press",
+              "slug": "bench-press",
+              "tags": [
+                "compound"
+              ]
+            },
+            {
+              "equipment": [
+                "dumbbells",
+                "bench"
+              ],
+              "id": "incline-dumbbell-press",
+              "movementPattern": "push",
+              "name": "Incline Dumbbell Press",
+              "slug": "incline-dumbbell-press",
+              "tags": [
+                "compound"
+              ]
+            },
+            {
+              "equipment": [
+                "barbell"
+              ],
+              "id": "barbell-row",
+              "movementPattern": "pull",
+              "name": "Barbell Row",
+              "slug": "barbell-row",
+              "tags": [
+                "compound"
+              ]
+            }
+          ],
+          "programs": [
+            {
+              "daysPerWeek": 3,
+              "id": "program-upper-1",
+              "name": "Upper Strength",
+              "slug": "upper-strength"
+            }
+          ],
+          "referenceVersion": "2026-02"
+        },
+        "stateSnapshot": {
+          "activeProgramState": {
+            "currentDayIndex": 1,
+            "currentMicrocycle": 2,
+            "programId": "program-upper-1"
+          },
+          "athleteProfile": {
+            "availableDaysPerWeek": 3,
+            "classArchetype": "hybrid",
+            "goalBias": "strength",
+            "height": 178,
+            "trainingAge": 3,
+            "weight": 82.5
+          },
+          "gamificationState": {
+            "adherenceStreak": 6,
+            "completedSessionCount": 12,
+            "lastAdherenceOutcomeClassification": "complete_clean",
+            "lastAwardedAt": "2026-02-10T10:00:00.000Z",
+            "level": 3,
+            "missedSessionCount": 0,
+            "xp": 140
+          },
+          "injuryState": {
+            "activeLimitations": [],
+            "blockedMovementPatterns": []
+          },
+          "performanceState": {
+            "knownLifts": {
+              "bench-press": {
+                "estimated1RM": 112.5,
+                "lastReps": 5,
+                "lastWeight": 100
+              }
+            }
+          },
+          "progressionState": {
+            "records": [
+              {
+                "consecutiveStallOrRegressionCount": 0,
+                "consecutiveSuccessfulCompletions": 1,
+                "currentAction": "maintain",
+                "exerciseId": "bench-press",
+                "lastCompletedAt": "2026-02-10T10:00:00.000Z",
+                "lastSessionOutcomeClassification": "complete_clean",
+                "previousPerformanceReference": {
+                  "reps": 5,
+                  "weight": 100
+                },
+                "swapRecommendationCount": 0,
+                "trend": "improving"
+              }
+            ]
+          },
+          "readinessState": {
+            "muscleFatigue": {
+              "back": 12,
+              "chest": 20
+            },
+            "systemicFatigue": "moderate"
+          },
+          "recentCompletions": [
+            {
+              "completedAt": "2026-02-10T10:00:00.000Z",
+              "exerciseId": "bench-press",
+              "quality": "complete_clean"
+            }
+          ]
+        },
+        "policySnapshot": {
+          "classArchetypeBias": 0.1,
+          "fatigueBlockThreshold": "severe",
+          "noveltyBudget": 1,
+          "seededTieBreakBand": 0.05
+        },
+        "request": {
+          "microcycleIndex": 2,
+          "programId": "program-upper-1",
+          "sessionFocus": "upper_push"
+        },
+        "metadata": {
+          "correlationId": "trace-plan-session-baseline"
+        }
+      }
+    },
+    {
+      "fixtureId": "reference-hash-mismatch-rejection",
+      "expectedFailureKind": "reference_hash_mismatch",
+      "description": "Input carries a referenceHash that does not match canonical referenceSnapshot bytes.",
+      "input": {
+        "schemaVersion": "engine.v1",
+        "operation": "plan_session",
+        "determinism": {
+          "seed": "seed-plan-session-baseline",
+          "effectiveAt": "2026-02-13T10:00:00.000Z",
+          "ruleVersion": "rules-2026-02",
+          "referenceHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+          "canonicalizationVersion": "canon-replay-v1"
+        },
+        "referenceSnapshot": {
+          "exercises": [
+            {
+              "equipment": [
+                "barbell",
+                "bench"
+              ],
+              "id": "bench-press",
+              "movementPattern": "push",
+              "name": "Bench Press",
+              "slug": "bench-press",
+              "tags": [
+                "compound"
+              ]
+            },
+            {
+              "equipment": [
+                "dumbbells",
+                "bench"
+              ],
+              "id": "incline-dumbbell-press",
+              "movementPattern": "push",
+              "name": "Incline Dumbbell Press",
+              "slug": "incline-dumbbell-press",
+              "tags": [
+                "compound"
+              ]
+            },
+            {
+              "equipment": [
+                "barbell"
+              ],
+              "id": "barbell-row",
+              "movementPattern": "pull",
+              "name": "Barbell Row",
+              "slug": "barbell-row",
+              "tags": [
+                "compound"
+              ]
+            }
+          ],
+          "programs": [
+            {
+              "daysPerWeek": 3,
+              "id": "program-upper-1",
+              "name": "Upper Strength",
+              "slug": "upper-strength"
+            }
+          ],
+          "referenceVersion": "2026-02"
+        },
+        "stateSnapshot": {
+          "activeProgramState": {
+            "currentDayIndex": 1,
+            "currentMicrocycle": 2,
+            "programId": "program-upper-1"
+          },
+          "athleteProfile": {
+            "availableDaysPerWeek": 3,
+            "classArchetype": "hybrid",
+            "goalBias": "strength",
+            "height": 178,
+            "trainingAge": 3,
+            "weight": 82.5
+          },
+          "gamificationState": {
+            "adherenceStreak": 6,
+            "completedSessionCount": 12,
+            "lastAdherenceOutcomeClassification": "complete_clean",
+            "lastAwardedAt": "2026-02-10T10:00:00.000Z",
+            "level": 3,
+            "missedSessionCount": 0,
+            "xp": 140
+          },
+          "injuryState": {
+            "activeLimitations": [],
+            "blockedMovementPatterns": []
+          },
+          "performanceState": {
+            "knownLifts": {
+              "bench-press": {
+                "estimated1RM": 112.5,
+                "lastReps": 5,
+                "lastWeight": 100
+              }
+            }
+          },
+          "progressionState": {
+            "records": [
+              {
+                "consecutiveStallOrRegressionCount": 0,
+                "consecutiveSuccessfulCompletions": 1,
+                "currentAction": "maintain",
+                "exerciseId": "bench-press",
+                "lastCompletedAt": "2026-02-10T10:00:00.000Z",
+                "lastSessionOutcomeClassification": "complete_clean",
+                "previousPerformanceReference": {
+                  "reps": 5,
+                  "weight": 100
+                },
+                "swapRecommendationCount": 0,
+                "trend": "improving"
+              }
+            ]
+          },
+          "readinessState": {
+            "muscleFatigue": {
+              "back": 12,
+              "chest": 20
+            },
+            "systemicFatigue": "moderate"
+          },
+          "recentCompletions": [
+            {
+              "completedAt": "2026-02-10T10:00:00.000Z",
+              "exerciseId": "bench-press",
+              "quality": "complete_clean"
+            }
+          ]
+        },
+        "policySnapshot": {
+          "classArchetypeBias": 0.1,
+          "fatigueBlockThreshold": "severe",
+          "noveltyBudget": 1,
+          "seededTieBreakBand": 0.05
+        },
+        "request": {
+          "microcycleIndex": 2,
+          "programId": "program-upper-1",
+          "sessionFocus": "upper_push"
+        },
+        "metadata": {
+          "correlationId": "trace-plan-session-baseline"
+        }
+      }
+    },
+    {
+      "fixtureId": "invalid-numeric-material",
+      "expectedFailureKind": "invalid_numeric_material",
+      "description": "Input includes a kg-cent replay value with excess precision.",
+      "input": {
+        "schemaVersion": "engine.v1",
+        "operation": "complete_session",
+        "determinism": {
+          "seed": "seed-plan-session-baseline",
+          "effectiveAt": "2026-02-13T10:00:00.000Z",
+          "ruleVersion": "rules-2026-02",
+          "referenceHash": "sha256:ba49fccccc6a22098b9cdd5dd9b26eb51617a0e52ab69183e4e64609dfe21fb4",
+          "canonicalizationVersion": "canon-replay-v1"
+        },
+        "referenceSnapshot": {
+          "exercises": [
+            {
+              "equipment": [
+                "barbell",
+                "bench"
+              ],
+              "id": "bench-press",
+              "movementPattern": "push",
+              "name": "Bench Press",
+              "slug": "bench-press",
+              "tags": [
+                "compound"
+              ]
+            },
+            {
+              "equipment": [
+                "dumbbells",
+                "bench"
+              ],
+              "id": "incline-dumbbell-press",
+              "movementPattern": "push",
+              "name": "Incline Dumbbell Press",
+              "slug": "incline-dumbbell-press",
+              "tags": [
+                "compound"
+              ]
+            },
+            {
+              "equipment": [
+                "barbell"
+              ],
+              "id": "barbell-row",
+              "movementPattern": "pull",
+              "name": "Barbell Row",
+              "slug": "barbell-row",
+              "tags": [
+                "compound"
+              ]
+            }
+          ],
+          "programs": [
+            {
+              "daysPerWeek": 3,
+              "id": "program-upper-1",
+              "name": "Upper Strength",
+              "slug": "upper-strength"
+            }
+          ],
+          "referenceVersion": "2026-02"
+        },
+        "stateSnapshot": {
+          "activeProgramState": {
+            "currentDayIndex": 1,
+            "currentMicrocycle": 2,
+            "programId": "program-upper-1"
+          },
+          "athleteProfile": {
+            "availableDaysPerWeek": 3,
+            "classArchetype": "hybrid",
+            "goalBias": "strength",
+            "height": 178,
+            "trainingAge": 3,
+            "weight": 82.5
+          },
+          "gamificationState": {
+            "adherenceStreak": 6,
+            "completedSessionCount": 12,
+            "lastAdherenceOutcomeClassification": "complete_clean",
+            "lastAwardedAt": "2026-02-10T10:00:00.000Z",
+            "level": 3,
+            "missedSessionCount": 0,
+            "xp": 140
+          },
+          "injuryState": {
+            "activeLimitations": [],
+            "blockedMovementPatterns": []
+          },
+          "performanceState": {
+            "knownLifts": {
+              "bench-press": {
+                "estimated1RM": 112.5,
+                "lastReps": 5,
+                "lastWeight": 100
+              }
+            }
+          },
+          "progressionState": {
+            "records": [
+              {
+                "consecutiveStallOrRegressionCount": 0,
+                "consecutiveSuccessfulCompletions": 1,
+                "currentAction": "maintain",
+                "exerciseId": "bench-press",
+                "lastCompletedAt": "2026-02-10T10:00:00.000Z",
+                "lastSessionOutcomeClassification": "complete_clean",
+                "previousPerformanceReference": {
+                  "reps": 5,
+                  "weight": 100
+                },
+                "swapRecommendationCount": 0,
+                "trend": "improving"
+              }
+            ]
+          },
+          "readinessState": {
+            "muscleFatigue": {
+              "back": 12,
+              "chest": 20
+            },
+            "systemicFatigue": "moderate"
+          },
+          "recentCompletions": [
+            {
+              "completedAt": "2026-02-10T10:00:00.000Z",
+              "exerciseId": "bench-press",
+              "quality": "complete_clean"
+            }
+          ]
+        },
+        "policySnapshot": {
+          "classArchetypeBias": 0.1,
+          "fatigueBlockThreshold": "severe",
+          "noveltyBudget": 1,
+          "seededTieBreakBand": 0.05
+        },
+        "request": {
+          "session": {
+            "completedAt": "2026-02-13T11:10:00.000Z",
+            "exercises": [
+              {
+                "exerciseId": "bench-press",
+                "sets": [
+                  {
+                    "notes": "Top set",
+                    "reps": 5,
+                    "rir": 2,
+                    "setIndex": 0,
+                    "weight": 100.001
+                  },
+                  {
+                    "reps": 5,
+                    "rir": 1,
+                    "setIndex": 1,
+                    "weight": 100
+                  }
+                ],
+                "slotId": "slot-bench-1"
+              }
+            ],
+            "notes": "Felt solid",
+            "overallRpe": 8,
+            "programDayId": "program-day-upper-1",
+            "seed": "seed-plan-session-baseline",
+            "startedAt": "2026-02-13T10:00:00.000Z"
+          }
+        },
+        "metadata": {
+          "correlationId": "trace-plan-session-baseline"
+        }
+      }
+    }
+  ]
+}

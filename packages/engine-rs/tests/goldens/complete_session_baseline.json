@@ -1,0 +1,188 @@
+{
+  "schemaVersion": "engine.v1",
+  "operation": "complete_session",
+  "result": {
+    "awardedXpSummary": {
+      "reason": "completed_recommended_session",
+      "streakDelta": 1,
+      "xpDelta": 15
+    },
+    "levelUpIndicator": false,
+    "sessionOutcomeClassification": "complete_compromised",
+    "updatedProgressionActionSummary": [
+      {
+        "action": "maintain",
+        "exerciseId": "bench-press",
+        "trend": "improving"
+      }
+    ],
+    "warnings": [
+      "future_choices_tightened"
+    ]
+  },
+  "statePatch": {
+    "gamificationState": {
+      "adherenceStreak": 7,
+      "completedSessionCount": 13,
+      "lastAdherenceOutcomeClassification": "complete_compromised",
+      "lastAwardedAt": "2026-02-13T11:10:00.000Z",
+      "level": 3,
+      "missedSessionCount": 0,
+      "xp": 155
+    },
+    "progressionState": {
+      "bench-press": {
+        "consecutiveStallOrRegressionCount": 0,
+        "consecutiveSuccessfulCompletions": 2,
+        "currentAction": "maintain",
+        "lastCompletedAt": "2026-02-13T11:10:00.000Z",
+        "lastSessionOutcomeClassification": "complete_compromised",
+        "lastSuccessfulLoad": {
+          "reps": 5,
+          "weight": 100
+        },
+        "swapRecommendationCount": 0,
+        "trend": "improving"
+      }
+    },
+    "readinessState": {
+      "systemicFatigue": "moderate"
+    }
+  },
+  "events": [],
+  "decisionLog": [
+    {
+      "details": {
+        "primaryExerciseId": "bench-press",
+        "progressionActionBefore": "maintain",
+        "progressionTrendBefore": "improving",
+        "sessionOutcomeClassification": "complete_compromised"
+      },
+      "inputsUsed": [
+        {
+          "path": "request.session.overallRpe"
+        },
+        {
+          "path": "request.session.exercises",
+          "stableId": "bench-press"
+        },
+        {
+          "path": "stateSnapshot.progressionState.records",
+          "stableId": "bench-press"
+        },
+        {
+          "path": "stateSnapshot.readinessState.systemicFatigue"
+        }
+      ],
+      "outcome": "complete_compromised",
+      "ruleId": "completion_quality",
+      "stepType": "classify"
+    },
+    {
+      "candidateId": "bench-press",
+      "details": {
+        "gamificationUpdate": {
+          "adherenceStreakAfter": 7,
+          "adherenceStreakBefore": 6,
+          "completedSessionCountAfter": 13,
+          "completedSessionCountBefore": 12,
+          "lastAdherenceOutcomeClassificationAfter": "complete_compromised",
+          "lastAwardedAtAfter": "2026-02-13T11:10:00.000Z",
+          "levelAfter": 3,
+          "levelBefore": 3,
+          "missedSessionCountAfter": 0,
+          "missedSessionCountBefore": 0,
+          "xpAfter": 155,
+          "xpBefore": 140
+        },
+        "progressionUpdates": [
+          {
+            "actionAfter": "maintain",
+            "actionBefore": "maintain",
+            "consecutiveStallOrRegressionCountAfter": 0,
+            "consecutiveStallOrRegressionCountBefore": 0,
+            "consecutiveSuccessfulCompletionsAfter": 2,
+            "consecutiveSuccessfulCompletionsBefore": 1,
+            "exerciseId": "bench-press",
+            "lastCompletedAtAfter": "2026-02-13T11:10:00.000Z",
+            "lastSessionOutcomeClassificationAfter": "complete_compromised",
+            "swapRecommendationCountAfter": 0,
+            "swapRecommendationCountBefore": 0,
+            "trendAfter": "improving",
+            "trendBefore": "improving"
+          }
+        ],
+        "readinessUpdate": {
+          "systemicFatigueAfter": "moderate",
+          "systemicFatigueBefore": "moderate"
+        },
+        "recentCompletionUpdate": {
+          "retainedCompletions": [
+            {
+              "completedAt": "2026-02-10T10:00:00.000Z",
+              "exerciseId": "bench-press",
+              "quality": "complete_clean"
+            },
+            {
+              "completedAt": "2026-02-13T11:10:00.000Z",
+              "exerciseId": "bench-press",
+              "quality": "complete_compromised"
+            }
+          ]
+        },
+        "touchedBuckets": [
+          "progressionState",
+          "readinessState",
+          "gamificationState"
+        ]
+      },
+      "inputsUsed": [
+        {
+          "path": "stateSnapshot.progressionState.records",
+          "stableId": "bench-press"
+        },
+        {
+          "path": "stateSnapshot.readinessState.systemicFatigue"
+        },
+        {
+          "path": "stateSnapshot.gamificationState"
+        },
+        {
+          "path": "stateSnapshot.recentCompletions"
+        }
+      ],
+      "outcome": "applied",
+      "ruleId": "state_update",
+      "stepType": "state_update"
+    },
+    {
+      "computedValue": 15,
+      "details": {
+        "levelAfter": 3,
+        "levelBefore": 3,
+        "levelUp": false,
+        "streakDelta": 1
+      },
+      "inputsUsed": [
+        {
+          "path": "stateSnapshot.gamificationState.xp"
+        },
+        {
+          "path": "stateSnapshot.gamificationState.adherenceStreak"
+        }
+      ],
+      "outcome": "applied",
+      "ruleId": "completion_reward",
+      "stepType": "award_xp"
+    }
+  ],
+  "replayReceipt": {
+    "inputHash": "sha256:78bbdd3421d5604e241a75f3386abf3d41a1e470893d56d5f53802dd85413b68",
+    "outputHash": "sha256:c16a32f0275696f2c037069e30ae026e54751ba9e8dcac5cd20951e817d8e6d4",
+    "seedUsed": "seed-plan-session-baseline",
+    "effectiveAt": "2026-02-13T10:00:00.000Z",
+    "implementationVersion": "engine-rs-mvp-0",
+    "policyVersion": "policy-2026-02",
+    "referenceHash": "sha256:ba49fccccc6a22098b9cdd5dd9b26eb51617a0e52ab69183e4e64609dfe21fb4"
+  }
+}

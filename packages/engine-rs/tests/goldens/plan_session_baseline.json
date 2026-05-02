@@ -1,0 +1,199 @@
+{
+  "schemaVersion": "engine.v1",
+  "operation": "plan_session",
+  "result": {
+    "progressionActionSummary": [
+      {
+        "action": "overload",
+        "exerciseId": "bench-press",
+        "trend": "improving"
+      },
+      {
+        "action": "maintain",
+        "exerciseId": "incline-dumbbell-press",
+        "trend": "stalled"
+      }
+    ],
+    "recommendedMovementFamily": "upper_push",
+    "recommendedSessionId": "program-upper-1-upper-push-m2",
+    "scoreBreakdown": {
+      "classBias": 0.1,
+      "fatigueCompatibility": 0.88,
+      "novelty": 0.02,
+      "progressionNeed": 0.92
+    },
+    "selectedExerciseIds": [
+      "bench-press",
+      "incline-dumbbell-press"
+    ],
+    "sessionRationale": "Fresh enough to overload the main push pattern while preserving shoulder safety."
+  },
+  "statePatch": {},
+  "events": [],
+  "decisionLog": [
+    {
+      "details": {
+        "enumeratedCandidateIds": [
+          "bench-press",
+          "incline-dumbbell-press",
+          "barbell-row"
+        ],
+        "preferredScopeBucket": "push",
+        "resolvedFocus": "upper_push",
+        "survivingScopeBucket": "push",
+        "wideningApplied": false
+      },
+      "inputsUsed": [
+        {
+          "path": "request.sessionFocus"
+        },
+        {
+          "path": "referenceSnapshot.exercises"
+        }
+      ],
+      "outcome": "preferred_scope",
+      "ruleId": "candidate_scope",
+      "stepType": "scope"
+    },
+    {
+      "details": {
+        "blocked": [],
+        "evaluatedCandidateIds": [
+          "bench-press",
+          "incline-dumbbell-press",
+          "barbell-row"
+        ],
+        "survivingCandidateIds": [
+          "bench-press",
+          "incline-dumbbell-press"
+        ]
+      },
+      "inputsUsed": [
+        {
+          "path": "stateSnapshot.injuryState.blockedMovementPatterns"
+        },
+        {
+          "path": "stateSnapshot.injuryState.activeLimitations"
+        },
+        {
+          "path": "stateSnapshot.readinessState.systemicFatigue"
+        }
+      ],
+      "outcome": "survivors_retained",
+      "ruleId": "candidate_filter",
+      "stepType": "filter"
+    },
+    {
+      "candidateId": "bench-press",
+      "computedValue": 0.84,
+      "details": {
+        "breakdown": {
+          "classBias": 0.1,
+          "fatigueCompatibility": 0.88,
+          "novelty": 0.02,
+          "progressionNeed": 0.92
+        },
+        "eligibleForTopBand": true,
+        "rankPosition": 1
+      },
+      "inputsUsed": [
+        {
+          "path": "stateSnapshot.progressionState.records",
+          "stableId": "bench-press"
+        },
+        {
+          "path": "stateSnapshot.readinessState.muscleFatigue",
+          "stableId": "bench-press"
+        },
+        {
+          "path": "policySnapshot.classArchetypeBias"
+        },
+        {
+          "path": "policySnapshot.noveltyBudget"
+        }
+      ],
+      "outcome": "scored",
+      "ruleId": "soft_scoring",
+      "stepType": "score"
+    },
+    {
+      "candidateId": "incline-dumbbell-press",
+      "computedValue": 0.81,
+      "details": {
+        "breakdown": {
+          "classBias": 0.1,
+          "fatigueCompatibility": 0.88,
+          "novelty": 0.02,
+          "progressionNeed": 0.85
+        },
+        "eligibleForTopBand": true,
+        "rankPosition": 2
+      },
+      "inputsUsed": [
+        {
+          "path": "stateSnapshot.progressionState.records",
+          "stableId": "incline-dumbbell-press"
+        },
+        {
+          "path": "stateSnapshot.readinessState.muscleFatigue",
+          "stableId": "incline-dumbbell-press"
+        },
+        {
+          "path": "policySnapshot.classArchetypeBias"
+        },
+        {
+          "path": "policySnapshot.noveltyBudget"
+        }
+      ],
+      "outcome": "scored",
+      "ruleId": "soft_scoring",
+      "stepType": "score"
+    },
+    {
+      "computedValue": 0,
+      "details": {
+        "bandWidth": 0.05,
+        "eligibleCandidateIds": [
+          "bench-press",
+          "incline-dumbbell-press"
+        ],
+        "selectedCandidateId": "bench-press",
+        "selectedIndex": 0,
+        "topScore": 0.84
+      },
+      "inputsUsed": [
+        {
+          "path": "determinism.seed"
+        },
+        {
+          "path": "request.microcycleIndex"
+        }
+      ],
+      "outcome": "selected",
+      "ruleId": "seeded_selection",
+      "stepType": "tie_break"
+    },
+    {
+      "candidateId": "bench-press",
+      "details": {
+        "rankedCandidateIds": [
+          "bench-press",
+          "incline-dumbbell-press"
+        ],
+        "selectedCandidateId": "bench-press"
+      },
+      "outcome": "selected",
+      "ruleId": "final_selection",
+      "stepType": "final_selection"
+    }
+  ],
+  "replayReceipt": {
+    "inputHash": "sha256:e91c90236357dee55876a4cc87d8b0b6411a0402d64195e06875726e62ac5bda",
+    "outputHash": "sha256:2c83284194f6d37c8f4a323d1b5095d022d1162c621ee505810b01c5200442f3",
+    "seedUsed": "seed-plan-session-baseline",
+    "effectiveAt": "2026-02-13T10:00:00.000Z",
+    "implementationVersion": "engine-rs-mvp-0",
+    "policyVersion": "policy-2026-02",
+    "referenceHash": "sha256:ba49fccccc6a22098b9cdd5dd9b26eb51617a0e52ab69183e4e64609dfe21fb4"
+  }
+}

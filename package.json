@@ -1,0 +1,20 @@
+{
+  "name": "adaptabuddy-vnext",
+  "private": true,
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "node node_modules/next/dist/bin/next dev apps/web",
+    "lint": "npm run lint --workspace apps/web",
+    "typecheck": "npm run typecheck --workspace apps/web",
+    "test": "npm run test --workspaces",
+    "test:e2e:playwright": "npm run test:e2e:playwright --workspace apps/web",
+    "verify:deploy:smoke": "node apps/web/scripts/verify-deploy-smoke.mjs"
+  }
+}
