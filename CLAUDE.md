@@ -35,6 +35,9 @@ cd apps/web && npm run build && npm run start
 # apps/web deployment smoke verifier
 npm run verify:deploy:smoke
 
+# Default local pre-PR quality gate
+npm run ci:quality
+
 # Python helper environment (scripts/python_helper, uv + Python 3.13)
 uv sync --project scripts/python_helper --python 3.13
 uv run --project scripts/python_helper --python 3.13 python scripts/python_helper/generate_assets.py --prompt "your prompt"
@@ -132,6 +135,17 @@ Environment validation lives in `apps/web/src/lib/env.ts`.
 - To refresh code intelligence from the repo root, run `gitnexus analyze --force`. If the global CLI is unavailable, use `npx gitnexus analyze --force`.
 - After refreshing, verify the indexed repo with GitNexus `list_repos`, then use the MCP tools for context and impact work: `query`, `context`, `impact`, `detect_changes`, `cypher`, `rename`, `route_map`, `api_impact`, `shape_check`, `tool_map`, `group_list`, and `group_sync`.
 - Preserve `.gitnexus/` and `.claude/skills/generated/*` as generated tool context. Preserve `specs/hippocampus/*` and `docs/hippocampus/*` as durable handoff/status memory.
+
+## Codex Cloud Workflow
+
+- Codex cloud setup and task policy live in `docs/operations/codex_cloud_workflow.md`.
+- Recommended setup script: `bash scripts/codex/setup.sh`.
+- Recommended maintenance script: `bash scripts/codex/maintenance.sh`.
+- Default pre-PR verification is `npm run ci:quality`.
+- Keep normal cloud tasks off live Supabase: `RUN_SUPABASE_E2E_VERIFICATION=0` and `RUN_PLAYWRIGHT_E2E=0`.
+- Use live Supabase and Playwright E2E only for explicitly scoped pre-release verification.
+- For first-pass implementation of bounded coding tasks, route the initial patch through GPT-5.3 Codex Spark / Blaziken, then review and verify before PR handoff.
+- Skip Spark-first for high-risk architecture, auth/RLS/security, release promotion, or user-directed senior-agent implementation.
 
 ## Non-Negotiable Rules
 
@@ -249,7 +263,7 @@ Explicitly unresolved architecture risks:
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **Adaptabuddy_v2** (6497 symbols, 10918 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **adaptabuddy_v2** (6616 symbols, 11072 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
@@ -272,10 +286,10 @@ This project is indexed by GitNexus as **Adaptabuddy_v2** (6497 symbols, 10918 r
 
 | Resource | Use for |
 |----------|---------|
-| `gitnexus://repo/Adaptabuddy_v2/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/Adaptabuddy_v2/clusters` | All functional areas |
-| `gitnexus://repo/Adaptabuddy_v2/processes` | All execution flows |
-| `gitnexus://repo/Adaptabuddy_v2/process/{name}` | Step-by-step execution trace |
+| `gitnexus://repo/adaptabuddy_v2/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/adaptabuddy_v2/clusters` | All functional areas |
+| `gitnexus://repo/adaptabuddy_v2/processes` | All execution flows |
+| `gitnexus://repo/adaptabuddy_v2/process/{name}` | Step-by-step execution trace |
 
 ## CLI
 

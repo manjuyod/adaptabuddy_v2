@@ -27,7 +27,9 @@ jobs:
           - name: Test
             run: npm run test
           - name: Build (apps/web)
-            run: npm run build --workspace apps/web
+            run: npm run build
+          - name: Rust engine tests
+            run: npm run test:engine
 
     steps:
       - name: Checkout
@@ -38,6 +40,9 @@ jobs:
         with:
           node-version: 20
           cache: npm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install dependencies
         run: npm ci

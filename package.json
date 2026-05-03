@@ -11,9 +11,12 @@
   ],
   "scripts": {
     "dev": "node node_modules/next/dist/bin/next dev apps/web",
+    "build": "npm run build --workspace apps/web",
     "lint": "npm run lint --workspace apps/web",
     "typecheck": "npm run typecheck --workspace apps/web",
     "test": "npm run test --workspaces",
+    "test:engine": "cargo test --manifest-path packages/engine-rs/Cargo.toml",
+    "ci:quality": "npm run typecheck && npm run lint && npm run test && npm run build && npm run test:engine",
     "test:e2e:playwright": "npm run test:e2e:playwright --workspace apps/web",
     "verify:deploy:smoke": "node apps/web/scripts/verify-deploy-smoke.mjs"
   },
