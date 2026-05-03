@@ -14,7 +14,7 @@
 
 Wave 2 is complete. Wave 3 is complete and archived. Wave 4 is complete through canonical replay serialization and numeric policy: normalized engine-owned cycle tables remain canonical for initialized-cycle identity, cursor state, gamification, and app-owned analytics derivation, while `users.stats_json.activeProgram` remains compatibility-only for the current shell.
 
-The pre-beta app-shell hardening lane is complete: Wave 5 completed the beta alignment, release-evidence, and cross-language replay certification work through Engine 28 without revising the Rust public engine envelopes, and Engine 29 completed the required live Supabase Playwright breaker suite for browser-visible success and failure paths beyond release-promotion paperwork. Playwright browser E2E remains a required pre-beta gate for `apps/web`.
+The pre-beta app-shell hardening lane is complete: Wave 5 completed the beta alignment, release-evidence, and cross-language replay certification work through Engine 28 without revising the Rust public engine envelopes, Engine 29 completed the required live Supabase Playwright breaker suite for browser-visible success and failure paths beyond release-promotion paperwork, and Wave 6 closed the private beta promotion lane after Docker build/runtime evidence passed for the exact candidate. Playwright browser E2E remains a required release-candidate gate for `apps/web`.
 
 Current architecture split:
 - Engine: `packages/engine-rs` owns deterministic decision logic for `initialize_cycle`, `plan_session`, and `complete_session`
@@ -39,7 +39,11 @@ Current active spec:
 - None currently queued.
 
 Current launch lane:
-- `[DONE]` `Pre-Beta Playwright E2E Hardening` for `apps/web`
+- `[DONE]` `Production Beta Readiness` for `apps/web`
+- Latest promoted candidate: `rc-3db65a2-20260502` at `3db65a2f56c5a7a92cf0c6b72d3ab1d0496e1ba2`
+
+Current operations lane:
+- `[ACTIVE]` `Wave 7: Private Beta Operations And Learning Loop`
 
 Current Wave 5 queue:
 - `[DONE]` `docs/archive/specs/engine_23_app_replay_invocation_alignment.md`
@@ -161,9 +165,9 @@ Completed output:
 - `[DONE]` `docs/archive/specs/engine_22_canonical_replay_serialization_and_numeric_policy.md`
 
 Private beta output:
-- `[ACTIVE]` `Production Beta Readiness` for `apps/web`
-- Engine 27 release-confidence evidence is complete, but promotion remains blocked until immutable candidate metadata, owner signoff, and audit disposition are recorded.
+- `[DONE]` `Production Beta Readiness` for `apps/web`
 - Engine 22 canonical replay implementation and Engine 28 cross-language replay certification are complete.
+- Latest release-candidate evidence, decision status, and promotion blockers are tracked in `docs/operations/private_beta_release_record.md`.
 
 ## Wave 5: Beta Replay And Completion Hardening `[DONE]`
 
@@ -183,6 +187,50 @@ Boundary:
 - `EngineInputV1`, `EngineOutputV1`, and public Rust operations stay unchanged unless a later accepted boundary-revision spec explicitly changes them.
 - Engine 28 cross-language replay certification is complete and archived after app replay invocation alignment and release-confidence evidence.
 
+## Wave 6: Private Beta Promotion Closure `[DONE]`
+
+Goal:
+- Close the private beta release lane after resolving promotion blockers and validating the exact candidate through local, live Supabase, Playwright, Docker build, and Docker runtime smoke gates.
+
+Completed output:
+- `rc-3db65a2-20260502` promoted from commit `3db65a2f56c5a7a92cf0c6b72d3ab1d0496e1ba2`
+- high-severity npm audit blocker remediated without semver-major framework, auth, or test-tool upgrades
+- Docker Desktop Linux engine availability confirmed on `desktop-linux`
+- Docker build and runtime smoke passed for `adaptabuddy-web:rc-3db65a2-20260502`
+- live Supabase E2E and Playwright browser E2E passed against the target project
+
+Evidence:
+- `docs/operations/private_beta_release_record.md`
+
+Boundary:
+- No Rust public engine envelope changes were made for promotion closure.
+- No DB schema changes were made for promotion closure.
+- No new numbered engine spec was accepted as part of promotion closure.
+
+## Wave 7: Private Beta Operations And Learning Loop `[ACTIVE]`
+
+Goal:
+- Operate the promoted private beta, collect structured feedback and runtime evidence, and decide the next numbered engine architecture spec from beta evidence rather than assumption.
+
+Primary work:
+- Track private beta feedback, support reports, release incidents, and debugging evidence in durable handoff memory under `docs/hippocampus/` or `specs/hippocampus/`.
+- Correlate beta issues with request IDs, replay receipts, route-level evidence, and affected app/engine boundary areas.
+- Classify findings as app-shell, adapter-contract, persistence/RLS, telemetry/read-model, replay/debuggability, deterministic engine behavior, or product-copy issues.
+- Maintain promotion, rollback, and incident records for beta candidates under `docs/operations/`.
+- Produce a short next-engine-spec decision memo before opening any new numbered engine spec.
+
+Boundary:
+- No active numbered engine spec is currently queued.
+- No Rust public engine envelope changes are implied by Wave 7.
+- `apps/web` remains the shell for auth, support, telemetry, persistence, release operations, and beta feedback capture.
+- Any future Engine 30 must be chosen only after beta evidence shows a boundary-level engine problem or opportunity.
+
+Exit criteria:
+- Private beta has enough support and telemetry evidence to identify recurring pain points.
+- Debug workflow can reproduce or classify critical beta issues without ad hoc database spelunking.
+- The next numbered engine spec is selected from evidence and explicitly states why it requires engine-boundary work.
+- App-shell follow-ups stay separate from engine-boundary revisions.
+
 ## Immediate Next Milestones
 
 1. Treat Wave 2 as closed and archived.
@@ -192,14 +240,15 @@ Boundary:
 5. Treat `docs/archive/specs/engine_23_app_replay_invocation_alignment.md` through `docs/archive/specs/engine_29_pre_beta_playwright_e2e_hardening.md` as complete and archived.
 6. No active numbered engine spec is currently queued.
 7. Keep live Supabase verification gated outside the default green lane.
-8. Treat Playwright browser E2E as a required pre-beta gate for `apps/web`.
+8. Treat Playwright browser E2E as a required release-candidate gate for `apps/web`.
 9. Treat `users.stats_json` compatibility ownership and sunset mapping as documented by `docs/archive/specs/engine_25_stats_json_compatibility_sunset_map.md`.
 10. Treat `docs/archive/specs/engine_18_deterministic_analytics_read_models.md` as complete and archived.
 11. Treat `docs/archive/specs/engine_19_dashboard_analytics_consumer_migration.md` as complete and archived.
 12. Treat `docs/archive/specs/engine_20_dashboard_remaining_analytics_read_models.md` as complete and archived.
 13. Treat `docs/archive/specs/engine_21_analytics_api_endpoint.md` as complete and archived.
 14. Treat `docs/archive/specs/engine_22_canonical_replay_serialization_and_numeric_policy.md` as complete and archived.
-15. Resolve private beta promotion blockers from `docs/operations/private_beta_release_record.md`: immutable candidate commit metadata, owner signoff, and audit disposition.
+15. Treat `rc-3db65a2-20260502` as promoted according to `docs/operations/private_beta_release_record.md`.
+16. Start Wave 7 by recording private beta observations before changing engine contracts or app persistence shapes.
 
 ## Explicit Risks And Tradeoffs
 

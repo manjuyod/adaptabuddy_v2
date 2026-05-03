@@ -7,6 +7,7 @@ import type { UserStats } from "@adaptabuddy/contracts";
 import { getDefaultUserStats } from "@/lib/db-transformers";
 import { OptInSettingsPanel } from "@/modules/optins/components/OptInSettingsPanel";
 import { SettingsPreferencesPanel } from "@/modules/settings/components/SettingsPreferencesPanel";
+import { BetaFeedbackPanel } from "@/modules/support/components/BetaFeedbackPanel";
 
 export default async function SettingsPage() {
   const isDev = process.env.NODE_ENV === "development";
@@ -88,6 +89,10 @@ export default async function SettingsPage() {
             </Link>
           ) : null}
         </div>
+      </div>
+
+      <div className="rounded-xl border border-slate-800 bg-surface/80 p-6 shadow-lg">
+        <BetaFeedbackPanel />
       </div>
     </div>
   );

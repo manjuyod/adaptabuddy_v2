@@ -282,28 +282,13 @@ The purpose is to validate the decision core in isolation before app integration
 
 ## Roadmap Snapshot
 
-Roadmap details and acceptance criteria live in `specs/overall_plan.md`.
+This architecture document defines the engine/app boundary. It does not own the full roadmap ledger.
 
-Current queue shape:
-- Wave 1 is complete and archived under `docs/archive/specs/engine_01_boundary_contracts.md` through `docs/archive/specs/engine_06_isolated_engine_implementation.md`.
-- Wave 2 is complete and archived under `docs/archive/specs/engine_08_initialize_cycle_boundary.md` through `docs/archive/specs/engine_11_app_integration_and_rollout.md`.
-- Wave 3 projection cleanup is complete in `docs/archive/specs/engine_12_projection_cleanup_and_compatibility_boundary.md`.
-- The completed class-taxonomy boundary spec is `docs/archive/specs/engine_13_class_definition_and_resolution_boundary.md`.
-- The completed class-preset addendum is `docs/archive/specs/engine_14_class_preset_addendum.md`.
-- The completed richer progression/adherence boundary spec is `docs/archive/specs/engine_14_richer_progression_and_adherence_state.md`.
-- The completed counters-only Engine 14 implementation slice is `docs/archive/specs/2026-04-08-engine-14-counters-only-design.md`.
-- The completed Wave 4 explainability/reporting boundary is `docs/archive/specs/engine_15_explainability_and_reporting_read_models.md`.
-- The completed Wave 4 operational/release hardening spec is `docs/archive/specs/engine_16_operational_release_hardening.md`.
-- The completed Wave 4 user-facing explanation-consumer spec is `docs/archive/specs/engine_17_user_facing_explanation_consumers.md`.
-- The completed Wave 4 deterministic analytics read-model spec is `docs/archive/specs/engine_18_deterministic_analytics_read_models.md`.
-- The completed Wave 4 dashboard analytics consumer migration is `docs/archive/specs/engine_19_dashboard_analytics_consumer_migration.md`.
-- The completed Wave 4 remaining dashboard analytics read-model slice is `docs/archive/specs/engine_20_dashboard_remaining_analytics_read_models.md`.
-- The completed Wave 4 broader analytics API endpoint is `docs/archive/specs/engine_21_analytics_api_endpoint.md`.
-- The completed Engine 22 replay-policy spec is `docs/archive/specs/engine_22_canonical_replay_serialization_and_numeric_policy.md`.
-- The completed Wave 5 replay alignment, compatibility, orchestration reliability, and private beta release evidence specs are `docs/archive/specs/engine_23_app_replay_invocation_alignment.md`, `docs/archive/specs/engine_24_replay_bundle_and_beta_debug_evidence.md`, `docs/archive/specs/engine_25_stats_json_compatibility_sunset_map.md`, `docs/archive/specs/engine_26_cycle_session_orchestration_reliability_hardening.md`, and `docs/archive/specs/engine_27_private_beta_release_evidence_pack.md`.
-- The completed Wave 5 cross-language replay certification spec is `docs/archive/specs/engine_28_cross_language_replay_certification.md`.
+Roadmap details, active queue status, latest completed numbered spec, wave status, and acceptance criteria live in `specs/overall_plan.md`.
 
-Active and planned engine specs live in `docs/specs/`. Historical completed engine specs live in `docs/archive/specs/`.
+Historical completed specs live under `docs/archive/specs/` and are indexed by `docs/archive/specs/README.md`.
+
+Durable handoff/status memory lives under `docs/hippocampus/` and `specs/hippocampus/`.
 
 ## Risks and Tradeoffs
 

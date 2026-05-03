@@ -9,13 +9,10 @@ Rules for this archive:
 - Historical specs may still be referenced for context, but they should not drive current architecture direction.
 
 Archived specs include:
-- `2026-04-08-engine-14-counters-only-design.md`
-- `engine_14_class_preset_addendum.md`
-- `engine_14_richer_progression_and_adherence_state.md`
 - `18_backend_reliability_hardening.md`
 - `19_observability_runtime_implementation.md`
 - `20_api_consistency_cleanup.md`
-- `login_ui_merge.md`
+- `2026-04-08-engine-14-counters-only-design.md`
 - `engine_01_boundary_contracts.md`
 - `engine_02_snapshot_normalization.md`
 - `engine_03_candidate_pipeline_and_constraints.md`
@@ -29,6 +26,8 @@ Archived specs include:
 - `engine_11_app_integration_and_rollout.md`
 - `engine_12_projection_cleanup_and_compatibility_boundary.md`
 - `engine_13_class_definition_and_resolution_boundary.md`
+- `engine_14_class_preset_addendum.md`
+- `engine_14_richer_progression_and_adherence_state.md`
 - `engine_15_explainability_and_reporting_read_models.md`
 - `engine_16_operational_release_hardening.md`
 - `engine_17_user_facing_explanation_consumers.md`
@@ -43,4 +42,6 @@ Archived specs include:
 - `engine_26_cycle_session_orchestration_reliability_hardening.md`
 - `engine_27_private_beta_release_evidence_pack.md`
 - `engine_28_cross_language_replay_certification.md`
+- `engine_29_pre_beta_playwright_e2e_hardening.md`
 - `engine_addendum_stateful_progression_gamification.md`
+- `login_ui_merge.md`

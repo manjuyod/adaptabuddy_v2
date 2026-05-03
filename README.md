@@ -18,11 +18,13 @@ Active roadmap reference:
 - `specs/overall_plan.md`
 
 Active engine spec queue:
-- Active numbered engine spec: none currently documented
-- Latest completed spec: `docs/archive/specs/engine_28_cross_language_replay_certification.md`
+- See `specs/overall_plan.md` for the active queue, latest completed numbered spec, and wave status.
+- See `docs/archive/specs/README.md` for the historical spec archive index.
 
 Current launch lane:
-- `Production Beta Readiness` for `apps/web`, using the release runbook under `docs/operations/`; the latest candidate remains `HOLD` until immutable commit metadata, owner assignments, and audit disposition are resolved.
+- Private beta promotion is complete for `rc-3db65a2-20260502`.
+- Latest candidate evidence and promotion status are tracked in `docs/operations/private_beta_release_record.md`.
+- Current roadmap work is `Wave 7: Private Beta Operations And Learning Loop`; see `specs/overall_plan.md`.
 
 ## Architecture Split
 
@@ -97,7 +99,11 @@ Completed app-shell work remains relevant as downstream context:
 Those items are preserved as historical and operational context. They no longer define the main project direction.
 
 Historical completed specs now live under:
-- `docs/archive/specs/`
+- `docs/archive/specs/README.md`
+
+Durable handoff memory lives under:
+- `docs/hippocampus/`
+- `specs/hippocampus/`
 
 ## apps/web Operations
 
@@ -126,15 +132,9 @@ cd apps/web && npm run build
 
 ## Next Milestones
 
-Immediate roadmap focus:
-- Wave 4 explainability, analytics, and operationalization is complete through `docs/archive/specs/engine_21_analytics_api_endpoint.md`.
-- Engine 22 canonical replay serialization and numeric policy is complete and archived under `docs/archive/specs/`.
-- Engine 23 app replay invocation alignment and Engine 24 replay bundle evidence are complete and archived under `docs/archive/specs/`.
-- Engine 25 `stats_json` compatibility sunset mapping is complete and archived under `docs/archive/specs/`.
-- Engine 26 cycle/session orchestration reliability hardening is complete and archived under `docs/archive/specs/`.
-- Engine 27 private beta release evidence pack is complete and archived under `docs/archive/specs/`.
-- Engine 28 cross-language replay certification is complete and archived under `docs/archive/specs/`.
-- The immediate launch focus is resolving private beta promotion blockers for `apps/web`: immutable candidate metadata, owner signoff, and audit disposition.
+Immediate roadmap focus is tracked in `specs/overall_plan.md`; the current lane is post-promotion private beta operations and learning.
+
+Latest private beta candidate evidence and promotion status are tracked in `docs/operations/private_beta_release_record.md`.
 
 Open architecture risks that remain explicit:
 - Whether the engine should emit only deterministic state patches or patches plus append-only events

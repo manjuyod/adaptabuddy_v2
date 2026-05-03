@@ -17,3 +17,4 @@ export * from "./history";
 export * from "./onboarding";
 export * from "./cycles";
 export * from "./reporting";
+export * from "./support";

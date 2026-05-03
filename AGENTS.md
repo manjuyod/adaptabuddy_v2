@@ -11,52 +11,11 @@ Canonical references:
 - Roadmap: `specs/overall_plan.md`
 - Process source: `CLAUDE.md`
 
-Current active engine spec queue:
-- Active numbered engine spec: none currently queued.
-- Completed Wave 5 queue:
-  - `docs/archive/specs/engine_23_app_replay_invocation_alignment.md`
-  - `docs/archive/specs/engine_24_replay_bundle_and_beta_debug_evidence.md`
-  - `docs/archive/specs/engine_25_stats_json_compatibility_sunset_map.md`
-  - `docs/archive/specs/engine_26_cycle_session_orchestration_reliability_hardening.md`
-  - `docs/archive/specs/engine_27_private_beta_release_evidence_pack.md`
-  - `docs/archive/specs/engine_28_cross_language_replay_certification.md`
-- Completed pre-beta app-shell hardening spec:
-  - `docs/archive/specs/engine_29_pre_beta_playwright_e2e_hardening.md`
-- Latest completed numbered spec: `docs/archive/specs/engine_29_pre_beta_playwright_e2e_hardening.md`
-
-Archived completed engine specs:
-- `docs/archive/specs/2026-04-08-engine-14-counters-only-design.md`
-- `docs/archive/specs/engine_14_class_preset_addendum.md`
-- `docs/archive/specs/engine_14_richer_progression_and_adherence_state.md`
-- `docs/archive/specs/engine_15_explainability_and_reporting_read_models.md`
-- `docs/archive/specs/engine_16_operational_release_hardening.md`
-- `docs/archive/specs/engine_17_user_facing_explanation_consumers.md`
-- `docs/archive/specs/engine_18_deterministic_analytics_read_models.md`
-- `docs/archive/specs/engine_19_dashboard_analytics_consumer_migration.md`
-- `docs/archive/specs/engine_20_dashboard_remaining_analytics_read_models.md`
-- `docs/archive/specs/engine_21_analytics_api_endpoint.md`
-- `docs/archive/specs/engine_22_canonical_replay_serialization_and_numeric_policy.md`
-- `docs/archive/specs/engine_23_app_replay_invocation_alignment.md`
-- `docs/archive/specs/engine_24_replay_bundle_and_beta_debug_evidence.md`
-- `docs/archive/specs/engine_25_stats_json_compatibility_sunset_map.md`
-- `docs/archive/specs/engine_26_cycle_session_orchestration_reliability_hardening.md`
-- `docs/archive/specs/engine_27_private_beta_release_evidence_pack.md`
-- `docs/archive/specs/engine_28_cross_language_replay_certification.md`
-- `docs/archive/specs/engine_29_pre_beta_playwright_e2e_hardening.md`
-- `docs/archive/specs/engine_01_boundary_contracts.md`
-- `docs/archive/specs/engine_02_snapshot_normalization.md`
-- `docs/archive/specs/engine_03_candidate_pipeline_and_constraints.md`
-- `docs/archive/specs/engine_04_scoring_selection_and_decision_logs.md`
-- `docs/archive/specs/engine_05_testing_and_replay.md`
-- `docs/archive/specs/engine_06_isolated_engine_implementation.md`
-- `docs/archive/specs/engine_07_rust_review_fix_and_test_plan.md`
-- `docs/archive/specs/engine_08_initialize_cycle_boundary.md`
-- `docs/archive/specs/engine_09_cycle_generation_and_program_blending.md`
-- `docs/archive/specs/engine_10_engine_state_persistence_and_projection.md`
-- `docs/archive/specs/engine_11_app_integration_and_rollout.md`
-- `docs/archive/specs/engine_12_projection_cleanup_and_compatibility_boundary.md`
-- `docs/archive/specs/engine_13_class_definition_and_resolution_boundary.md`
-- `docs/archive/specs/engine_addendum_stateful_progression_gamification.md`
+Spec and memory ledgers:
+- Active queue, latest completed numbered spec, and wave status: `specs/overall_plan.md`
+- Historical completed spec archive index: `docs/archive/specs/README.md`
+- Durable handoff/status memory: `docs/hippocampus/` and `specs/hippocampus/`
+- Latest private beta candidate evidence and promotion status: `docs/operations/private_beta_release_record.md`
 
 ## Commands
 
@@ -156,8 +115,9 @@ Use this order unless the task explicitly scopes differently:
 
 - Existing web product-shell work remains valid context, but it is downstream of the engine-first roadmap.
 - Existing release docs remain valid only for `apps/web` runtime operations.
-- Active and planned engine specs live under `docs/specs/`.
-- Historical completed specs live under `docs/archive/specs/` and should not drive current architecture direction.
+- Active and planned engine specs are tracked by `specs/overall_plan.md`.
+- Historical completed specs live under `docs/archive/specs/` and are indexed by `docs/archive/specs/README.md`.
+- Durable handoff/status memory lives under `docs/hippocampus/` and `specs/hippocampus/`.
 
 ## Testing Expectations
 

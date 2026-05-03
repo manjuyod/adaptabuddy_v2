@@ -28,6 +28,7 @@
 | 016_engine_14_progression_states | 016_engine_14_progression_states.sql | 2026-04-14 | Add normalized per-exercise Engine 14 progression state rows keyed by active plan and exercise |
 | 017_engine_15_session_traces | 017_engine_15_session_traces.sql | 2026-04-15 | Add app-owned persisted engine trace table plus completion RPC support for Wave 4 explainability/reporting read models |
 | 018_engine_24_replay_debug_input_material | 018_engine_24_replay_debug_input_material.sql | 2026-05-01 | Add redacted replay debug input material to engine traces and restrict trace/RPC evidence writes to server-owned paths |
+| 019_wave_7_beta_feedback_reports | 019_wave_7_beta_feedback_reports.sql | 2026-05-02 | Add authenticated user-owned beta feedback report capture table and Wave 7 RLS-controlled support feedback persistence |
 
 ## users.stats_json Schema
 
