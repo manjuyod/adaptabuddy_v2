@@ -16,5 +16,8 @@
     "test": "npm run test --workspaces",
     "test:e2e:playwright": "npm run test:e2e:playwright --workspace apps/web",
     "verify:deploy:smoke": "node apps/web/scripts/verify-deploy-smoke.mjs"
+  },
+  "devDependencies": {
+    "mermaid": "^11.14.0"
   }
 }
