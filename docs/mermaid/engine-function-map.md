@@ -61,3 +61,30 @@ flowchart LR
   Runner --> WebService
   WebService --> Persist
 ```
+
+## Planned Engine 30 Surface
+
+This diagram is planned future state, not current runtime.
+
+```mermaid
+flowchart TB
+  Public["packages/engine-rs/src/lib.rs"]
+  Public --> PublicInitialize["pub fn initialize_cycle"]
+  Public --> PublicPlan["pub fn plan_session"]
+  Public --> PublicComplete["pub fn complete_session"]
+  Public --> PublicAdvance["pub fn advance_cycle<br/>planned Engine 30"]
+
+  PublicAdvance --> AdvanceBoundary["boundary validation<br/>completed season snapshot,<br/>rank policy, determinism"]
+  AdvanceBoundary --> SeasonRank["season rank engine<br/>S/A/B/C/D breakdown"]
+  SeasonRank --> Awards["awards and unlock eligibility"]
+  SeasonRank --> Evolution["bounded evolutionPatch"]
+  Evolution --> NextCycle["nextCycleRequest<br/>valid for initialize_cycle"]
+  PublicAdvance --> ReplayReceipt["replay receipt"]
+  PublicAdvance --> DecisionLog["structured decision log"]
+
+  Harness["headless backtest harness"] --> PublicInitialize
+  Harness --> PublicPlan
+  Harness --> PublicComplete
+  Harness --> PublicAdvance
+  NextCycle --> PublicInitialize
+```

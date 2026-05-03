@@ -84,3 +84,37 @@ flowchart TB
   RustEngine --> EngineBoundary
   EngineBoundary --> ProductShell
 ```
+
+## Planned Season Loop App Shell
+
+This diagram is planned Wave 9 state, not current runtime.
+
+```mermaid
+flowchart TB
+  subgraph ProductShell["apps/web planned additions"]
+    AdvanceRoute["POST /api/v0/cycles/advance"]
+    AdvanceService["handleAdvanceCycle"]
+    AdvanceContracts["AdvanceCycleRequestSchema<br/>AdvanceCycleResponseSchema"]
+    SeasonPersistence["season summaries,<br/>awards, transition records"]
+    SeasonUI["dashboard season panel<br/>end-of-season result<br/>next-season preview"]
+  end
+
+  subgraph Engine30["packages/engine-rs planned Engine 30"]
+    AdvanceCycle["advance_cycle"]
+    Rank["seasonRank and rankBreakdown"]
+    Awards["awards"]
+    NextCycle["nextCycleRequest"]
+    Replay["decisionLog and replayReceipt"]
+  end
+
+  AdvanceRoute --> AdvanceContracts
+  AdvanceRoute --> AdvanceService
+  AdvanceService --> AdvanceCycle
+  AdvanceCycle --> Rank
+  AdvanceCycle --> Awards
+  AdvanceCycle --> NextCycle
+  AdvanceCycle --> Replay
+  AdvanceService --> SeasonPersistence
+  SeasonPersistence --> SeasonUI
+  NextCycle --> ExistingInitialize["existing initialize-cycle flow"]
+```

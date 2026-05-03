@@ -142,6 +142,25 @@ This runs:
 
 For product-shell release candidates, also run the manual gates from `docs/operations/deployment_verification_checklist.md`.
 
+## Season Loop Cloud Wave Matrix
+
+Use this matrix for the Season Loop doc pass and follow-on implementation tasks.
+
+| Wave | Scope | Default verification | Live services |
+| --- | --- | --- | --- |
+| A | Engine 30 spec and Rust implementation | `npm run test:engine` plus Engine 30 backtest gates | none |
+| B | Wave 9 app/API/contracts/product-shell work | `npm run typecheck`, `npm run lint`, `npm run test`, `npm run build` | none |
+| C | Mermaid and documentation maps | Markdown link review and Mermaid render or parse check | none |
+| D | Verification docs and cloud runbooks | Review against this runbook and `specs/overall_plan.md` | none |
+| Integration | Cross-wave terminology and status alignment | `npm run ci:quality` when code changes exist; doc checks for doc-only work | none by default |
+
+Season Loop work stays local-first:
+
+- Engine evidence comes from deterministic fixtures, replay receipts, and headless backtests.
+- Product-shell evidence comes from mocked local app tests and local browser journeys.
+- Live Supabase and live Playwright gates resume only for release candidates after the Season Loop is complete enough to test meaningful behavior.
+- Do not inspect `.env`, use live Supabase credentials, or enable `RUN_SUPABASE_E2E_VERIFICATION=1` / `RUN_PLAYWRIGHT_E2E=1` in normal cloud tasks.
+
 For live Supabase E2E:
 
 ```bash

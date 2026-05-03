@@ -129,6 +129,17 @@ The current `packages/engine-rs` baseline implements a narrower public boundary 
 
 Future operations and wider boundary surface area remain later boundary-revision work and should not be backfilled into the MVP contract by implication.
 
+## Active Boundary Expansion: Season Loop
+
+Engine 30 is the accepted next boundary-revision direction after the current Rust MVP:
+
+- add `advance_cycle` as the season-transition operation
+- evaluate completed macrocycle seasons deterministically
+- emit rank, awards, bounded evolution, and a valid next-cycle request
+- prove the loop through a headless local backtest harness before live beta evidence is treated as the primary architecture signal
+
+The Season Loop does not move app responsibilities into the engine. `apps/web` still owns auth, transport, validation, persistence, RLS, UI, and release operations. The engine owns the deterministic decision behind season rank and next-cycle direction.
+
 ## Engine Contract
 
 ### `EngineInputV1`

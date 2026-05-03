@@ -273,3 +273,46 @@ flowchart TB
   Adaptation --> Logging
   Adaptation --> Replay
 ```
+
+## Planned Season Loop Surface
+
+This section is planned future state for Engine 30 and Wave 9. It is not a current function inventory.
+
+```mermaid
+flowchart TB
+  subgraph Engine30["packages/engine-rs planned"]
+    AdvanceCycle["advance_cycle"]
+    SeasonRank["rank completed macrocycle season"]
+    Awards["emit awards and unlock eligibility"]
+    Evolution["emit bounded evolutionPatch"]
+    NextCycle["emit nextCycleRequest"]
+    Harness["headless multi-season backtest harness"]
+  end
+
+  subgraph Contracts["packages/contracts planned"]
+    AdvanceRequest["AdvanceCycleRequestSchema"]
+    AdvanceResponse["AdvanceCycleResponseSchema"]
+    SeasonRankSchema["SeasonRankSchema"]
+    AwardSchema["SeasonAwardSchema"]
+    PreviewSchema["NextCyclePreviewSchema"]
+  end
+
+  subgraph AppWave9["apps/web planned"]
+    AdvanceRoute["POST /api/v0/cycles/advance"]
+    AdvanceService["handleAdvanceCycle"]
+    SeasonPersistence["season transition persistence"]
+    SeasonUi["season result and next-season preview UI"]
+  end
+
+  Harness --> AdvanceCycle
+  AdvanceRoute --> AdvanceRequest
+  AdvanceRoute --> AdvanceService
+  AdvanceService --> AdvanceCycle
+  AdvanceCycle --> SeasonRank
+  AdvanceCycle --> Awards
+  AdvanceCycle --> Evolution
+  AdvanceCycle --> NextCycle
+  AdvanceCycle --> AdvanceResponse
+  AdvanceService --> SeasonPersistence
+  SeasonPersistence --> SeasonUi
+```
