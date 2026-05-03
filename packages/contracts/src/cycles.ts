@@ -13,25 +13,55 @@ export const SelectableClassPresetIdSchema = z.enum([
   "powa",
   "ninja",
 ]);
+export const GoalBiasSchema = z.enum([
+  "strength",
+  "hypertrophy",
+  "balanced",
+  "conditioning",
+]);
+export const InjuryMuscleGroupSlugSchema = z.string().trim().min(1).max(64);
 
 export type CanonicalClassArchetype = z.infer<typeof CanonicalClassArchetypeSchema>;
 export type ClassPresetId = z.infer<typeof ClassPresetIdSchema>;
 export type SelectableClassPresetId = z.infer<typeof SelectableClassPresetIdSchema>;
+export type GoalBias = z.infer<typeof GoalBiasSchema>;
 
 export const SelectedProgramSchema = z.object({
   programId: z.number().int().positive(),
   weight: z.number().gt(0).lte(1),
 });
 
-export const InitializeCycleRequestSchema = z.object({
-  classPresetId: SelectableClassPresetIdSchema,
-  goalBias: z.string().min(1),
-  availableDaysPerWeek: z.number().int().min(1).max(7),
-  fatiguePreference: z.enum(["low", "moderate", "high"]),
-  injuryMuscleGroupSlugs: z.array(z.string().min(1)).default([]),
-  macrocycleWeeks: z.number().int().min(1).max(52).default(12),
-  selectedPrograms: z.array(SelectedProgramSchema).min(1),
-});
+const requireUniqueSelectedProgramIds = (
+  selectedPrograms: Array<{ programId: number }>,
+  ctx: z.RefinementCtx
+) => {
+  const seen = new Set<number>();
+  for (const [index, selection] of selectedPrograms.entries()) {
+    if (seen.has(selection.programId)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["selectedPrograms", index, "programId"],
+        message: "Program selections must be unique",
+      });
+      return;
+    }
+    seen.add(selection.programId);
+  }
+};
+
+export const InitializeCycleRequestSchema = z
+  .object({
+    classPresetId: SelectableClassPresetIdSchema,
+    goalBias: GoalBiasSchema,
+    availableDaysPerWeek: z.number().int().min(1).max(7),
+    fatiguePreference: z.enum(["low", "moderate", "high"]),
+    injuryMuscleGroupSlugs: z.array(InjuryMuscleGroupSlugSchema).max(24).default([]),
+    macrocycleWeeks: z.number().int().min(1).max(52).default(12),
+    selectedPrograms: z.array(SelectedProgramSchema).min(1).max(12),
+  })
+  .superRefine((value, ctx) => {
+    requireUniqueSelectedProgramIds(value.selectedPrograms, ctx);
+  });
 
 export type InitializeCycleRequest = z.infer<typeof InitializeCycleRequestSchema>;
 

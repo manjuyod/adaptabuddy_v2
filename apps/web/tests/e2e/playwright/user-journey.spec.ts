@@ -166,6 +166,8 @@ test.describe("Pre-beta live Supabase browser breaker suite", () => {
     await expect(page).toHaveURL(/\/onboarding$/);
 
     await page.getByTestId("onboarding-next").click();
+    await expect(page.getByTestId("onboarding-step-gear")).toBeVisible();
+    await page.getByTestId("onboarding-next").click();
     await expect(page.getByTestId("onboarding-equipment-error")).toContainText(
       /choose at least one/i,
     );
@@ -173,11 +175,14 @@ test.describe("Pre-beta live Supabase browser breaker suite", () => {
     await page.getByTestId("onboarding-equipment-barbell").click();
     await page.getByTestId("onboarding-equipment-dumbbell").click();
     await page.getByTestId("onboarding-next").click();
-    await page.getByTestId("onboarding-fatigue-hard").click();
+    await page.getByTestId("onboarding-step-recovery");
+    await page.getByTestId("onboarding-fatigue-high").click();
     await page.getByTestId("onboarding-unit-lbs").click();
     await page.getByTestId("onboarding-next").click();
-    await page.locator('[data-testid^="onboarding-program-"]').first().click();
     await page.getByTestId("onboarding-next").click();
+    await page.locator('[data-testid^="onboarding-program-input-"]').first().fill("80");
+    await page.getByTestId("onboarding-next").click();
+    await expect(page.getByTestId("onboarding-step-confirmation")).toBeVisible();
     await page.getByTestId("onboarding-start").click();
 
     await expect(page).toHaveURL(/\/dashboard$/);
@@ -187,6 +192,40 @@ test.describe("Pre-beta live Supabase browser breaker suite", () => {
     expect(stats.preferences.equipment).toEqual(expect.arrayContaining(["barbell", "dumbbell"]));
     expect(stats.preferences.fatigueLevel).toBe("hard");
     expect(stats.preferences.unitSystem).toBe("lbs");
+
+    const activePlanRows = await adminClient
+      .from("engine_cycle_plans")
+      .select("id")
+      .eq("user_id", testUserId)
+      .eq("is_active", true);
+    expect(activePlanRows.error).toBeNull();
+    expect((activePlanRows.data ?? []).length).toBeGreaterThan(0);
+
+    const profileRows = await adminClient
+      .from("engine_cycle_profiles")
+      .select("id")
+      .eq("user_id", testUserId);
+    expect(profileRows.error).toBeNull();
+    expect((profileRows.data ?? []).length).toBeGreaterThan(0);
+
+    const mixRows = await adminClient
+      .from("engine_cycle_program_mix")
+      .select("id, selection_weight")
+      .eq("user_id", testUserId);
+    expect(mixRows.error).toBeNull();
+    const mixPayload = mixRows.data ?? [];
+    expect(mixPayload.length).toBeGreaterThan(0);
+    expect(
+      mixPayload.every(
+        (row) => typeof row.selection_weight === "number" && row.selection_weight <= 1 && row.selection_weight >= 0,
+      ),
+    ).toBe(true);
+    const weightSum = mixPayload.reduce(
+      (sum, row) => sum + Number(row.selection_weight ?? 0),
+      0,
+    );
+    expect(weightSum).toBeGreaterThanOrEqual(0.9999);
+    expect(weightSum).toBeLessThanOrEqual(1.0001);
   });
 
   test("desktop @desktop: persists settings changes through Supabase and reload", async ({

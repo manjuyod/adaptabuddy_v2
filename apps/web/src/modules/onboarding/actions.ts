@@ -1,16 +1,16 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import type { UserStats } from "@adaptabuddy/contracts";
+import type { InitializeCycleRequest, UserStats } from "@adaptabuddy/contracts";
 import { getDefaultUserStats } from "@/lib/db-transformers";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerActionClient } from "@/lib/supabase/next";
-import { getProgramById } from "@/modules/programs/service";
 import {
   CompleteOnboardingInputSchema,
   type CompleteOnboardingInput,
   type CompleteOnboardingResult,
 } from "./contracts";
+import { handleInitializeCycle } from "../cycles/service";
 
 const normalizeList = (values: string[]) =>
   Array.from(
@@ -20,6 +20,26 @@ const normalizeList = (values: string[]) =>
         .filter((value) => value.length > 0),
     ),
   );
+
+const fatiguePreferenceToLevel = (value: InitializeCycleRequest["fatiguePreference"]) => {
+  if (value === "low") return "light";
+  if (value === "high") return "hard";
+  return "moderate";
+};
+
+const normalizeProgramWeights = (values: Array<{ programId: number; weight: number }>) => {
+  const positiveWeights = values.filter((entry) => entry.weight > 0);
+  const totalWeight = positiveWeights.reduce((sum, entry) => sum + entry.weight, 0);
+
+  if (totalWeight <= 0) {
+    return [];
+  }
+
+  return positiveWeights.map((entry) => ({
+    programId: entry.programId,
+    weight: entry.weight / totalWeight,
+  }));
+};
 
 export async function completeOnboarding(
   input: CompleteOnboardingInput,
@@ -39,55 +59,47 @@ export async function completeOnboarding(
     return { status: "error", error: "Not authenticated." };
   }
 
-  const { program, error: programError } = await getProgramById(
-    supabase,
-    parsed.data.programId,
-  );
-  if (programError || !program || !program.is_active) {
-    return { status: "error", error: "Selected program is unavailable." };
+  const normalizedPrograms = normalizeProgramWeights(parsed.data.selectedPrograms);
+  if (normalizedPrograms.length === 0) {
+    return { status: "error", error: "Select at least one program with a positive weight." };
   }
 
-  const { data: userRow, error: userLoadError } = await supabase
+  const initializeCycleRequest: InitializeCycleRequest = {
+    classPresetId: parsed.data.classPresetId,
+    goalBias: parsed.data.goalBias,
+    availableDaysPerWeek: parsed.data.availableDaysPerWeek,
+    fatiguePreference: parsed.data.fatiguePreference,
+    injuryMuscleGroupSlugs: normalizeList(parsed.data.injuryMuscleGroupSlugs),
+    macrocycleWeeks: parsed.data.macrocycleWeeks,
+    selectedPrograms: normalizedPrograms,
+  };
+
+  const initializeResult = await handleInitializeCycle(user.id, initializeCycleRequest);
+  if (initializeResult.status === "error") {
+    return { status: "error", error: "Unable to complete onboarding. Please try again." };
+  }
+
+  const { data: updatedUserRow, error: userLoadError } = await supabase
     .from("users")
     .select("stats_json")
     .eq("id", user.id)
     .single();
 
   if (userLoadError) {
-    return { status: "error", error: "Failed to load user profile." };
+    return { status: "error", error: "Failed to load onboarding profile." };
   }
 
   const defaults = getDefaultUserStats();
-  const currentStats = (userRow?.stats_json as UserStats | null) ?? defaults;
-  const currentPreferences = currentStats.preferences ?? defaults.preferences;
-  const now = new Date().toISOString();
-  const { data: activePlanRow, error: activePlanError } = await supabase
-    .from("engine_cycle_plans")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("is_active", true)
-    .maybeSingle();
-
-  if (activePlanError) {
-    return { status: "error", error: "Failed to inspect normalized cycle state." };
-  }
-
+  const latestStats = (updatedUserRow?.stats_json as UserStats | null) ?? defaults;
+  const latestPreferences = latestStats.preferences ?? defaults.preferences;
   const nextStats: UserStats = {
-    ...currentStats,
-    activeProgram: activePlanRow
-      ? currentStats.activeProgram
-      : {
-          programId: program.id.toString(),
-          startedAt: now,
-          currentDayIndex: 0,
-          currentMicrocycle: 1,
-          daysPerWeek: program.default_days_per_week,
-        },
+    ...latestStats,
     preferences: {
       ...defaults.preferences,
-      ...currentPreferences,
-      fatigueLevel: parsed.data.fatigueLevel,
+      ...latestPreferences,
+      fatigueLevel: fatiguePreferenceToLevel(parsed.data.fatiguePreference),
       equipment: normalizeList(parsed.data.equipment),
+      injuries: normalizeList(parsed.data.injuryMuscleGroupSlugs),
       unitSystem: parsed.data.unitSystem,
     },
   };
@@ -106,6 +118,8 @@ export async function completeOnboarding(
   }
 
   revalidatePath("/dashboard");
+  revalidatePath("/workout");
+  revalidatePath("/programs");
   revalidatePath("/start");
   revalidatePath("/title/start");
   revalidatePath("/title/continue");

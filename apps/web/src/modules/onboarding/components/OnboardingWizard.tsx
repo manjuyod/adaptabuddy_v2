@@ -3,46 +3,105 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { ProgramCatalogItem } from "@/modules/programs/contracts";
+import {
+  type CompleteOnboardingInput,
+  type CompleteOnboardingResult,
+  type FatigueLevel,
+  type GoalBias,
+  type OnboardingFatiguePreference,
+  type SelectableClassPresetId,
+  type UnitSystem,
+} from "../contracts";
 import { completeOnboarding } from "../actions";
-import type { FatigueLevel, UnitSystem } from "../contracts";
+import { CharacterStep } from "./CharacterStep";
 import { ConfirmationStep } from "./ConfirmationStep";
+import { CycleStep } from "./CycleStep";
 import { EquipmentStep } from "./EquipmentStep";
-import { PreferencesStep } from "./PreferencesStep";
-import { ProgramStep } from "./ProgramStep";
+import { RecoveryStep } from "./PreferencesStep";
+import { ProgramBlendStep } from "./ProgramStep";
 
 type OnboardingWizardProps = {
   programs: ProgramCatalogItem[];
+  muscleGroups: Array<{ id: string; slug: string; name: string }>;
   fetchError?: string;
+  muscleFetchError?: string | null;
 };
 
-type StepKey = "equipment" | "preferences" | "program" | "confirmation";
+type StepKey =
+  | "character"
+  | "gear"
+  | "recovery"
+  | "cycle"
+  | "program-blend"
+  | "confirmation";
 
 const steps: Array<{ key: StepKey; label: string }> = [
-  { key: "equipment", label: "Equipment" },
-  { key: "preferences", label: "Preferences" },
-  { key: "program", label: "Program" },
+  { key: "character", label: "Character" },
+  { key: "gear", label: "Gear" },
+  { key: "recovery", label: "Recovery" },
+  { key: "cycle", label: "Cycle" },
+  { key: "program-blend", label: "Program Blend" },
   { key: "confirmation", label: "Confirm" },
 ];
 
-export function OnboardingWizard({ programs, fetchError }: OnboardingWizardProps) {
+type ProgramWeight = { programId: number; weight: number };
+
+const initialProgramWeights = (programs: ProgramCatalogItem[]): ProgramWeight[] =>
+  programs.map((program) => ({ programId: program.id, weight: 0 }));
+
+export function OnboardingWizard({
+  programs,
+  muscleGroups,
+  fetchError,
+  muscleFetchError,
+}: OnboardingWizardProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [currentStep, setCurrentStep] = useState(0);
+  const [classPresetId, setClassPresetId] =
+    useState<SelectableClassPresetId>("classless");
+  const [goalBias, setGoalBias] = useState<GoalBias>("strength");
   const [equipment, setEquipment] = useState<string[]>([]);
-  const [fatigueLevel, setFatigueLevel] = useState<FatigueLevel>("moderate");
+  const [fatiguePreference, setFatiguePreference] =
+    useState<OnboardingFatiguePreference>("moderate");
   const [unitSystem, setUnitSystem] = useState<UnitSystem>("kg");
-  const [programId, setProgramId] = useState<number | null>(null);
+  const [injuryMuscleGroupSlugs, setInjuryMuscleGroupSlugs] = useState<string[]>([]);
+  const [availableDaysPerWeek, setAvailableDaysPerWeek] = useState(3);
+  const [macrocycleWeeks, setMacrocycleWeeks] = useState(8);
+  const [programWeights, setProgramWeights] = useState<ProgramWeight[]>(() =>
+    initialProgramWeights(programs),
+  );
   const [equipmentError, setEquipmentError] = useState<string | null>(null);
   const [programError, setProgramError] = useState<string | null>(null);
+  const [recoveryError, setRecoveryError] = useState<string | null>(null);
+  const [cycleError, setCycleError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const selectedProgram = useMemo(
-    () => programs.find((program) => program.id === programId) ?? null,
-    [programId, programs],
+  const selectedPrograms = useMemo(
+    () =>
+      programWeights.filter((entry) => entry.weight > 0).map((entry) => ({
+        programId: entry.programId,
+        weight: entry.weight,
+      })),
+    [programWeights],
   );
 
-  const toggleEquipment = (value: string) => {
-    setEquipmentError(null);
+  const mappedFatigueLevel = useMemo<FatigueLevel>(() => {
+    if (fatiguePreference === "low") {
+      return "light";
+    }
+    if (fatiguePreference === "high") {
+      return "hard";
+    }
+    return "moderate";
+  }, [fatiguePreference]);
+
+  const selectedInjuryLabels = useMemo(() => {
+    const nameBySlug = new Map(muscleGroups.map((group) => [group.slug, group.name]));
+    return injuryMuscleGroupSlugs.map((slug) => nameBySlug.get(slug) ?? slug);
+  }, [injuryMuscleGroupSlugs, muscleGroups]);
+
+  const onToggleEquipment = (value: string) => {
     setEquipment((previous) =>
       previous.includes(value)
         ? previous.filter((entry) => entry !== value)
@@ -50,43 +109,86 @@ export function OnboardingWizard({ programs, fetchError }: OnboardingWizardProps
     );
   };
 
-  const goNext = () => {
-    if (currentStep === 0 && equipment.length === 0) {
-      setEquipmentError("Choose at least one equipment option before continuing.");
-      return;
-    }
+  const onToggleInjury = (slug: string) => {
+    setInjuryMuscleGroupSlugs((previous) =>
+      previous.includes(slug)
+        ? previous.filter((entry) => entry !== slug)
+        : [...previous, slug],
+    );
+  };
 
-    if (currentStep === 2 && programId === null) {
-      setProgramError("Choose a program before continuing.");
-      return;
-    }
-
+  const onProgramWeightChange = (programId: number, percent: number) => {
     setProgramError(null);
-    setEquipmentError(null);
+    setProgramWeights((previous) =>
+      previous.map((entry) =>
+        entry.programId === programId ? { ...entry, weight: percent } : entry,
+      ),
+    );
+  };
+
+  const goNext = () => {
     setSubmitError(null);
+
+    if (currentStep === 1 && equipment.length === 0) {
+      setEquipmentError("Choose at least one piece of equipment before continuing.");
+      return;
+    }
+
+    if (currentStep === 3 && (availableDaysPerWeek < 1 || macrocycleWeeks < 1)) {
+      setCycleError("Choose valid cycle settings before continuing.");
+      return;
+    }
+
+    if (currentStep === 4 && selectedPrograms.length === 0) {
+      setProgramError("Select at least one program and set a positive percentage.");
+      return;
+    }
+
+    if (currentStep === 4) {
+      if (programWeights.some((entry) => entry.weight < 0)) {
+        setProgramError("Program percentages must be positive.");
+        return;
+      }
+    }
+
+    if (currentStep === 2 && !fatiguePreference) {
+      setRecoveryError("Choose a fatigue preference before continuing.");
+      return;
+    }
+
+    setEquipmentError(null);
+    setProgramError(null);
+    setRecoveryError(null);
+    setCycleError(null);
     setCurrentStep((step) => Math.min(step + 1, steps.length - 1));
   };
 
   const goBack = () => {
-    setSubmitError(null);
     setCurrentStep((step) => Math.max(step - 1, 0));
   };
 
   const handleStartTraining = () => {
-    if (programId === null) {
-      setCurrentStep(2);
-      setProgramError("Choose a program before starting.");
-      return;
-    }
+    const payload: CompleteOnboardingInput = {
+      equipment,
+      fatiguePreference,
+      unitSystem,
+      classPresetId,
+      goalBias,
+      availableDaysPerWeek,
+      injuryMuscleGroupSlugs,
+      macrocycleWeeks,
+      selectedPrograms,
+    };
 
     setSubmitError(null);
     startTransition(async () => {
-      const result = await completeOnboarding({
-        equipment,
-        fatigueLevel,
-        unitSystem,
-        programId,
-      });
+      let result: CompleteOnboardingResult;
+      try {
+        result = (await completeOnboarding(payload)) as CompleteOnboardingResult;
+      } catch {
+        setSubmitError("Unable to complete onboarding. Please try again.");
+        return;
+      }
 
       if (result.status === "error") {
         setSubmitError(result.error ?? "Unable to complete onboarding.");
@@ -98,6 +200,10 @@ export function OnboardingWizard({ programs, fetchError }: OnboardingWizardProps
     });
   };
 
+  const activeProgram = programs.filter((program) =>
+    selectedPrograms.some((selection) => selection.programId === program.id),
+  );
+
   return (
     <div className="space-y-6" data-testid="onboarding-wizard">
       <header className="rounded-xl border border-slate-800 bg-surface/80 p-6 shadow-lg">
@@ -108,7 +214,7 @@ export function OnboardingWizard({ programs, fetchError }: OnboardingWizardProps
         </p>
       </header>
 
-      <ol className="grid gap-2 sm:grid-cols-4" aria-label="Onboarding progress">
+      <ol className="grid gap-2 sm:grid-cols-6" aria-label="Onboarding progress">
         {steps.map((step, index) => {
           const isCurrent = currentStep === index;
           const isComplete = currentStep > index;
@@ -132,43 +238,86 @@ export function OnboardingWizard({ programs, fetchError }: OnboardingWizardProps
 
       <div className="rounded-xl border border-slate-800 bg-surface/80 p-6 shadow-lg">
         {currentStep === 0 ? (
-          <EquipmentStep
-            selectedEquipment={equipment}
-            onToggle={toggleEquipment}
-            error={equipmentError}
+          <CharacterStep
+            classPresetId={classPresetId}
+            goalBias={goalBias}
+            onClassPresetChange={setClassPresetId}
+            onGoalBiasChange={setGoalBias}
           />
         ) : null}
 
         {currentStep === 1 ? (
-          <PreferencesStep
-            fatigueLevel={fatigueLevel}
-            unitSystem={unitSystem}
-            onFatigueChange={setFatigueLevel}
-            onUnitChange={setUnitSystem}
+          <EquipmentStep
+            selectedEquipment={equipment}
+            onToggle={onToggleEquipment}
+            error={equipmentError}
           />
         ) : null}
 
         {currentStep === 2 ? (
-          <ProgramStep
-            programs={programs}
-            selectedProgramId={programId}
-            onSelect={(value) => {
-              setProgramError(null);
-              setProgramId(value);
-            }}
-            error={programError}
-            fetchError={fetchError}
+          <RecoveryStep
+            fatiguePreference={fatiguePreference}
+            unitSystem={unitSystem}
+            onFatigueChange={setFatiguePreference}
+            onUnitChange={setUnitSystem}
+            selectedInjuryMuscleGroupSlugs={injuryMuscleGroupSlugs}
+            onToggleInjury={onToggleInjury}
+            availableInjuries={muscleGroups}
+            error={recoveryError}
           />
         ) : null}
 
         {currentStep === 3 ? (
+          <CycleStep
+            availableDaysPerWeek={availableDaysPerWeek}
+            macrocycleWeeks={macrocycleWeeks}
+            onAvailableDaysChange={setAvailableDaysPerWeek}
+            onMacrocycleWeeksChange={setMacrocycleWeeks}
+          />
+        ) : null}
+
+        {currentStep === 4 ? (
+          <ProgramBlendStep
+            programs={programs}
+            programSelections={programWeights}
+            onWeightChange={onProgramWeightChange}
+            error={programError}
+          />
+        ) : null}
+
+        {currentStep === 5 ? (
           <ConfirmationStep
+            classPresetId={classPresetId}
+            goalBias={goalBias}
             equipment={equipment}
-            fatigueLevel={fatigueLevel}
+            fatigueLevel={mappedFatigueLevel}
             unitSystem={unitSystem}
-            programName={selectedProgram?.name ?? null}
+            injuries={selectedInjuryLabels}
+            availableDaysPerWeek={availableDaysPerWeek}
+            macrocycleWeeks={macrocycleWeeks}
+            programs={activeProgram.map((program) => ({
+              name: program.name,
+              percent:
+                selectedPrograms.find((selection) => selection.programId === program.id)?.weight ?? 0,
+            }))}
             submitError={submitError}
           />
+        ) : null}
+
+        {fetchError ? (
+          <p className="mt-4 rounded-md border border-red-800 bg-red-900/20 p-3 text-sm text-red-300">
+            {fetchError}
+          </p>
+        ) : null}
+        {muscleFetchError ? (
+          <p className="mt-4 rounded-md border border-red-800 bg-red-900/20 p-3 text-sm text-red-300">
+            {muscleFetchError}
+          </p>
+        ) : null}
+        {cycleError ? (
+          <p className="mt-4 text-sm text-red-400" data-testid="onboarding-cycle-error">
+            {cycleError}
+          </p>
         ) : null}
       </div>
 

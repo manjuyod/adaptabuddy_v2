@@ -14,7 +14,29 @@ export default async function OnboardingPage() {
   }
 
   const { programs, error } = await getProgramCatalog(supabase);
+  const { data: muscleGroups, error: muscleError } = await supabase
+    .from("muscle_groups")
+    .select("id, slug, name")
+    .order("name", { ascending: true });
 
-  return <OnboardingWizard programs={programs} fetchError={error} />;
+  return (
+    <OnboardingWizard
+      programs={programs}
+      muscleGroups={
+        (muscleGroups ?? [])
+          .map((group) => ({
+            id: String(group.id),
+            slug: String(group.slug),
+            name: String(group.name),
+          }))
+          .filter(
+            (group): group is { id: string; slug: string; name: string } =>
+              group.slug.length > 0 && group.name.length > 0
+          )
+      }
+      fetchError={error}
+      muscleFetchError={muscleError ? "Unable to load injury options." : null}
+    />
+  );
 }
 

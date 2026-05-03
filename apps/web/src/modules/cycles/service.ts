@@ -19,6 +19,7 @@ import {
   CANON_REPLAY_CANONICALIZATION_VERSION,
   computeCanonicalReplayReferenceHash,
 } from "@/lib/engine-replay";
+import { logServerEvent } from "@/lib/observability/logger";
 import {
   shapeSelectedProgramsForPreset,
   type CycleClassPresetRecord,
@@ -30,6 +31,7 @@ type ProgramRow = {
   id: number;
   slug?: string | null;
   name: string;
+  is_active?: boolean | null;
 };
 
 type ProgramDayRow = {
@@ -387,7 +389,7 @@ export async function handleInitializeCycle(
     await Promise.all([
       supabase.from("users").select("stats_json").eq("id", userId).single(),
       supabase.from("classes").select("id, is_selectable, status, base_archetype"),
-      supabase.from("programs").select("id, slug, name").in("id", input.selectedPrograms.map((program) => Number(program.programId))),
+      supabase.from("programs").select("id, slug, name, is_active").in("id", input.selectedPrograms.map((program) => Number(program.programId))),
       supabase.from("program_days").select("id, program_id, day_index, name").in("program_id", input.selectedPrograms.map((program) => Number(program.programId))),
       supabase.from("program_slots").select("id, program_day_id, slot_index, slot_type, movement_pattern, sets_min, sets_max, reps_min, reps_max, muscle_targets, tags_required"),
       supabase.from("exercises").select("id, slug, name, movement_pattern, equipment, tags, is_bodyweight"),
@@ -420,6 +422,21 @@ export async function handleInitializeCycle(
     return {
       status: "error",
       errors: ["Failed to load exercise reference data for cycle initialization"],
+    };
+  }
+
+  const activeProgramIds = new Set(
+    ((programRows ?? []) as ProgramRow[])
+      .filter((program) => program.is_active === true)
+      .map((program) => program.id)
+  );
+  const unavailableProgram = input.selectedPrograms.find(
+    (selection) => !activeProgramIds.has(Number(selection.programId))
+  );
+  if (unavailableProgram) {
+    return {
+      status: "error",
+      errors: ["Selected program is unavailable"],
     };
   }
 
@@ -623,7 +640,29 @@ export async function handleInitializeCycle(
     },
   };
 
-  const engineOutput = (await runEngineInput(engineInput)) as EngineInitializeResponse;
+  let engineOutput: EngineInitializeResponse;
+  try {
+    engineOutput = (await runEngineInput(engineInput)) as EngineInitializeResponse;
+  } catch (error) {
+    logServerEvent({
+      route: "/api/v0/sessions/initialize",
+      action: "handleInitializeCycle",
+      severity: "error",
+      reason: "dependency_error",
+      userId,
+      details: {
+        operation: "initialize_cycle",
+        classPresetId: input.classPresetId,
+        goalBias: input.goalBias,
+      },
+      error,
+    });
+
+    return {
+      status: "error",
+      errors: ["Engine cycle initialization failed. Please try again."],
+    };
+  }
   const result = engineOutput.result;
   const macrocycle = result?.macrocycle;
   const resolvedClassArchetype = parseCanonicalClassArchetype(

@@ -17,10 +17,10 @@ const equipmentOptions = [
 
 export function EquipmentStep({ selectedEquipment, onToggle, error }: EquipmentStepProps) {
   return (
-    <section className="space-y-4" data-testid="onboarding-step-equipment">
+    <section className="space-y-4" data-testid="onboarding-step-gear">
       <div>
-        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Step 1 of 4</p>
-        <h2 className="mt-2 text-xl font-semibold text-slate-100">Available Equipment</h2>
+        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Step 2 of 6</p>
+        <h2 className="mt-2 text-xl font-semibold text-slate-100">Gear</h2>
         <p className="mt-1 text-sm text-slate-400">
           Choose all equipment you can reliably use for your workouts.
         </p>

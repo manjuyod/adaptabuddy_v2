@@ -291,6 +291,63 @@ describe("initialize cycle service", () => {
     );
   });
 
+  it("returns a friendly message when the engine runner throws", async () => {
+    const userId = "22222222-2222-2222-2222-222222222222";
+    const store = {
+      users: [{ id: userId, stats_json: createStats() }],
+      programs: [
+        { id: 2001, slug: "strength", name: "Strength Builder", is_active: true },
+      ],
+      program_days: [{ id: 3001, program_id: 2001, day_index: 0, name: "Strength Day 1" }],
+      program_slots: [
+        {
+          id: 4001,
+          program_day_id: 3001,
+          slot_index: 0,
+          slot_type: "main",
+          movement_pattern: "push",
+          sets_min: 4,
+          sets_max: 5,
+          reps_min: 3,
+          reps_max: 5,
+          muscle_targets: { chest: 1 },
+          tags_required: ["compound"],
+        },
+      ],
+      exercises: [],
+      exercise_muscle_map: [],
+      muscle_groups: [{ id: 1, slug: "shoulders", name: "Shoulders" }],
+      engine_cycle_profiles: [] as Array<Record<string, unknown>>,
+      engine_cycle_program_mix: [] as Array<Record<string, unknown>>,
+      engine_cycle_plans: [] as Array<Record<string, unknown>>,
+      engine_cycle_sessions: [] as Array<Record<string, unknown>>,
+      engine_gamification_states: [] as Array<Record<string, unknown>>,
+    };
+
+    mockSupabase = createMockSupabase(store);
+    mockAdminSupabase = createMockSupabase(store);
+    mockedRunEngineInput.mockRejectedValue(new Error("engine launcher failed"));
+
+    const result = await handleInitializeCycle(userId, {
+      classPresetId: "classless",
+      goalBias: "strength",
+      availableDaysPerWeek: 3,
+      fatiguePreference: "moderate",
+      injuryMuscleGroupSlugs: ["shoulders"],
+      macrocycleWeeks: 8,
+      selectedPrograms: [{ programId: 2001, weight: 1 }],
+    });
+
+    expect(result).toEqual({
+      status: "error",
+      errors: ["Engine cycle initialization failed. Please try again."],
+    });
+    expect(store.engine_cycle_profiles).toHaveLength(0);
+    expect(store.engine_cycle_program_mix).toHaveLength(0);
+    expect(store.engine_cycle_plans).toHaveLength(0);
+    expect(store.engine_cycle_sessions).toHaveLength(0);
+  });
+
   it("changes reference hash when initialize_cycle reference snapshot changes", async () => {
     const userId = "10101010-1010-1010-1010-101010101010";
     const baseStore = {
@@ -1048,6 +1105,60 @@ describe("initialize cycle service", () => {
     expect(store.engine_gamification_states).toHaveLength(1);
     expect(store.engine_gamification_states[0].plan_id).toBe(8);
     expect((store.users[0].stats_json as UserStats).activeProgram?.programId).toBe("1999");
+  });
+
+  it("rejects inactive selected programs before calling the engine", async () => {
+    const userId = "56565656-5656-5656-5656-565656565656";
+    const store = {
+      users: [{ id: userId, stats_json: createStats() }],
+      programs: [{ id: 2001, slug: "strength", name: "Strength Builder", is_active: false }],
+      program_days: [{ id: 3001, program_id: 2001, day_index: 0, name: "Strength Day 1" }],
+      program_slots: [
+        {
+          id: 4001,
+          program_day_id: 3001,
+          slot_index: 0,
+          slot_type: "main",
+          movement_pattern: "push",
+          sets_min: 4,
+          sets_max: 5,
+          reps_min: 3,
+          reps_max: 5,
+          muscle_targets: { chest: 1 },
+          tags_required: ["compound"],
+        },
+      ],
+      exercises: [],
+      exercise_muscle_map: [],
+      muscle_groups: [{ id: 1, slug: "shoulders", name: "Shoulders" }],
+      engine_cycle_profiles: [] as Array<Record<string, unknown>>,
+      engine_cycle_program_mix: [] as Array<Record<string, unknown>>,
+      engine_cycle_plans: [] as Array<Record<string, unknown>>,
+      engine_cycle_sessions: [] as Array<Record<string, unknown>>,
+      engine_gamification_states: [] as Array<Record<string, unknown>>,
+    };
+
+    mockSupabase = createMockSupabase(store);
+    mockAdminSupabase = createMockSupabase(store);
+
+    const result = await handleInitializeCycle(userId, {
+      classPresetId: "classless",
+      goalBias: "strength",
+      availableDaysPerWeek: 3,
+      fatiguePreference: "moderate",
+      injuryMuscleGroupSlugs: ["shoulders"],
+      macrocycleWeeks: 8,
+      selectedPrograms: [{ programId: 2001, weight: 1 }],
+    });
+
+    expect(result).toEqual({
+      status: "error",
+      errors: ["Selected program is unavailable"],
+    });
+    expect(mockedRunEngineInput).not.toHaveBeenCalled();
+    expect(store.engine_cycle_profiles).toHaveLength(0);
+    expect(store.engine_cycle_program_mix).toHaveLength(0);
+    expect(store.engine_cycle_plans).toHaveLength(0);
   });
 
   it("rejects selected programs with missing days or slot templates before calling the engine", async () => {

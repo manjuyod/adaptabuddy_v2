@@ -14,7 +14,7 @@
 
 Wave 2 is complete. Wave 3 is complete and archived. Wave 4 is complete through canonical replay serialization and numeric policy: normalized engine-owned cycle tables remain canonical for initialized-cycle identity, cursor state, gamification, and app-owned analytics derivation, while `users.stats_json.activeProgram` remains compatibility-only for the current shell.
 
-The pre-beta app-shell hardening lane is complete: Wave 5 completed the beta alignment, release-evidence, and cross-language replay certification work through Engine 28 without revising the Rust public engine envelopes, Engine 29 completed the required live Supabase Playwright breaker suite for browser-visible success and failure paths beyond release-promotion paperwork, and Wave 6 closed the private beta promotion lane after Docker build/runtime evidence passed for the exact candidate. Playwright browser E2E remains a required release-candidate gate for `apps/web`.
+The pre-beta app-shell hardening lane is complete: Wave 5 completed the beta alignment, release-evidence, and cross-language replay certification work through Engine 28 without revising the Rust public engine envelopes, Engine 29 completed the required live Supabase Playwright breaker suite for browser-visible success and failure paths beyond release-promotion paperwork, and Wave 6 closed the private beta promotion lane after Docker build/runtime evidence passed for the exact candidate. Wave 7 remains the private beta operations and learning loop. Wave 8 is now the active product/app-shell spec for wiring `New Game` into the existing engine-first `initialize_cycle` path. Playwright browser E2E remains a required release-candidate gate for `apps/web`.
 
 Current architecture split:
 - Engine: `packages/engine-rs` owns deterministic decision logic for `initialize_cycle`, `plan_session`, and `complete_session`
@@ -36,7 +36,7 @@ Active and planned numbered specs live under `docs/specs/`. Completed historical
 ## Active Spec Queue
 
 Current active spec:
-- None currently queued.
+- `[ACTIVE]` `docs/specs/wave_8_new_game_engine_first_workflow.md`
 
 Current launch lane:
 - `[DONE]` `Production Beta Readiness` for `apps/web`
@@ -44,6 +44,9 @@ Current launch lane:
 
 Current operations lane:
 - `[ACTIVE]` `Wave 7: Private Beta Operations And Learning Loop`
+
+Current product/app-shell lane:
+- `[ACTIVE]` `Wave 8: New Game Engine-First Workflow`
 
 Current Wave 5 queue:
 - `[DONE]` `docs/archive/specs/engine_23_app_replay_invocation_alignment.md`
@@ -231,6 +234,35 @@ Exit criteria:
 - The next numbered engine spec is selected from evidence and explicitly states why it requires engine-boundary work.
 - App-shell follow-ups stay separate from engine-boundary revisions.
 
+## Wave 8: New Game Engine-First Workflow `[ACTIVE]`
+
+Goal:
+- Wire the `New Game` product path into the existing engine-first cycle initialization flow so onboarding creates a normalized active cycle before workout generation.
+
+Active spec:
+- `docs/specs/wave_8_new_game_engine_first_workflow.md`
+
+Primary work:
+- Keep `New Game` routed to `/onboarding`.
+- Adapt onboarding so final setup produces the existing `InitializeCycleRequest` shape.
+- Reuse the existing authenticated `/api/v0/sessions/initialize` and `handleInitializeCycle` path.
+- Persist normalized cycle state as canonical initialized-cycle state.
+- Leave `users.stats_json.activeProgram` as compatibility-only when a normalized active cycle exists.
+- Route the user to dashboard or workout with a normalized active cycle ready for the existing cycle-backed `plan_session` path.
+
+Boundary:
+- Wave 8 is an app-shell workflow integration spec, not Engine 30.
+- No Rust public engine envelope changes are implied.
+- No DB schema migration is expected.
+- App-owned preferences, auth, transport, validation, persistence, and UI remain in `apps/web`.
+
+Exit criteria:
+- Completing `New Game` creates one active normalized `engine_cycle_plans` row for the user.
+- Expanded `engine_cycle_sessions` and normalized gamification state are persisted.
+- Dashboard/workout surfaces read the normalized active cycle.
+- Workout generation after `New Game` invokes the existing cycle-backed `plan_session` path.
+- Legacy `stats_json.activeProgram` is not the primary New Game activation source when a normalized active cycle exists.
+
 ## Immediate Next Milestones
 
 1. Treat Wave 2 as closed and archived.
@@ -238,7 +270,7 @@ Exit criteria:
 3. Treat `engine_13` as complete and archived.
 4. Treat `docs/archive/specs/engine_17_user_facing_explanation_consumers.md` as complete and archived.
 5. Treat `docs/archive/specs/engine_23_app_replay_invocation_alignment.md` through `docs/archive/specs/engine_29_pre_beta_playwright_e2e_hardening.md` as complete and archived.
-6. No active numbered engine spec is currently queued.
+6. No active numbered engine spec is currently queued; Wave 8 is the active app-shell workflow spec.
 7. Keep live Supabase verification gated outside the default green lane.
 8. Treat Playwright browser E2E as a required release-candidate gate for `apps/web`.
 9. Treat `users.stats_json` compatibility ownership and sunset mapping as documented by `docs/archive/specs/engine_25_stats_json_compatibility_sunset_map.md`.
@@ -248,7 +280,8 @@ Exit criteria:
 13. Treat `docs/archive/specs/engine_21_analytics_api_endpoint.md` as complete and archived.
 14. Treat `docs/archive/specs/engine_22_canonical_replay_serialization_and_numeric_policy.md` as complete and archived.
 15. Treat `rc-3db65a2-20260502` as promoted according to `docs/operations/private_beta_release_record.md`.
-16. Start Wave 7 by recording private beta observations before changing engine contracts or app persistence shapes.
+16. Keep Wave 7 beta observations separate from Wave 8 app-shell implementation evidence.
+17. Treat `docs/specs/wave_8_new_game_engine_first_workflow.md` as the active New Game workflow spec until it is completed and archived.
 
 ## Explicit Risks And Tradeoffs
 
