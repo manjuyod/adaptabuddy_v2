@@ -93,6 +93,14 @@ Do not use cloud tasks to:
 - promote release candidates without explicit human approval
 - mutate roadmap/spec plans without explicit confirmation
 
+## Usage Throttle Policy
+
+Track GPT-5.3 Codex Spark / Blaziken usage and regular Codex cloud usage separately before starting cloud work.
+
+- If either usage pool is near 10% remaining, avoid starting nonessential work on that pool.
+- If both Spark/Blaziken and regular Codex cloud usage are near 10% remaining, pause Codex cloud usage entirely until quota returns.
+- Exceptions require explicit human approval and should be limited to urgent release, security, or production-blocking work.
+
 ## Spark-First Coding Rule
 
 For first-pass implementation of bounded coding tasks, route the initial patch to GPT-5.3 Codex Spark / Blaziken before deeper review.

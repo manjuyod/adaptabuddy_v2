@@ -61,6 +61,7 @@ npm run ci:quality
 - Recommended setup script: `bash scripts/codex/setup.sh`.
 - Recommended maintenance script: `bash scripts/codex/maintenance.sh`.
 - Default pre-PR verification is `npm run ci:quality`.
+- Track Spark/Blaziken and regular Codex cloud usage separately; when both are near 10% remaining, pause Codex cloud usage until quota returns unless an urgent human-approved exception applies.
 - Keep normal cloud tasks off live Supabase: `RUN_SUPABASE_E2E_VERIFICATION=0` and `RUN_PLAYWRIGHT_E2E=0`.
 - Use live Supabase and Playwright E2E only for explicitly scoped pre-release verification.
 - For first-pass implementation of bounded coding tasks, route the initial patch through GPT-5.3 Codex Spark / Blaziken, then review and verify before PR handoff.
