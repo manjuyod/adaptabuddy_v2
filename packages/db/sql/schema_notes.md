@@ -29,6 +29,7 @@
 | 017_engine_15_session_traces | 017_engine_15_session_traces.sql | 2026-04-15 | Add app-owned persisted engine trace table plus completion RPC support for Wave 4 explainability/reporting read models |
 | 018_engine_24_replay_debug_input_material | 018_engine_24_replay_debug_input_material.sql | 2026-05-01 | Add redacted replay debug input material to engine traces and restrict trace/RPC evidence writes to server-owned paths |
 | 019_wave_7_beta_feedback_reports | 019_wave_7_beta_feedback_reports.sql | 2026-05-02 | Add authenticated user-owned beta feedback report capture table and Wave 7 RLS-controlled support feedback persistence |
+| 020_wave_7_beta_feedback_sequence_grants | 020_wave_7_beta_feedback_sequence_grants.sql | 2026-05-03 | Tighten beta feedback report identity sequence grants to authenticated users only |
 
 ## users.stats_json Schema
 
