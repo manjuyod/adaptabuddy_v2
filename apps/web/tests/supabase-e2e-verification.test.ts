@@ -439,6 +439,14 @@ describe("supabase e2e verification", () => {
           injuryMuscleGroupSlugs: [injurySlug],
           macrocycleWeeks: 8,
           selectedPrograms: [{ programId: dayData.program_id, weight: 1 }],
+          programAdaptationInputs: {
+            strengthBaselines: {
+              squat: { estimatedOneRepMax: 225, unit: "lbs", source: "live-e2e" },
+              deadlift: { estimatedOneRepMax: 225, unit: "lbs", source: "live-e2e" },
+              bench_press: { estimatedOneRepMax: 100, unit: "lbs", source: "live-e2e" },
+              overhead_press: { estimatedOneRepMax: 75, unit: "lbs", source: "live-e2e" },
+            },
+          },
         };
 
         setRouteCookies(primary.routeCookies);

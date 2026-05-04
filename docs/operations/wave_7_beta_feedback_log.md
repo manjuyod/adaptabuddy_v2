@@ -138,12 +138,37 @@ Copy one block per feedback item.
 - Follow-up link: `docs/operations/next_engine_spec_decision_memo.md`
 - Date closed (UTC):
 
+### FDB-20260504-004
+
+- Status: `closed`
+- Date opened (UTC): `2026-05-04T23:09:00Z`
+- Reporter: `internal test`
+- Owner: `codex-agent`
+- Source: internal test
+- Release candidate: `cffb8fe`
+- Environment: `local live Supabase beta gate`
+- Route or screen: `/api/v0/sessions/initialize`
+- Primary classification: `adapter-contract`
+- Secondary classifications: `app-shell`
+- Severity: `medium`
+- User impact: The live beta verification gate could fail before exercising the initialized-cycle flow after strength baseline validation became server-enforced.
+- Summary: The live Supabase verification request still used the old initialize payload and selected a live strength-oriented program without `programAdaptationInputs.strengthBaselines`, causing the endpoint to return 400 with `Strength baselines are required for selected strength programs`.
+- Evidence:
+  - Request ID: `n/a`
+  - Replay reference: `n/a`
+  - Route evidence: `RUN_SUPABASE_E2E_VERIFICATION=1 npm run test --workspace apps/web -- tests/supabase-e2e-verification.test.ts`
+  - Screenshot/video/log link:
+- Triage notes: Root cause was the live test harness lagging the new app-edge contract. Updated the live initialize request to include deterministic squat, deadlift, bench press, and overhead press baselines.
+- Decision: `closed_after_live_gate_payload_update`
+- Follow-up link: `apps/web/tests/supabase-e2e-verification.test.ts`
+- Date closed (UTC): `2026-05-04T23:09:00Z`
+
 ## Rollup
 
 | Classification | Count | Notes |
 | --- | ---: | --- |
 | `app-shell` | 1 | `FDB-20260504-002` |
-| `adapter-contract` | 0 | secondary on `FDB-20260504-003` |
+| `adapter-contract` | 1 | `FDB-20260504-004`; secondary on `FDB-20260504-003` |
 | `persistence-rls` | 0 |  |
 | `telemetry-read-model` | 0 |  |
 | `replay-debuggability` | 0 |  |
