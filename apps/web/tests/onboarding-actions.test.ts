@@ -183,6 +183,36 @@ describe("completeOnboarding", () => {
     expect(nextStats.preferences.injuries).toEqual(["shoulder", "lower_back"]);
   });
 
+  it("passes challenge and strength baseline inputs to cycle initialization", async () => {
+    const result = await completeOnboarding({
+      ...baseInput,
+      challengeBaselines: {
+        push_up: { maxReps: 14 },
+      },
+      strengthBaselines: {
+        squat: { estimatedOneRepMax: 275, unit: "lbs" },
+        deadlift: { estimatedOneRepMax: 315, unit: "lbs" },
+        bench_press: { estimatedOneRepMax: 185, unit: "lbs" },
+        overhead_press: { estimatedOneRepMax: 115, unit: "lbs" },
+      },
+    });
+
+    expect(result).toEqual({ status: "success" });
+    expect(mockedHandleInitializeCycle).toHaveBeenCalledWith(context.userId, expect.objectContaining({
+      programAdaptationInputs: {
+        challengeBaselines: {
+          push_up: { maxReps: 14 },
+        },
+        strengthBaselines: {
+          squat: { estimatedOneRepMax: 275, unit: "lbs" },
+          deadlift: { estimatedOneRepMax: 315, unit: "lbs" },
+          bench_press: { estimatedOneRepMax: 185, unit: "lbs" },
+          overhead_press: { estimatedOneRepMax: 115, unit: "lbs" },
+        },
+      },
+    }));
+  });
+
   it("returns error for invalid payload", async () => {
     const result = await completeOnboarding({
       ...baseInput,

@@ -291,6 +291,221 @@ describe("initialize cycle service", () => {
     );
   });
 
+  it("passes adaptive template metadata, baselines, and recovery constraints into engine input", async () => {
+    const userId = "11111111-1111-1111-1111-111111111111";
+    const store = {
+      users: [{ id: userId, stats_json: createStats() }],
+      classes: [{ id: "classless", is_selectable: true, status: "active", base_archetype: "hybrid" }],
+      programs: [
+        {
+          id: 9,
+          slug: "100_push_ups_challenge_3_group_6_week",
+          name: "100 Push-Ups Challenge (3-Group / 6-Week)",
+          is_active: true,
+          metadata: {
+            adaptive_template_family: "challenge_progression",
+            source_template_json: {
+              challenge: "100_pushups",
+              exercise: { slug: "push_up", canonical_name: "Push-Up" },
+              groups: { group_1: { weeks: [] } },
+              initial_test_groups: [{ group: "group_1", min: 0, max: 10 }],
+            },
+          },
+        },
+      ],
+      program_days: [
+        { id: 9001, program_id: 9, day_index: 0, name: "100 Push-Ups Challenge" },
+      ],
+      program_slots: [],
+      exercises: [
+        {
+          id: 4,
+          slug: "push_up",
+          name: "Push-Up",
+          movement_pattern: "push",
+          equipment: ["bodyweight"],
+          tags: ["challenge"],
+          is_bodyweight: true,
+        },
+      ],
+      exercise_muscle_map: [],
+      muscle_groups: [
+        { id: 1, slug: "chest", name: "Chest" },
+        { id: 2, slug: "shoulders", name: "Shoulders" },
+      ],
+      engine_cycle_profiles: [] as Array<Record<string, unknown>>,
+      engine_cycle_program_mix: [] as Array<Record<string, unknown>>,
+      engine_cycle_plans: [] as Array<Record<string, unknown>>,
+      engine_cycle_sessions: [] as Array<Record<string, unknown>>,
+      engine_gamification_states: [] as Array<Record<string, unknown>>,
+    };
+
+    mockSupabase = createMockSupabase(store);
+    mockAdminSupabase = createMockSupabase(store);
+    mockedRunEngineInput.mockResolvedValue({
+      schemaVersion: "engine.v1",
+      operation: "initialize_cycle",
+      result: {
+        resolvedClassArchetype: "hybrid",
+        primaryProgramId: "9",
+        programBlend: [{ programId: "9", weight: 1, role: "primary" }],
+        macrocycle: {
+          totalWeeks: 6,
+          mesocycleCount: 2,
+          currentMesocycleIndex: 0,
+          currentMicrocycleIndex: 0,
+          currentSessionIndex: 0,
+          sessions: [
+            {
+              sessionId: "challenge-w1-d1",
+              programId: "9",
+              programDayId: "9001",
+              programDayName: "100 Push-Ups Challenge",
+              macroWeek: 1,
+              mesocycleIndex: 0,
+              microcycleIndex: 0,
+              sessionIndex: 0,
+              plannedDayOfWeek: 0,
+              classArchetype: "hybrid",
+              slotPayload: [],
+            },
+          ],
+        },
+        initialGamificationState: { ...richerGamificationState },
+      },
+      statePatch: { gamificationState: { ...richerGamificationState } },
+      events: [],
+      decisionLog: [],
+      replayReceipt: {
+        inputHash: "sha256:input",
+        outputHash: "sha256:output",
+        seedUsed: "seed",
+        effectiveAt: "2026-03-29T10:00:00.000Z",
+        implementationVersion: "engine-rs-mvp-0",
+        policyVersion: "policy-2026-02",
+        referenceHash: "sha256:00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00",
+      },
+    });
+
+    await handleInitializeCycle(userId, {
+      classPresetId: "classless",
+      goalBias: "conditioning",
+      availableDaysPerWeek: 3,
+      fatiguePreference: "high",
+      injuryMuscleGroupSlugs: ["shoulders"],
+      macrocycleWeeks: 6,
+      selectedPrograms: [{ programId: 9, weight: 1 }],
+      programAdaptationInputs: {
+        challengeBaselines: {
+          push_up: { maxReps: 14 },
+        },
+        strengthBaselines: {
+          squat: { estimatedOneRepMax: 275, unit: "lbs" },
+          deadlift: { estimatedOneRepMax: 315, unit: "lbs" },
+          bench_press: { estimatedOneRepMax: 185, unit: "lbs" },
+          overhead_press: { estimatedOneRepMax: 115, unit: "lbs" },
+        },
+      },
+    });
+
+    const engineInput = mockedRunEngineInput.mock.calls[0]?.[0] as {
+      stateSnapshot?: {
+        readinessState?: unknown;
+        injuryState?: unknown;
+      };
+      request?: {
+        programAdaptationInputs?: unknown;
+        selectedPrograms?: Array<Record<string, unknown>>;
+      };
+    };
+    expect(engineInput.request?.programAdaptationInputs).toEqual({
+      challengeBaselines: {
+        push_up: { maxReps: 14 },
+      },
+      strengthBaselines: {
+        squat: { estimatedOneRepMax: 275, unit: "lbs" },
+        deadlift: { estimatedOneRepMax: 315, unit: "lbs" },
+        bench_press: { estimatedOneRepMax: 185, unit: "lbs" },
+        overhead_press: { estimatedOneRepMax: 115, unit: "lbs" },
+      },
+    });
+    expect(engineInput.stateSnapshot?.readinessState).toEqual({
+      systemicFatigue: "severe",
+      muscleFatigue: { shoulders: 100 },
+    });
+    expect(engineInput.stateSnapshot?.injuryState).toEqual({
+      activeLimitations: ["shoulders"],
+      blockedMovementPatterns: [],
+    });
+    expect(engineInput.request?.selectedPrograms?.[0]).toMatchObject({
+      programId: "9",
+      templateKind: "challenge_progression",
+      adaptiveTemplate: {
+        challenge: "100_pushups",
+      },
+    });
+  });
+
+  it("requires strength baselines for strength-oriented selected programs server-side", async () => {
+    const userId = "11111111-1111-1111-1111-111111111111";
+    const store = {
+      users: [{ id: userId, stats_json: createStats() }],
+      classes: [{ id: "powa", is_selectable: true, status: "active", base_archetype: "strength" }],
+      programs: [
+        {
+          id: 42,
+          slug: "powerlifting-core",
+          name: "Powerlifting Core",
+          is_active: true,
+          metadata: {},
+        },
+      ],
+      program_days: [{ id: 4201, program_id: 42, day_index: 0, name: "Power Day" }],
+      program_slots: [
+        {
+          id: 42001,
+          program_day_id: 4201,
+          slot_index: 0,
+          slot_type: "main",
+          movement_pattern: "squat",
+          sets_min: 4,
+          sets_max: 5,
+          reps_min: 3,
+          reps_max: 5,
+          muscle_targets: { quads: 1 },
+          tags_required: ["compound"],
+        },
+      ],
+      exercises: [],
+      exercise_muscle_map: [],
+      muscle_groups: [{ id: 1, slug: "quads", name: "Quads" }],
+      engine_cycle_profiles: [] as Array<Record<string, unknown>>,
+      engine_cycle_program_mix: [] as Array<Record<string, unknown>>,
+      engine_cycle_plans: [] as Array<Record<string, unknown>>,
+      engine_cycle_sessions: [] as Array<Record<string, unknown>>,
+      engine_gamification_states: [] as Array<Record<string, unknown>>,
+    };
+
+    mockSupabase = createMockSupabase(store);
+    mockAdminSupabase = createMockSupabase(store);
+
+    const result = await handleInitializeCycle(userId, {
+      classPresetId: "powa",
+      goalBias: "strength",
+      availableDaysPerWeek: 3,
+      fatiguePreference: "moderate",
+      injuryMuscleGroupSlugs: [],
+      macrocycleWeeks: 8,
+      selectedPrograms: [{ programId: 42, weight: 1 }],
+    });
+
+    expect(result).toEqual({
+      status: "error",
+      errors: ["Strength baselines are required for selected strength programs"],
+    });
+    expect(mockedRunEngineInput).not.toHaveBeenCalled();
+  });
+
   it("returns a friendly message when the engine runner throws", async () => {
     const userId = "22222222-2222-2222-2222-222222222222";
     const store = {

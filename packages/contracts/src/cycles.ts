@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { UnitSystemSchema } from "./preferences";
 export const CanonicalClassArchetypeSchema = z.enum(["strength", "hybrid"]);
 export const ClassPresetIdSchema = z.enum([
   "classless",
@@ -21,9 +22,13 @@ export const GoalBiasSchema = z.enum([
 ]);
 export const InjuryMuscleGroupSlugSchema = z.string().trim().min(1).max(64);
 
-export type CanonicalClassArchetype = z.infer<typeof CanonicalClassArchetypeSchema>;
+export type CanonicalClassArchetype = z.infer<
+  typeof CanonicalClassArchetypeSchema
+>;
 export type ClassPresetId = z.infer<typeof ClassPresetIdSchema>;
-export type SelectableClassPresetId = z.infer<typeof SelectableClassPresetIdSchema>;
+export type SelectableClassPresetId = z.infer<
+  typeof SelectableClassPresetIdSchema
+>;
 export type GoalBias = z.infer<typeof GoalBiasSchema>;
 
 export const SelectedProgramSchema = z.object({
@@ -31,9 +36,45 @@ export const SelectedProgramSchema = z.object({
   weight: z.number().gt(0).lte(1),
 });
 
+export const ChallengeBaselineSchema = z
+  .object({
+    maxReps: z.number().int().min(0).max(10000),
+  })
+  .strict();
+
+export const StrengthBaselineSchema = z
+  .object({
+    estimatedOneRepMax: z.number().positive(),
+    unit: UnitSystemSchema,
+    source: z.string().trim().min(1).max(96).optional(),
+  })
+  .strict();
+
+export const StrengthBaselinesSchema = z
+  .object({
+    squat: StrengthBaselineSchema,
+    deadlift: StrengthBaselineSchema,
+    bench_press: StrengthBaselineSchema,
+    overhead_press: StrengthBaselineSchema,
+  })
+  .strict();
+
+export const ProgramAdaptationInputsSchema = z
+  .object({
+    challengeBaselines: z
+      .record(InjuryMuscleGroupSlugSchema, ChallengeBaselineSchema)
+      .default({}),
+    strengthBaselines: StrengthBaselinesSchema.optional(),
+  })
+  .strict();
+
+export type ProgramAdaptationInputs = z.infer<
+  typeof ProgramAdaptationInputsSchema
+>;
+
 const requireUniqueSelectedProgramIds = (
   selectedPrograms: Array<{ programId: number }>,
-  ctx: z.RefinementCtx
+  ctx: z.RefinementCtx,
 ) => {
   const seen = new Set<number>();
   for (const [index, selection] of selectedPrograms.entries()) {
@@ -55,15 +96,21 @@ export const InitializeCycleRequestSchema = z
     goalBias: GoalBiasSchema,
     availableDaysPerWeek: z.number().int().min(1).max(7),
     fatiguePreference: z.enum(["low", "moderate", "high"]),
-    injuryMuscleGroupSlugs: z.array(InjuryMuscleGroupSlugSchema).max(24).default([]),
+    injuryMuscleGroupSlugs: z
+      .array(InjuryMuscleGroupSlugSchema)
+      .max(24)
+      .default([]),
     macrocycleWeeks: z.number().int().min(1).max(52).default(12),
     selectedPrograms: z.array(SelectedProgramSchema).min(1).max(12),
+    programAdaptationInputs: ProgramAdaptationInputsSchema.optional(),
   })
   .superRefine((value, ctx) => {
     requireUniqueSelectedProgramIds(value.selectedPrograms, ctx);
   });
 
-export type InitializeCycleRequest = z.infer<typeof InitializeCycleRequestSchema>;
+export type InitializeCycleRequest = z.infer<
+  typeof InitializeCycleRequestSchema
+>;
 
 export const SessionOutcomeClassificationSchema = z.enum([
   "complete_clean",
@@ -109,20 +156,26 @@ export type NormalizedProgressionStateRow = z.infer<
 >;
 
 export const InitializeCycleResponseSchema = z.discriminatedUnion("status", [
-  z.object({
-    status: z.literal("success"),
-    planId: z.string(),
-    resolvedClassArchetype: CanonicalClassArchetypeSchema,
-    primaryProgramId: z.string(),
-    totalSessions: z.number().int().min(0),
-  }).strict(),
-  z.object({
-    status: z.literal("error"),
-    errors: z.array(z.string()).min(1),
-  }).strict(),
+  z
+    .object({
+      status: z.literal("success"),
+      planId: z.string(),
+      resolvedClassArchetype: CanonicalClassArchetypeSchema,
+      primaryProgramId: z.string(),
+      totalSessions: z.number().int().min(0),
+    })
+    .strict(),
+  z
+    .object({
+      status: z.literal("error"),
+      errors: z.array(z.string()).min(1),
+    })
+    .strict(),
 ]);
 
-export type InitializeCycleResponse = z.infer<typeof InitializeCycleResponseSchema>;
+export type InitializeCycleResponse = z.infer<
+  typeof InitializeCycleResponseSchema
+>;
 
 export const SeasonRankSchema = z.enum(["S", "A", "B", "C", "D"]);
 

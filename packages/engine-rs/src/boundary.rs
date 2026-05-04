@@ -733,6 +733,121 @@ fn validate_complete_session_request(
     Ok(())
 }
 
+fn challenge_template_exercise_slug(template: &Map<String, Value>) -> Option<&str> {
+    template
+        .get("exercise")
+        .and_then(Value::as_object)
+        .and_then(|exercise| exercise.get("slug"))
+        .and_then(Value::as_str)
+        .filter(|slug| !slug.is_empty())
+}
+
+fn validate_program_adaptation_inputs(
+    operation: &Operation,
+    request: &Map<String, Value>,
+) -> Result<(), BoundaryError> {
+    let Some(inputs_value) = request.get("programAdaptationInputs") else {
+        return Ok(());
+    };
+    let inputs = inputs_value.as_object().ok_or_else(|| {
+        invalid_request(
+            operation,
+            "field `programAdaptationInputs` must be an object",
+        )
+    })?;
+    reject_unknown_fields(
+        operation,
+        inputs,
+        &["challengeBaselines", "strengthBaselines"],
+    )?;
+
+    if let Some(baselines_value) = inputs.get("challengeBaselines") {
+        let baselines = baselines_value.as_object().ok_or_else(|| {
+            invalid_request(
+                operation,
+                "field `programAdaptationInputs.challengeBaselines` must be an object",
+            )
+        })?;
+        for (slug, baseline_value) in baselines {
+            if slug.is_empty() {
+                return Err(invalid_request(
+                    operation,
+                    "field `programAdaptationInputs.challengeBaselines` keys must be non-empty",
+                ));
+            }
+            let baseline = baseline_value.as_object().ok_or_else(|| {
+                invalid_request(
+                    operation,
+                    format!(
+                        "field `programAdaptationInputs.challengeBaselines.{slug}` must be an object"
+                    ),
+                )
+            })?;
+            reject_unknown_fields(operation, baseline, &["maxReps"])?;
+            let _ = expect_u32_i64_field(operation, baseline, "maxReps")?;
+        }
+    }
+
+    if let Some(baselines_value) = inputs.get("strengthBaselines") {
+        let baselines = baselines_value.as_object().ok_or_else(|| {
+            invalid_request(
+                operation,
+                "field `programAdaptationInputs.strengthBaselines` must be an object",
+            )
+        })?;
+        reject_unknown_fields(
+            operation,
+            baselines,
+            &["squat", "deadlift", "bench_press", "overhead_press"],
+        )?;
+        for (lift, baseline_value) in baselines {
+            let baseline = baseline_value.as_object().ok_or_else(|| {
+                invalid_request(
+                    operation,
+                    format!(
+                        "field `programAdaptationInputs.strengthBaselines.{lift}` must be an object"
+                    ),
+                )
+            })?;
+            reject_unknown_fields(
+                operation,
+                baseline,
+                &["estimatedOneRepMax", "unit", "source"],
+            )?;
+            let estimate = expect_number_field(operation, baseline, "estimatedOneRepMax")?;
+            if estimate <= 0.0 {
+                return Err(invalid_request(
+                    operation,
+                    format!(
+                        "field `programAdaptationInputs.strengthBaselines.{lift}.estimatedOneRepMax` must be positive"
+                    ),
+                ));
+            }
+            let unit = expect_nonempty_string_field(operation, baseline, "unit")?;
+            if !matches!(unit, "kg" | "lbs") {
+                return Err(invalid_request(
+                    operation,
+                    format!(
+                        "field `programAdaptationInputs.strengthBaselines.{lift}.unit` must be kg or lbs"
+                    ),
+                ));
+            }
+            if let Some(source) = baseline.get("source") {
+                if source.as_str().filter(|value| !value.is_empty()).is_none() {
+                    return Err(invalid_request(
+                        operation,
+                        format!(
+                            "field `programAdaptationInputs.strengthBaselines.{lift}.source` must be a non-empty string"
+                        ),
+                    ));
+                }
+            }
+        }
+    }
+
+    Ok(())
+}
+
 fn validate_initialize_cycle_request(
     operation: &Operation,
     reference_snapshot: &ReferenceSnapshot,
@@ -742,8 +857,14 @@ fn validate_initialize_cycle_request(
     reject_unknown_fields(
         operation,
         request,
-        &["profile", "macrocycleWeeks", "selectedPrograms"],
+        &[
+            "profile",
+            "macrocycleWeeks",
+            "selectedPrograms",
+            "programAdaptationInputs",
+        ],
     )?;
+    validate_program_adaptation_inputs(operation, request)?;
 
     let profile = expect_object_field(operation, request, "profile")?;
     reject_unknown_fields(
@@ -808,7 +929,17 @@ fn validate_initialize_cycle_request(
                 format!("field `selectedPrograms[{program_index}]` must be an object"),
             )
         })?;
-        reject_unknown_fields(operation, program, &["programId", "weight", "days"])?;
+        reject_unknown_fields(
+            operation,
+            program,
+            &[
+                "programId",
+                "weight",
+                "days",
+                "templateKind",
+                "adaptiveTemplate",
+            ],
+        )?;
         let program_id = expect_nonempty_string_field(operation, program, "programId")?;
         if !reference_snapshot
             .programs
@@ -834,6 +965,95 @@ fn validate_initialize_cycle_request(
                 operation,
                 format!("field `selectedPrograms[{program_index}].weight` must be > 0 and <= 1"),
             ));
+        }
+
+        let template_kind = program
+            .get("templateKind")
+            .and_then(Value::as_str)
+            .unwrap_or("slot_based");
+        if !matches!(
+            template_kind,
+            "slot_based" | "challenge_progression" | "hypertrophy_engine_v1"
+        ) {
+            return Err(invalid_request(
+                operation,
+                format!(
+                    "field `selectedPrograms[{program_index}].templateKind` must be slot_based, challenge_progression, or hypertrophy_engine_v1"
+                ),
+            ));
+        }
+
+        if template_kind != "slot_based" {
+            if available_days != 3 {
+                return Err(invalid_request(
+                    operation,
+                    format!(
+                        "field `profile.availableDaysPerWeek` must be 3 for adaptive program `{program_id}`"
+                    ),
+                ));
+            }
+            let adaptive_template = expect_object_field(operation, program, "adaptiveTemplate")?;
+            if template_kind == "challenge_progression" {
+                let slug = challenge_template_exercise_slug(adaptive_template).ok_or_else(|| {
+                    invalid_request(
+                        operation,
+                        format!(
+                            "field `selectedPrograms[{program_index}].adaptiveTemplate.exercise.slug` is required"
+                        ),
+                    )
+                })?;
+                if adaptive_template
+                    .get("initial_test_groups")
+                    .and_then(Value::as_array)
+                    .filter(|groups| !groups.is_empty())
+                    .is_none()
+                {
+                    return Err(invalid_request(
+                        operation,
+                        format!(
+                            "field `selectedPrograms[{program_index}].adaptiveTemplate.initial_test_groups` must include at least one group"
+                        ),
+                    ));
+                }
+                if adaptive_template
+                    .get("groups")
+                    .and_then(Value::as_object)
+                    .filter(|groups| !groups.is_empty())
+                    .is_none()
+                {
+                    return Err(invalid_request(
+                        operation,
+                        format!(
+                            "field `selectedPrograms[{program_index}].adaptiveTemplate.groups` must be a non-empty object"
+                        ),
+                    ));
+                }
+                let baseline = request
+                    .get("programAdaptationInputs")
+                    .and_then(|inputs| inputs.get("challengeBaselines"))
+                    .and_then(|baselines| baselines.get(slug))
+                    .and_then(|baseline| baseline.get("maxReps"));
+                if baseline.is_none() {
+                    return Err(invalid_request(
+                        operation,
+                        format!("challenge baseline for `{slug}` is required"),
+                    ));
+                }
+            } else if adaptive_template
+                .get("sessions")
+                .and_then(Value::as_array)
+                .filter(|sessions| sessions.len() == 3)
+                .is_none()
+            {
+                return Err(invalid_request(
+                    operation,
+                    format!(
+                        "field `selectedPrograms[{program_index}].adaptiveTemplate.sessions` must include three sessions"
+                    ),
+                ));
+            }
+
+            continue;
         }
 
         let days = expect_array_field(operation, program, "days")?;
@@ -890,12 +1110,14 @@ fn validate_initialize_cycle_request(
                         "slotIndex",
                         "slotType",
                         "movementPattern",
+                        "lockedExerciseId",
                         "setsMin",
                         "setsMax",
                         "repsMin",
                         "repsMax",
                         "muscleTargets",
                         "tagsRequired",
+                        "prescription",
                     ],
                 )?;
                 let _ = expect_nonempty_string_field(operation, slot, "slotId")?;
@@ -946,6 +1168,26 @@ fn validate_initialize_cycle_request(
                             operation,
                             format!(
                                 "field `selectedPrograms[{program_index}].days[{day_index}].slots[{slot_index}].movementPattern` must be a string or null"
+                            ),
+                        ));
+                    }
+                }
+                if let Some(locked_exercise_id) = slot.get("lockedExerciseId") {
+                    if !locked_exercise_id.is_null() && locked_exercise_id.as_str().is_none() {
+                        return Err(invalid_request(
+                            operation,
+                            format!(
+                                "field `selectedPrograms[{program_index}].days[{day_index}].slots[{slot_index}].lockedExerciseId` must be a string or null"
+                            ),
+                        ));
+                    }
+                }
+                if let Some(prescription) = slot.get("prescription") {
+                    if !prescription.is_null() && prescription.as_object().is_none() {
+                        return Err(invalid_request(
+                            operation,
+                            format!(
+                                "field `selectedPrograms[{program_index}].days[{day_index}].slots[{slot_index}].prescription` must be an object or null"
                             ),
                         ));
                     }

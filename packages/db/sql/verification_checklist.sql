@@ -113,3 +113,15 @@ where table_schema = 'public'
     'program_slots'
   )
 order by table_name, grantee, privilege_type;
+
+-- 8) Adaptive/static active program template integrity
+-- Expected for beta release gates after 021 + 022 are applied:
+-- zero invalid_active_static_program rows and zero invalid_active_adaptive_program rows.
+select issue_type, count(*) as issue_count
+from public.program_template_integrity_check()
+group by issue_type
+order by issue_type;
+
+select *
+from public.program_template_integrity_check()
+order by issue_type, program_id;

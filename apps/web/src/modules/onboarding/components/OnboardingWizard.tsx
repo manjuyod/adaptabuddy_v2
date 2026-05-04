@@ -46,8 +46,47 @@ const steps: Array<{ key: StepKey; label: string }> = [
 
 type ProgramWeight = { programId: number; weight: number };
 
-const initialProgramWeights = (programs: ProgramCatalogItem[]): ProgramWeight[] =>
+const strengthLiftSlugs = [
+  "squat",
+  "deadlift",
+  "bench_press",
+  "overhead_press",
+] as const;
+
+type StrengthLiftSlug = (typeof strengthLiftSlugs)[number];
+
+const initialProgramWeights = (
+  programs: ProgramCatalogItem[],
+): ProgramWeight[] =>
   programs.map((program) => ({ programId: program.id, weight: 0 }));
+
+const challengeExerciseSlug = (program: ProgramCatalogItem) => {
+  if ((program.templateKind ?? "slot_based") !== "challenge_progression") {
+    return null;
+  }
+
+  return program.challengeExerciseSlug ?? null;
+};
+
+const programImpliesStrengthBaselines = (program: ProgramCatalogItem) => {
+  if (program.requiresStrengthBaselines) {
+    return true;
+  }
+
+  const text = [
+    program.slug,
+    program.name,
+    program.adaptiveSummary,
+    challengeExerciseSlug(program),
+  ]
+    .filter((value): value is string => typeof value === "string")
+    .join(" ")
+    .toLowerCase();
+
+  return ["strength", "powerlifting", "bench"].some((needle) =>
+    text.includes(needle),
+  );
+};
 
 export function OnboardingWizard({
   programs,
@@ -65,12 +104,25 @@ export function OnboardingWizard({
   const [fatiguePreference, setFatiguePreference] =
     useState<OnboardingFatiguePreference>("moderate");
   const [unitSystem, setUnitSystem] = useState<UnitSystem>("kg");
-  const [injuryMuscleGroupSlugs, setInjuryMuscleGroupSlugs] = useState<string[]>([]);
+  const [injuryMuscleGroupSlugs, setInjuryMuscleGroupSlugs] = useState<
+    string[]
+  >([]);
   const [availableDaysPerWeek, setAvailableDaysPerWeek] = useState(3);
   const [macrocycleWeeks, setMacrocycleWeeks] = useState(8);
   const [programWeights, setProgramWeights] = useState<ProgramWeight[]>(() =>
     initialProgramWeights(programs),
   );
+  const [challengeBaselines, setChallengeBaselines] = useState<
+    Record<string, number | undefined>
+  >({});
+  const [strengthBaselines, setStrengthBaselines] = useState<
+    Record<StrengthLiftSlug, number | undefined>
+  >({
+    squat: undefined,
+    deadlift: undefined,
+    bench_press: undefined,
+    overhead_press: undefined,
+  });
   const [equipmentError, setEquipmentError] = useState<string | null>(null);
   const [programError, setProgramError] = useState<string | null>(null);
   const [recoveryError, setRecoveryError] = useState<string | null>(null);
@@ -79,10 +131,12 @@ export function OnboardingWizard({
 
   const selectedPrograms = useMemo(
     () =>
-      programWeights.filter((entry) => entry.weight > 0).map((entry) => ({
-        programId: entry.programId,
-        weight: entry.weight,
-      })),
+      programWeights
+        .filter((entry) => entry.weight > 0)
+        .map((entry) => ({
+          programId: entry.programId,
+          weight: entry.weight,
+        })),
     [programWeights],
   );
 
@@ -97,7 +151,9 @@ export function OnboardingWizard({
   }, [fatiguePreference]);
 
   const selectedInjuryLabels = useMemo(() => {
-    const nameBySlug = new Map(muscleGroups.map((group) => [group.slug, group.name]));
+    const nameBySlug = new Map(
+      muscleGroups.map((group) => [group.slug, group.name]),
+    );
     return injuryMuscleGroupSlugs.map((slug) => nameBySlug.get(slug) ?? slug);
   }, [injuryMuscleGroupSlugs, muscleGroups]);
 
@@ -119,6 +175,13 @@ export function OnboardingWizard({
 
   const onProgramWeightChange = (programId: number, percent: number) => {
     setProgramError(null);
+    const program = programs.find((candidate) => candidate.id === programId);
+    if (
+      (program?.templateKind ?? "slot_based") !== "slot_based" &&
+      percent > 0
+    ) {
+      setAvailableDaysPerWeek(3);
+    }
     setProgramWeights((previous) =>
       previous.map((entry) =>
         entry.programId === programId ? { ...entry, weight: percent } : entry,
@@ -126,21 +189,50 @@ export function OnboardingWizard({
     );
   };
 
+  const onChallengeBaselineChange = (
+    exerciseSlug: string,
+    maxReps: number | undefined,
+  ) => {
+    setProgramError(null);
+    setChallengeBaselines((previous) => ({
+      ...previous,
+      [exerciseSlug]: maxReps,
+    }));
+  };
+
+  const onStrengthBaselineChange = (
+    liftSlug: StrengthLiftSlug,
+    estimatedOneRepMax: number | undefined,
+  ) => {
+    setProgramError(null);
+    setStrengthBaselines((previous) => ({
+      ...previous,
+      [liftSlug]: estimatedOneRepMax,
+    }));
+  };
+
   const goNext = () => {
     setSubmitError(null);
 
     if (currentStep === 1 && equipment.length === 0) {
-      setEquipmentError("Choose at least one piece of equipment before continuing.");
+      setEquipmentError(
+        "Choose at least one piece of equipment before continuing.",
+      );
       return;
     }
 
-    if (currentStep === 3 && (availableDaysPerWeek < 1 || macrocycleWeeks < 1)) {
+    if (
+      currentStep === 3 &&
+      (availableDaysPerWeek < 1 || macrocycleWeeks < 1)
+    ) {
       setCycleError("Choose valid cycle settings before continuing.");
       return;
     }
 
     if (currentStep === 4 && selectedPrograms.length === 0) {
-      setProgramError("Select at least one program and set a positive percentage.");
+      setProgramError(
+        "Select at least one program and set a positive percentage.",
+      );
       return;
     }
 
@@ -148,6 +240,37 @@ export function OnboardingWizard({
       if (programWeights.some((entry) => entry.weight < 0)) {
         setProgramError("Program percentages must be positive.");
         return;
+      }
+      if (
+        requiresStrengthBaselines &&
+        strengthLiftSlugs.some(
+          (slug) => strengthBaselines[slug] === undefined,
+        )
+      ) {
+        setProgramError(
+          "Enter squat, deadlift, bench press, and overhead press baselines before continuing.",
+        );
+        return;
+      }
+      const requiredChallengeSlug = activeProgram
+        .map(challengeExerciseSlug)
+        .find((slug): slug is string => typeof slug === "string");
+      if (
+        requiredChallengeSlug &&
+        challengeBaselines[requiredChallengeSlug] === undefined
+      ) {
+        setProgramError(
+          "Enter your max-rep baseline for the selected challenge program.",
+        );
+        return;
+      }
+      if (
+        activeProgram.some(
+          (program) => (program.templateKind ?? "slot_based") !== "slot_based",
+        ) &&
+        availableDaysPerWeek !== 3
+      ) {
+        setAvailableDaysPerWeek(3);
       }
     }
 
@@ -178,13 +301,52 @@ export function OnboardingWizard({
       injuryMuscleGroupSlugs,
       macrocycleWeeks,
       selectedPrograms,
+      ...(Object.values(challengeBaselines).some((value) => value !== undefined)
+        ? {
+            challengeBaselines: Object.fromEntries(
+              Object.entries(challengeBaselines)
+                .filter(
+                  (entry): entry is [string, number] => entry[1] !== undefined,
+                )
+                .map(([slug, maxReps]) => [slug, { maxReps }]),
+            ),
+          }
+        : {}),
+      ...(requiresStrengthBaselines
+        ? {
+            strengthBaselines: {
+              squat: {
+                estimatedOneRepMax: strengthBaselines.squat ?? 0,
+                unit: unitSystem,
+                source: "onboarding",
+              },
+              deadlift: {
+                estimatedOneRepMax: strengthBaselines.deadlift ?? 0,
+                unit: unitSystem,
+                source: "onboarding",
+              },
+              bench_press: {
+                estimatedOneRepMax: strengthBaselines.bench_press ?? 0,
+                unit: unitSystem,
+                source: "onboarding",
+              },
+              overhead_press: {
+                estimatedOneRepMax: strengthBaselines.overhead_press ?? 0,
+                unit: unitSystem,
+                source: "onboarding",
+              },
+            },
+          }
+        : {}),
     };
 
     setSubmitError(null);
     startTransition(async () => {
       let result: CompleteOnboardingResult;
       try {
-        result = (await completeOnboarding(payload)) as CompleteOnboardingResult;
+        result = (await completeOnboarding(
+          payload,
+        )) as CompleteOnboardingResult;
       } catch {
         setSubmitError("Unable to complete onboarding. Please try again.");
         return;
@@ -203,18 +365,29 @@ export function OnboardingWizard({
   const activeProgram = programs.filter((program) =>
     selectedPrograms.some((selection) => selection.programId === program.id),
   );
+  const requiresStrengthBaselines = activeProgram.some(
+    programImpliesStrengthBaselines,
+  );
 
   return (
     <div className="space-y-6" data-testid="onboarding-wizard">
       <header className="rounded-xl border border-slate-800 bg-surface/80 p-6 shadow-lg">
-        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">New Game Setup</p>
-        <h1 className="mt-2 text-2xl font-semibold text-slate-100">Create Your Training Profile</h1>
+        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
+          New Game Setup
+        </p>
+        <h1 className="mt-2 text-2xl font-semibold text-slate-100">
+          Create Your Training Profile
+        </h1>
         <p className="mt-1 text-sm text-slate-400">
-          We&apos;ll use these choices to generate your first workout on the dashboard.
+          We&apos;ll use these choices to generate your first workout on the
+          dashboard.
         </p>
       </header>
 
-      <ol className="grid gap-2 sm:grid-cols-6" aria-label="Onboarding progress">
+      <ol
+        className="grid gap-2 sm:grid-cols-6"
+        aria-label="Onboarding progress"
+      >
         {steps.map((step, index) => {
           const isCurrent = currentStep === index;
           const isComplete = currentStep > index;
@@ -280,7 +453,12 @@ export function OnboardingWizard({
           <ProgramBlendStep
             programs={programs}
             programSelections={programWeights}
+            challengeBaselines={challengeBaselines}
+            strengthBaselines={strengthBaselines}
+            showStrengthBaselines={requiresStrengthBaselines}
             onWeightChange={onProgramWeightChange}
+            onChallengeBaselineChange={onChallengeBaselineChange}
+            onStrengthBaselineChange={onStrengthBaselineChange}
             error={programError}
           />
         ) : null}
@@ -298,7 +476,9 @@ export function OnboardingWizard({
             programs={activeProgram.map((program) => ({
               name: program.name,
               percent:
-                selectedPrograms.find((selection) => selection.programId === program.id)?.weight ?? 0,
+                selectedPrograms.find(
+                  (selection) => selection.programId === program.id,
+                )?.weight ?? 0,
             }))}
             submitError={submitError}
           />
@@ -315,7 +495,10 @@ export function OnboardingWizard({
           </p>
         ) : null}
         {cycleError ? (
-          <p className="mt-4 text-sm text-red-400" data-testid="onboarding-cycle-error">
+          <p
+            className="mt-4 text-sm text-red-400"
+            data-testid="onboarding-cycle-error"
+          >
             {cycleError}
           </p>
         ) : null}

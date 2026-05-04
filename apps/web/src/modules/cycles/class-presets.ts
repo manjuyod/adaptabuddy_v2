@@ -1,4 +1,7 @@
-import type { CanonicalClassArchetype, ClassPresetId } from "@adaptabuddy/contracts";
+import type {
+  CanonicalClassArchetype,
+  ClassPresetId,
+} from "@adaptabuddy/contracts";
 
 export type CycleClassPresetRecord = {
   id: ClassPresetId;
@@ -28,6 +31,8 @@ export type CycleProgramSlotPayload = {
   repsMax: number;
   muscleTargets: Record<string, number>;
   tagsRequired: string[];
+  lockedExerciseId?: string | null;
+  prescription?: Record<string, unknown>;
 };
 
 export type CycleProgramDayPayload = {
@@ -40,6 +45,11 @@ export type CycleProgramDayPayload = {
 export type CycleProgramSelectionPayload = {
   programId: string;
   weight: number;
+  templateKind?:
+    | "slot_based"
+    | "challenge_progression"
+    | "hypertrophy_engine_v1";
+  adaptiveTemplate?: Record<string, unknown>;
   days: CycleProgramDayPayload[];
 };
 
@@ -49,12 +59,16 @@ const cloneSlot = (slot: CycleProgramSlotPayload): CycleProgramSlotPayload => ({
   ...slot,
   muscleTargets: { ...slot.muscleTargets },
   tagsRequired: [...slot.tagsRequired],
+  prescription: slot.prescription ? { ...slot.prescription } : undefined,
 });
 
 const cloneSelection = (
-  selection: CycleProgramSelectionPayload
+  selection: CycleProgramSelectionPayload,
 ): CycleProgramSelectionPayload => ({
   ...selection,
+  adaptiveTemplate: selection.adaptiveTemplate
+    ? { ...selection.adaptiveTemplate }
+    : undefined,
   days: selection.days.map((day) => ({
     ...day,
     slots: day.slots.map(cloneSlot),
@@ -63,12 +77,12 @@ const cloneSelection = (
 
 const matchesSlotTags = (
   slot: CycleProgramSlotPayload,
-  exercise: CycleExerciseReference
+  exercise: CycleExerciseReference,
 ) => slot.tagsRequired.every((tag) => exercise.tags.includes(tag));
 
 const matchesMovementPattern = (
   slot: CycleProgramSlotPayload,
-  exercise: CycleExerciseReference
+  exercise: CycleExerciseReference,
 ) =>
   !slot.movementPattern ||
   !exercise.movementPattern ||
@@ -76,14 +90,14 @@ const matchesMovementPattern = (
 
 const matchesNinjaSlot = (
   slot: CycleProgramSlotPayload,
-  exercise: CycleExerciseReference
+  exercise: CycleExerciseReference,
 ) =>
   exercise.isBodyweight &&
   matchesMovementPattern(slot, exercise) &&
   matchesSlotTags(slot, exercise);
 
 const shapeBbPayload = (
-  payload: CycleProgramSelectionPayload[]
+  payload: CycleProgramSelectionPayload[],
 ): CycleProgramSelectionPayload[] =>
   payload.map((selection) => ({
     ...cloneSelection(selection),
@@ -106,14 +120,17 @@ const shapeBbPayload = (
   }));
 
 const shapePowaPayload = (
-  payload: CycleProgramSelectionPayload[]
+  payload: CycleProgramSelectionPayload[],
 ): CycleProgramSelectionPayload[] =>
   payload.map((selection) => ({
     ...cloneSelection(selection),
     days: selection.days.map((day) => ({
       ...day,
       slots: day.slots.map((slot) => {
-        if (slot.slotType !== "main" || !slot.tagsRequired.includes("compound")) {
+        if (
+          slot.slotType !== "main" ||
+          !slot.tagsRequired.includes("compound")
+        ) {
           return cloneSlot(slot);
         }
 
@@ -130,7 +147,7 @@ const shapePowaPayload = (
 
 const shapeNinjaPayload = (
   payload: CycleProgramSelectionPayload[],
-  exercises: CycleExerciseReference[]
+  exercises: CycleExerciseReference[],
 ):
   | { ok: true; payload: CycleProgramSelectionPayload[] }
   | { ok: false; error: string } => {
@@ -142,7 +159,9 @@ const shapeNinjaPayload = (
           ...cloneSlot(slot),
           tagsRequired: dedupeTags([...slot.tagsRequired, "bodyweight"]),
         }))
-        .filter((slot) => exercises.some((exercise) => matchesNinjaSlot(slot, exercise)));
+        .filter((slot) =>
+          exercises.some((exercise) => matchesNinjaSlot(slot, exercise)),
+        );
 
       return {
         ...day,
@@ -152,13 +171,14 @@ const shapeNinjaPayload = (
   }));
 
   const hasInvalidDay = shapedSelections.some((selection) =>
-    selection.days.some((day) => day.slots.length === 0)
+    selection.days.some((day) => day.slots.length === 0),
   );
 
   if (hasInvalidDay) {
     return {
       ok: false,
-      error: "Selected program templates are incompatible with the ninja class preset",
+      error:
+        "Selected program templates are incompatible with the ninja class preset",
     };
   }
 

@@ -21,15 +21,22 @@ const normalizeList = (values: string[]) =>
     ),
   );
 
-const fatiguePreferenceToLevel = (value: InitializeCycleRequest["fatiguePreference"]) => {
+const fatiguePreferenceToLevel = (
+  value: InitializeCycleRequest["fatiguePreference"],
+) => {
   if (value === "low") return "light";
   if (value === "high") return "hard";
   return "moderate";
 };
 
-const normalizeProgramWeights = (values: Array<{ programId: number; weight: number }>) => {
+const normalizeProgramWeights = (
+  values: Array<{ programId: number; weight: number }>,
+) => {
   const positiveWeights = values.filter((entry) => entry.weight > 0);
-  const totalWeight = positiveWeights.reduce((sum, entry) => sum + entry.weight, 0);
+  const totalWeight = positiveWeights.reduce(
+    (sum, entry) => sum + entry.weight,
+    0,
+  );
 
   if (totalWeight <= 0) {
     return [];
@@ -59,10 +66,22 @@ export async function completeOnboarding(
     return { status: "error", error: "Not authenticated." };
   }
 
-  const normalizedPrograms = normalizeProgramWeights(parsed.data.selectedPrograms);
+  const normalizedPrograms = normalizeProgramWeights(
+    parsed.data.selectedPrograms,
+  );
   if (normalizedPrograms.length === 0) {
-    return { status: "error", error: "Select at least one program with a positive weight." };
+    return {
+      status: "error",
+      error: "Select at least one program with a positive weight.",
+    };
   }
+
+  const programAdaptationInputs = {
+    challengeBaselines: parsed.data.challengeBaselines ?? {},
+    ...(parsed.data.strengthBaselines
+      ? { strengthBaselines: parsed.data.strengthBaselines }
+      : {}),
+  };
 
   const initializeCycleRequest: InitializeCycleRequest = {
     classPresetId: parsed.data.classPresetId,
@@ -72,11 +91,21 @@ export async function completeOnboarding(
     injuryMuscleGroupSlugs: normalizeList(parsed.data.injuryMuscleGroupSlugs),
     macrocycleWeeks: parsed.data.macrocycleWeeks,
     selectedPrograms: normalizedPrograms,
+    ...(Object.keys(programAdaptationInputs.challengeBaselines).length > 0 ||
+    programAdaptationInputs.strengthBaselines
+      ? { programAdaptationInputs }
+      : {}),
   };
 
-  const initializeResult = await handleInitializeCycle(user.id, initializeCycleRequest);
+  const initializeResult = await handleInitializeCycle(
+    user.id,
+    initializeCycleRequest,
+  );
   if (initializeResult.status === "error") {
-    return { status: "error", error: "Unable to complete onboarding. Please try again." };
+    return {
+      status: "error",
+      error: "Unable to complete onboarding. Please try again.",
+    };
   }
 
   const { data: updatedUserRow, error: userLoadError } = await supabase
@@ -90,7 +119,8 @@ export async function completeOnboarding(
   }
 
   const defaults = getDefaultUserStats();
-  const latestStats = (updatedUserRow?.stats_json as UserStats | null) ?? defaults;
+  const latestStats =
+    (updatedUserRow?.stats_json as UserStats | null) ?? defaults;
   const latestPreferences = latestStats.preferences ?? defaults.preferences;
   const nextStats: UserStats = {
     ...latestStats,

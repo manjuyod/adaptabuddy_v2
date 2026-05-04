@@ -43,6 +43,10 @@ pub struct CycleSessionSlot {
     pub muscle_targets: BTreeMap<String, Number>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub tags_required: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub locked_exercise_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub prescription: Option<Value>,
     pub source_program_id: String,
     pub source_program_day_id: String,
 }

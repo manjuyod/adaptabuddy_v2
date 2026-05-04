@@ -42,7 +42,7 @@ export const ProgramListItemSchema = z.object({
   default_days_per_week: z.number().int().min(1).max(7),
   min_days_per_week: z.number().int().min(1).max(7),
   max_days_per_week: z.number().int().min(1).max(7),
-  is_active: z.boolean()
+  is_active: z.boolean(),
 });
 
 export type ProgramListItem = z.infer<typeof ProgramListItemSchema>;
@@ -51,6 +51,7 @@ export const ProgramSlotDetailSchema = z.object({
   id: z.number().int().positive(),
   slotIndex: z.number().int().min(0),
   slotType: z.enum(["main", "accessory", "conditioning", "warmup", "cooldown"]),
+  movementPattern: z.string().min(1).nullable().optional(),
   setsMin: z.number().int().min(1),
   setsMax: z.number().int().min(1),
   repsMin: z.number().int().min(1),
@@ -79,16 +80,31 @@ export type MuscleCoverage = z.infer<typeof MuscleCoverageSchema>;
 export const ProgramCatalogItemSchema = ProgramListItemSchema.extend({
   days: z.array(ProgramDayDetailSchema),
   muscleCoverage: z.array(MuscleCoverageSchema),
+  templateKind: z
+    .enum(["slot_based", "challenge_progression", "hypertrophy_engine_v1"])
+    .default("slot_based"),
+  adaptiveSummary: z.string().min(1).optional(),
+  challengeExerciseSlug: z.string().min(1).optional(),
+  challengeExerciseLabel: z.string().min(1).optional(),
+  requiresStrengthBaselines: z.boolean().default(false),
 });
 
-export type ProgramCatalogItem = z.infer<typeof ProgramCatalogItemSchema>;
+type ProgramCatalogItemOutput = z.infer<typeof ProgramCatalogItemSchema>;
+
+export type ProgramCatalogItem = Omit<
+  ProgramCatalogItemOutput,
+  "templateKind" | "requiresStrengthBaselines"
+> & {
+  templateKind?: ProgramCatalogItemOutput["templateKind"];
+  requiresStrengthBaselines?: ProgramCatalogItemOutput["requiresStrengthBaselines"];
+};
 
 // ============================================================================
 // Activate Program Action
 // ============================================================================
 
 export const ActivateProgramInputSchema = z.object({
-  programId: z.number().int().positive()
+  programId: z.number().int().positive(),
 });
 
 export type ActivateProgramInput = z.infer<typeof ActivateProgramInputSchema>;

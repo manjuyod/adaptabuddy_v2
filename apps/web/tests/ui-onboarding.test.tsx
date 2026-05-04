@@ -62,6 +62,44 @@ const programs: ProgramCatalogItem[] = [
   },
 ];
 
+const strengthPrograms: ProgramCatalogItem[] = [
+  ...programs,
+  {
+    id: 3,
+    slug: "powerlifting-core",
+    name: "Powerlifting Core",
+    description: "Heavy compound training",
+    default_days_per_week: 3,
+    min_days_per_week: 3,
+    max_days_per_week: 4,
+    is_active: true,
+    muscleCoverage: [
+      { muscle: "chest", score: 3.8 },
+      { muscle: "back", score: 3.5 },
+    ],
+    days: [],
+    templateKind: "slot_based",
+    requiresStrengthBaselines: true,
+  },
+  {
+    id: 4,
+    slug: "bench-press-challenge",
+    name: "Bench Press Challenge",
+    description: "Challenge progression",
+    default_days_per_week: 3,
+    min_days_per_week: 3,
+    max_days_per_week: 3,
+    is_active: true,
+    muscleCoverage: [{ muscle: "chest", score: 4 }],
+    days: [],
+    templateKind: "challenge_progression",
+    adaptiveSummary: "Adaptive challenge progression for Bench Press",
+    challengeExerciseSlug: "bench-press",
+    challengeExerciseLabel: "Bench Press",
+    requiresStrengthBaselines: true,
+  },
+];
+
 const muscles = [
   { id: "m1", slug: "shoulder", name: "Shoulder" },
   { id: "m2", slug: "lower_back", name: "Lower Back" },
@@ -140,6 +178,98 @@ describe("Spec 8 onboarding wizard", () => {
     });
     expect(mockRouter.push).toHaveBeenCalledWith("/dashboard");
     expect(mockRouter.refresh).toHaveBeenCalled();
+  });
+
+  it("collects strength and challenge baselines together when required", async () => {
+    const user = userEvent.setup();
+    const click = async (testId: string) => {
+      await act(async () => {
+        await user.click(screen.getByTestId(testId));
+      });
+    };
+
+    render(
+      <OnboardingWizard
+        programs={strengthPrograms}
+        muscleGroups={muscles}
+        fetchError={undefined}
+      />,
+    );
+
+    await click("onboarding-next");
+    await click("onboarding-equipment-barbell");
+    await click("onboarding-next");
+    await click("onboarding-fatigue-low");
+    await click("onboarding-next");
+    await click("onboarding-next");
+
+    expect(await screen.findByTestId("onboarding-step-program-blend")).toBeTruthy();
+
+    await act(async () => {
+      await user.clear(screen.getByTestId("onboarding-program-input-3"));
+      await user.type(screen.getByTestId("onboarding-program-input-3"), "60");
+      await user.clear(screen.getByTestId("onboarding-program-input-4"));
+      await user.type(screen.getByTestId("onboarding-program-input-4"), "40");
+    });
+
+    expect(await screen.findByTestId("onboarding-strength-baseline-squat")).toBeTruthy();
+
+    await act(async () => {
+      await user.clear(screen.getByTestId("onboarding-strength-baseline-squat"));
+      await user.type(screen.getByTestId("onboarding-strength-baseline-squat"), "180");
+      await user.clear(screen.getByTestId("onboarding-strength-baseline-deadlift"));
+      await user.type(screen.getByTestId("onboarding-strength-baseline-deadlift"), "220");
+      await user.clear(screen.getByTestId("onboarding-strength-baseline-bench_press"));
+      await user.type(screen.getByTestId("onboarding-strength-baseline-bench_press"), "140");
+      await user.clear(screen.getByTestId("onboarding-strength-baseline-overhead_press"));
+      await user.type(screen.getByTestId("onboarding-strength-baseline-overhead_press"), "100");
+      await user.clear(screen.getByTestId("onboarding-challenge-baseline-bench-press"));
+      await user.type(screen.getByTestId("onboarding-challenge-baseline-bench-press"), "12");
+    });
+
+    await click("onboarding-next");
+    expect(await screen.findByTestId("onboarding-step-confirmation")).toBeTruthy();
+    await click("onboarding-start");
+
+    expect(mockedCompleteOnboarding).toHaveBeenCalledWith({
+      equipment: ["barbell"],
+      fatiguePreference: "low",
+      unitSystem: "kg",
+      classPresetId: "classless",
+      goalBias: "strength",
+      availableDaysPerWeek: 3,
+      injuryMuscleGroupSlugs: [],
+      macrocycleWeeks: 8,
+      selectedPrograms: [
+        { programId: 3, weight: 60 },
+        { programId: 4, weight: 40 },
+      ],
+      challengeBaselines: {
+        "bench-press": { maxReps: 12 },
+      },
+      strengthBaselines: {
+        squat: {
+          estimatedOneRepMax: 180,
+          unit: "kg",
+          source: "onboarding",
+        },
+        deadlift: {
+          estimatedOneRepMax: 220,
+          unit: "kg",
+          source: "onboarding",
+        },
+        bench_press: {
+          estimatedOneRepMax: 140,
+          unit: "kg",
+          source: "onboarding",
+        },
+        overhead_press: {
+          estimatedOneRepMax: 100,
+          unit: "kg",
+          source: "onboarding",
+        },
+      },
+    });
   });
 
   it("shows server action errors on confirmation step", async () => {

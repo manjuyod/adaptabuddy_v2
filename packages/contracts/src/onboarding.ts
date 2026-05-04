@@ -3,6 +3,7 @@ import { UnitSystemSchema } from "./preferences";
 import {
   GoalBiasSchema,
   InjuryMuscleGroupSlugSchema,
+  ProgramAdaptationInputsSchema,
   SelectableClassPresetIdSchema,
 } from "./cycles";
 export type { SelectableClassPresetId } from "./cycles";
@@ -13,7 +14,11 @@ export const OnboardingEquipmentSchema = z
   .max(24);
 
 export type OnboardingEquipment = z.infer<typeof OnboardingEquipmentSchema>;
-export const OnboardingFatiguePreferenceSchema = z.enum(["low", "moderate", "high"]);
+export const OnboardingFatiguePreferenceSchema = z.enum([
+  "low",
+  "moderate",
+  "high",
+]);
 export type OnboardingFatiguePreference = z.infer<
   typeof OnboardingFatiguePreferenceSchema
 >;
@@ -25,7 +30,7 @@ export const OnboardingProgramSelectionSchema = z.object({
 
 const requireUniqueSelectedProgramIds = (
   selectedPrograms: Array<{ programId: number }>,
-  ctx: z.RefinementCtx
+  ctx: z.RefinementCtx,
 ) => {
   const seen = new Set<number>();
   for (const [index, selection] of selectedPrograms.entries()) {
@@ -49,6 +54,9 @@ const OnboardingCycleInputShape = {
   injuryMuscleGroupSlugs: z.array(InjuryMuscleGroupSlugSchema).max(24),
   macrocycleWeeks: z.number().int().min(1).max(52),
   selectedPrograms: z.array(OnboardingProgramSelectionSchema).min(1).max(12),
+  challengeBaselines:
+    ProgramAdaptationInputsSchema.shape.challengeBaselines.optional(),
+  strengthBaselines: ProgramAdaptationInputsSchema.shape.strengthBaselines,
 };
 
 export const OnboardingCycleInputSchema = z
@@ -68,11 +76,15 @@ export const CompleteOnboardingInputSchema = z
     requireUniqueSelectedProgramIds(value.selectedPrograms, ctx);
   });
 
-export type CompleteOnboardingInput = z.infer<typeof CompleteOnboardingInputSchema>;
+export type CompleteOnboardingInput = z.infer<
+  typeof CompleteOnboardingInputSchema
+>;
 
 export const CompleteOnboardingResultSchema = z.object({
   status: z.enum(["success", "error"]),
   error: z.string().optional(),
 });
 
-export type CompleteOnboardingResult = z.infer<typeof CompleteOnboardingResultSchema>;
+export type CompleteOnboardingResult = z.infer<
+  typeof CompleteOnboardingResultSchema
+>;

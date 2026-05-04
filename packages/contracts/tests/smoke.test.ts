@@ -256,6 +256,56 @@ describe("contracts smoke", () => {
       macrocycleWeeks: 8,
       selectedPrograms: [{ programId: 1, weight: 1 }],
     }).success).toBe(true);
+    expect(InitializeCycleRequestSchema.safeParse({
+      classPresetId: "powa",
+      goalBias: "strength",
+      availableDaysPerWeek: 3,
+      fatiguePreference: "high",
+      injuryMuscleGroupSlugs: ["quads"],
+      macrocycleWeeks: 8,
+      selectedPrograms: [{ programId: 1, weight: 1 }],
+      programAdaptationInputs: {
+        challengeBaselines: {
+          push_up: { maxReps: 20 },
+        },
+        strengthBaselines: {
+          squat: {
+            estimatedOneRepMax: 225,
+            unit: "lbs",
+            source: "onboarding",
+          },
+          deadlift: {
+            estimatedOneRepMax: 225,
+            unit: "lbs",
+          },
+          bench_press: {
+            estimatedOneRepMax: 100,
+            unit: "lbs",
+          },
+          overhead_press: {
+            estimatedOneRepMax: 75,
+            unit: "lbs",
+          },
+        },
+      },
+    }).success).toBe(true);
+    expect(InitializeCycleRequestSchema.safeParse({
+      classPresetId: "powa",
+      goalBias: "strength",
+      availableDaysPerWeek: 3,
+      fatiguePreference: "high",
+      injuryMuscleGroupSlugs: [],
+      macrocycleWeeks: 8,
+      selectedPrograms: [{ programId: 1, weight: 1 }],
+      programAdaptationInputs: {
+        strengthBaselines: {
+          squat: {
+            estimatedOneRepMax: -1,
+            unit: "stone",
+          },
+        },
+      },
+    }).success).toBe(false);
     expect(InitializeCycleResponseSchema.safeParse({
       status: "success",
       resolvedClassArchetype: "legacy",

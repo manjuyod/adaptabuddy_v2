@@ -181,6 +181,12 @@ test.describe("Pre-beta live Supabase browser breaker suite", () => {
     await page.getByTestId("onboarding-next").click();
     await page.getByTestId("onboarding-next").click();
     await page.locator('[data-testid^="onboarding-program-input-"]').first().fill("80");
+    const challengeBaselineInput = page
+      .locator('[data-testid^="onboarding-challenge-baseline-"]')
+      .first();
+    if (await challengeBaselineInput.isVisible({ timeout: 2_000 }).catch(() => false)) {
+      await challengeBaselineInput.fill("25");
+    }
     await page.getByTestId("onboarding-next").click();
     await expect(page.getByTestId("onboarding-step-confirmation")).toBeVisible();
     await page.getByTestId("onboarding-start").click();
