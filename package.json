@@ -14,6 +14,7 @@
     "build": "npm run build --workspace apps/web",
     "lint": "npm run lint --workspace apps/web",
     "typecheck": "npm run typecheck --workspace apps/web",
+    "engine:season-loop": "cargo run --manifest-path packages/engine-rs/Cargo.toml --bin season_loop_backtest -- --scenario all",
     "test": "npm run test --workspaces",
     "test:engine": "cargo test --manifest-path packages/engine-rs/Cargo.toml",
     "ci:quality": "export RUN_SUPABASE_E2E_VERIFICATION=0 RUN_SUPABASE_SMOKE=0 RUN_SUPABASE_AUTH_SMOKE=0 RUN_PLAYWRIGHT_E2E=0 && npm run typecheck && npm run lint && npm run test && npm run build && npm run test:engine",

@@ -14,16 +14,16 @@
 
 Wave 2 is complete. Wave 3 is complete and archived. Wave 4 is complete through canonical replay serialization and numeric policy: normalized engine-owned cycle tables remain canonical for initialized-cycle identity, cursor state, gamification, and app-owned analytics derivation, while `users.stats_json.activeProgram` remains compatibility-only for the current shell.
 
-The pre-beta app-shell hardening lane is complete: Wave 5 completed the beta alignment, release-evidence, and cross-language replay certification work through Engine 28 without revising the Rust public engine envelopes, Engine 29 completed the required live Supabase Playwright breaker suite for browser-visible success and failure paths beyond release-promotion paperwork, and Wave 6 closed the private beta promotion lane after Docker build/runtime evidence passed for the exact candidate. Wave 8, Engine 30, and Wave 9 now close the local Season Loop: `New Game` initializes normalized engine-backed cycles, the Rust engine can evaluate and backtest season transitions, and the app shell can persist and present season rank, awards, and next-season recommendations. Playwright browser E2E remains a required release-candidate gate for `apps/web`, not a substitute for local backtesting.
+The pre-beta app-shell hardening lane is complete: Wave 5 completed the beta alignment, release-evidence, and cross-language replay certification work through Engine 28 without revising the Rust public engine envelopes, Engine 29 completed the required live Supabase Playwright breaker suite for browser-visible success and failure paths beyond release-promotion paperwork, and Wave 6 closed the private beta promotion lane after Docker build/runtime evidence passed for the exact candidate. Wave 8, Engine 30, and Wave 9 now close the local Season Loop: `New Game` initializes normalized engine-backed cycles, the Rust engine can evaluate and backtest season transitions, and the app shell can persist and present season rank, awards, and next-season recommendations. Wave 10 is now the active confidence lane: harden the CLI Season Loop harness before using frontend polish or live beta feedback as the primary signal. Playwright browser E2E remains a required release-candidate gate for `apps/web`, not a substitute for local CLI backtesting.
 
 Current architecture split:
-- Engine: `packages/engine-rs` owns deterministic decision logic for `initialize_cycle`, `plan_session`, and `complete_session`
+- Engine: `packages/engine-rs` owns deterministic decision logic for `initialize_cycle`, `plan_session`, `complete_session`, and `advance_cycle`
 - App shell: `apps/web` owns auth, transport, orchestration, persistence, and RLS-backed enforcement
 - Adapter contracts: `packages/contracts` validates app-edge request and response shapes
 - Persistence: normalized engine-owned cycle tables plus minimal app projection in `users.stats_json`
 
 Current runtime note:
-- the Rust crate exposes `initialize_cycle`, `plan_session`, and `complete_session`
+- the Rust crate exposes `initialize_cycle`, `plan_session`, `complete_session`, and `advance_cycle`
 - the app currently invokes Rust directly for `initialize_cycle`
 - cycle-backed completion in `apps/web` now invokes Rust `complete_session` and persists normalized gamification/progression state from the engine patch
 - cycle-backed session generation in `apps/web` now invokes Rust `plan_session` for raw active normalized sessions, while persisted filled payloads still short-circuit directly
@@ -36,6 +36,11 @@ Active and planned numbered specs live under `docs/specs/`. Completed historical
 ## Active Spec Queue
 
 Current active spec:
+- `[ACTIVE]` `docs/specs/wave_10_cli_season_loop_harness.md`
+- `[NEXT]` `docs/specs/wave_11_simulation_evidence_and_balance_triage.md`
+- `[LATER]` `docs/specs/wave_12_product_shell_reentry.md`
+
+Recently completed active specs:
 - `[DONE]` `docs/specs/wave_8_new_game_engine_first_workflow.md`
 - `[DONE]` `docs/specs/engine_30_headless_season_loop_and_backtest_harness.md`
 - `[DONE]` `docs/specs/wave_9_season_loop_product_shell.md`
@@ -45,11 +50,12 @@ Current launch lane:
 - Latest promoted candidate: `rc-3db65a2-20260502` at `3db65a2f56c5a7a92cf0c6b72d3ab1d0496e1ba2`
 
 Current operations lane:
-- `[PLANNED]` `Wave 7: Private Beta Operations And Learning Loop` after Season Loop local backtesting and product-shell completion
+- `[PLANNED]` `Wave 7: Private Beta Operations And Learning Loop` after CLI Season Loop confidence evidence is useful
 
 Current product/app-shell lane:
 - `[DONE]` `Wave 8: New Game Engine-First Workflow`
 - `[DONE]` `Wave 9: Season Loop Product Shell`
+- `[LATER]` `Wave 12: Product Shell Re-entry` after Wave 10/11 CLI evidence
 
 Current Wave 5 queue:
 - `[DONE]` `docs/archive/specs/engine_23_app_replay_invocation_alignment.md`
@@ -317,27 +323,97 @@ Exit criteria:
 - Season transition records include replay receipts and decision-log references.
 - Live beta testing is explicitly re-enabled as downstream release validation after local Season Loop gates pass.
 
+## Wave 10: CLI Season Loop Harness `[ACTIVE]`
+
+Goal:
+- Promote the headless Season Loop harness into the active confidence gate before further frontend or live-beta expansion.
+
+Active spec:
+- `docs/specs/wave_10_cli_season_loop_harness.md`
+
+Implementation plan:
+- `docs/superpowers/plans/2026-05-04-wave-10-cli-season-loop-harness.md`
+
+Primary work:
+- Harden `packages/engine-rs/src/bin/season_loop_backtest.rs` into a developer-facing CLI harness.
+- Add scenario selection, cycle count controls, clear validation errors, and deterministic JSON output.
+- Include rank, awards, next-cycle request, replay receipt summaries, and invariant failures in the report.
+- Add root npm script entry points for running the harness.
+- Keep the harness free of Supabase, auth, browser, app persistence, and React dependencies.
+
+Boundary:
+- Wave 10 is engine-harness and developer workflow work.
+- The public engine envelope names remain `EngineInputV1` and `EngineOutputV1`.
+- No app API, UI, DB migration, or live Supabase work is implied.
+
+Exit criteria:
+- `season_loop_backtest` behaves as a deterministic CLI harness, not a one-off fixture printer.
+- Focused CLI tests cover success, filtering, argument failures, and deterministic output.
+- Root npm scripts expose the harness.
+- Wave 11 has a stable report format for balance and evidence triage.
+
+## Wave 11: Simulation Evidence And Balance Triage `[NEXT]`
+
+Goal:
+- Use the Wave 10 CLI harness to produce repeatable local evidence about Season Loop balance, rank outcomes, awards, progression drift, and next-cycle recommendations.
+
+Planned spec:
+- `docs/specs/wave_11_simulation_evidence_and_balance_triage.md`
+
+Primary work:
+- Run the CLI harness across supported archetypes and cycle counts.
+- Store or summarize deterministic report evidence in operations or hippocampus docs.
+- Classify findings using the Wave 7 taxonomy.
+- Separate policy tuning from engine-boundary defects.
+- Update `docs/operations/next_engine_spec_decision_memo.md` only when evidence justifies new engine-boundary work.
+
+Boundary:
+- Wave 11 is evidence and triage work.
+- No frontend, Supabase, or public engine envelope changes are implied by default.
+
+Exit criteria:
+- At least one local evidence pass exists for all supported scenarios.
+- Balance concerns are classified with owner/status.
+- No new numbered engine spec is proposed without replayable evidence or a local invariant failure.
+- Wave 12 has a clear list of product-shell work backed by local CLI evidence.
+
+## Wave 12: Product Shell Re-entry `[LATER]`
+
+Goal:
+- Return to `apps/web` only after CLI Season Loop evidence is stable enough to support user-facing product work.
+
+Planned spec:
+- `docs/specs/wave_12_product_shell_reentry.md`
+
+Primary work:
+- Convert stable Season Loop evidence into user-facing UI and support/debug workflows.
+- Ensure rank, awards, and next-season recommendation presentation matches validated engine output.
+- Add release-candidate gates that reference local CLI evidence before live Supabase or browser E2E.
+- Keep app-shell responsibilities separate from deterministic engine decisions.
+
+Boundary:
+- Wave 12 is app-shell re-entry after local CLI evidence.
+- Engine-boundary changes still require a completed decision memo.
+
+Exit criteria:
+- Product-shell changes are backed by Wave 10/11 evidence.
+- UI and API behavior preserve replay receipts and route-level evidence for support.
+- Live beta validation resumes as downstream release evidence, not as the first proof that the loop works.
+
 ## Immediate Next Milestones
 
-1. Treat Wave 2 as closed and archived.
-2. Treat Wave 3 projection cleanup as closed and archived.
-3. Treat `engine_13` as complete and archived.
-4. Treat `docs/archive/specs/engine_17_user_facing_explanation_consumers.md` as complete and archived.
-5. Treat `docs/archive/specs/engine_23_app_replay_invocation_alignment.md` through `docs/archive/specs/engine_29_pre_beta_playwright_e2e_hardening.md` as complete and archived.
-6. Engine 30 is complete for the headless Season Loop and local backtest harness.
-7. Keep live Supabase verification gated outside the default green lane.
-8. Treat Playwright browser E2E as a required release-candidate gate for `apps/web`.
-9. Treat `users.stats_json` compatibility ownership and sunset mapping as documented by `docs/archive/specs/engine_25_stats_json_compatibility_sunset_map.md`.
-10. Treat `docs/archive/specs/engine_18_deterministic_analytics_read_models.md` as complete and archived.
-11. Treat `docs/archive/specs/engine_19_dashboard_analytics_consumer_migration.md` as complete and archived.
-12. Treat `docs/archive/specs/engine_20_dashboard_remaining_analytics_read_models.md` as complete and archived.
-13. Treat `docs/archive/specs/engine_21_analytics_api_endpoint.md` as complete and archived.
-14. Treat `docs/archive/specs/engine_22_canonical_replay_serialization_and_numeric_policy.md` as complete and archived.
-15. Treat `rc-3db65a2-20260502` as promoted according to `docs/operations/private_beta_release_record.md`.
-16. Treat live Wave 7 beta observations as downstream validation until the local Season Loop exists end to end.
-17. Treat `docs/specs/wave_8_new_game_engine_first_workflow.md` as complete pending any future archival pass.
-18. Treat `docs/specs/engine_30_headless_season_loop_and_backtest_harness.md` as complete pending any future archival pass.
-19. Treat `docs/specs/wave_9_season_loop_product_shell.md` as complete pending any future archival pass.
+1. Treat Wave 10 as the active implementation lane.
+2. Harden the CLI Season Loop harness before returning to frontend or live-beta-led work.
+3. Treat Wave 11 as the next evidence and balance-triage lane.
+4. Treat Wave 12 as later product-shell re-entry after Wave 10/11 evidence.
+5. Keep live Supabase verification gated outside the default green lane.
+6. Treat Playwright browser E2E as a required release-candidate gate for `apps/web`.
+7. Treat `rc-3db65a2-20260502` as promoted according to `docs/operations/private_beta_release_record.md`.
+8. Treat live Wave 7 beta observations as downstream validation until CLI Season Loop evidence is useful.
+9. Treat `docs/specs/wave_8_new_game_engine_first_workflow.md` as complete pending any future archival pass.
+10. Treat `docs/specs/engine_30_headless_season_loop_and_backtest_harness.md` as complete pending any future archival pass.
+11. Treat `docs/specs/wave_9_season_loop_product_shell.md` as complete pending any future archival pass.
+12. Treat `users.stats_json` compatibility ownership and sunset mapping as documented by `docs/archive/specs/engine_25_stats_json_compatibility_sunset_map.md`.
 
 ## Explicit Risks And Tradeoffs
 
