@@ -123,3 +123,121 @@ export const InitializeCycleResponseSchema = z.discriminatedUnion("status", [
 ]);
 
 export type InitializeCycleResponse = z.infer<typeof InitializeCycleResponseSchema>;
+
+export const SeasonRankSchema = z.enum(["S", "A", "B", "C", "D"]);
+
+export type SeasonRank = z.infer<typeof SeasonRankSchema>;
+
+export const SeasonSummarySchema = z
+  .object({
+    planId: z.string().min(1),
+    seasonIndex: z.number().int().min(1),
+    completedSessions: z.number().int().min(0),
+    missedSessions: z.number().int().min(0),
+    totalSessions: z.number().int().min(0),
+    completionRate: z.number().min(0).max(1),
+    progressionTrend: z
+      .enum(["improving", "stalled", "regressing", "blocked"])
+      .default("stalled"),
+    recoveryStatus: z
+      .enum(["recoverable", "strained", "overreached", "injury_constrained"])
+      .default("recoverable"),
+  })
+  .strict();
+
+export type SeasonSummary = z.infer<typeof SeasonSummarySchema>;
+
+export const RankBreakdownSchema = z
+  .object({
+    adherenceScore: z.number().min(0).max(100),
+    qualityScore: z.number().min(0).max(100),
+    progressionScore: z.number().min(0).max(100),
+    recoveryScore: z.number().min(0).max(100),
+    consistencyScore: z.number().min(0).max(100),
+    constraintModifier: z.number().min(-25).max(25),
+    finalScore: z.number().min(0).max(100),
+    rank: SeasonRankSchema,
+  })
+  .strict();
+
+export type RankBreakdown = z.infer<typeof RankBreakdownSchema>;
+
+export const SeasonAwardSchema = z
+  .object({
+    id: z.string().min(1).max(96),
+    label: z.string().min(1).max(120),
+    reason: z.string().min(1).max(240),
+    xp: z.number().int().min(0),
+  })
+  .strict();
+
+export type SeasonAward = z.infer<typeof SeasonAwardSchema>;
+
+export const NextCyclePreviewSchema = z
+  .object({
+    rankEffect: z.string().min(1).max(120),
+    programBlendDirection: z.string().min(1).max(120),
+    difficultyAdjustment: z.number().int().min(-3).max(3),
+    recoveryAdjustment: z.number().int().min(-3).max(3),
+    unlockEligibility: z.array(z.string().min(1).max(96)).default([]),
+    constraintNotes: z.array(z.string().min(1).max(160)).default([]),
+  })
+  .strict();
+
+export type NextCyclePreview = z.infer<typeof NextCyclePreviewSchema>;
+
+export const AdvanceCycleRequestSchema = z
+  .object({
+    planId: z.string().min(1).max(64).optional(),
+    idempotencyKey: z.string().trim().min(1).max(128).optional(),
+  })
+  .strict();
+
+export type AdvanceCycleRequest = z.infer<typeof AdvanceCycleRequestSchema>;
+
+export const SeasonTransitionReadModelSchema = z
+  .object({
+    transitionId: z.string().min(1),
+    planId: z.string().min(1),
+    seasonIndex: z.number().int().min(1),
+    seasonRank: SeasonRankSchema,
+    awardedXp: z.number().int().min(0),
+    seasonSummary: SeasonSummarySchema,
+    awards: z.array(SeasonAwardSchema),
+    nextCycleRequest: InitializeCycleRequestSchema,
+    nextCyclePreview: NextCyclePreviewSchema,
+    replayReceipt: z.record(z.unknown()),
+    createdAt: z.string().datetime().optional(),
+  })
+  .strict();
+
+export type SeasonTransitionReadModel = z.infer<
+  typeof SeasonTransitionReadModelSchema
+>;
+
+export const AdvanceCycleResponseSchema = z.discriminatedUnion("status", [
+  z
+    .object({
+      status: z.literal("success"),
+      planId: z.string().min(1),
+      seasonIndex: z.number().int().min(1),
+      seasonRank: SeasonRankSchema,
+      rankBreakdown: RankBreakdownSchema,
+      awardedXp: z.number().int().min(0),
+      awards: z.array(SeasonAwardSchema),
+      seasonSummary: SeasonSummarySchema,
+      nextCycleRequest: InitializeCycleRequestSchema,
+      nextCyclePreview: NextCyclePreviewSchema,
+      transitionId: z.string().min(1),
+      replayReceipt: z.record(z.unknown()),
+    })
+    .strict(),
+  z
+    .object({
+      status: z.literal("error"),
+      errors: z.array(z.string()).min(1),
+    })
+    .strict(),
+]);
+
+export type AdvanceCycleResponse = z.infer<typeof AdvanceCycleResponseSchema>;

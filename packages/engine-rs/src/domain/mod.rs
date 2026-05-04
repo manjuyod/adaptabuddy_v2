@@ -10,6 +10,7 @@ pub use cycle::{
 };
 pub use gamification::{AwardedXpSummary, GamificationState};
 pub use progression::{
+    AdvanceCycleAward, AdvanceCyclePreview, AdvanceCycleRankBreakdown, AdvanceCycleResult,
     CompleteSessionResult, DecisionInputRef, DecisionLogEntry, DecisionStepType,
     DeterministicRejection, DeterministicRejectionCode, DeterministicRejectionStatus,
     PlanSessionResult, ProgressionAction, ProgressionActionSummary, ProgressionRecord,

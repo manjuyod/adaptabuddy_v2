@@ -1,7 +1,7 @@
 use crate::domain::{
-    AthleteStateSnapshot, CanonicalClassArchetype, CompleteSessionResult, DecisionLogEntry,
-    DeterministicRejection, FatigueLevel, InitializeCycleResult, PlanSessionResult,
-    ReferenceSnapshot, StatePatch,
+    AdvanceCycleResult, AthleteStateSnapshot, CanonicalClassArchetype, CompleteSessionResult,
+    DecisionLogEntry, DeterministicRejection, FatigueLevel, InitializeCycleResult,
+    PlanSessionResult, ReferenceSnapshot, StatePatch,
 };
 use crate::replay::{self, NumericScale};
 use crate::{Determinism, EngineInputV1, EngineOutputV1, Operation, ReplayReceipt, SCHEMA_VERSION};
@@ -92,6 +92,7 @@ pub enum TypedEngineResult {
     InitializeCycle(InitializeCycleResult),
     PlanSession(PlanSessionResult),
     CompleteSession(CompleteSessionResult),
+    AdvanceCycle(AdvanceCycleResult),
     DeterministicRejection(DeterministicRejection),
 }
 
@@ -134,6 +135,7 @@ fn operation_label(operation: &Operation) -> &'static str {
         Operation::InitializeCycle => "initialize_cycle",
         Operation::PlanSession => "plan_session",
         Operation::CompleteSession => "complete_session",
+        Operation::AdvanceCycle => "advance_cycle",
     }
 }
 
@@ -994,7 +996,85 @@ fn validate_request(
         }
         Operation::PlanSession => validate_plan_session_request(operation, value),
         Operation::CompleteSession => validate_complete_session_request(operation, value),
+        Operation::AdvanceCycle => validate_advance_cycle_request(operation, value),
     }
+}
+
+fn validate_advance_cycle_request(
+    operation: &Operation,
+    value: &Value,
+) -> Result<(), BoundaryError> {
+    let request = value.as_object().ok_or_else(|| {
+        invalid_request(
+            operation,
+            "field `request` must be an object for advance_cycle",
+        )
+    })?;
+
+    reject_unknown_fields(
+        operation,
+        request,
+        &[
+            "seasonIndex",
+            "completionRate",
+            "adherence",
+            "completionQuality",
+            "progression",
+            "recovery",
+            "consistency",
+            "focus",
+        ],
+    )?;
+
+    let season_index = request
+        .get("seasonIndex")
+        .and_then(Value::as_u64)
+        .ok_or_else(|| invalid_request(operation, "field `seasonIndex` must be an integer >= 1"))?;
+    if season_index == 0 {
+        return Err(invalid_request(
+            operation,
+            "field `seasonIndex` must be >= 1",
+        ));
+    }
+
+    let completion_rate = request
+        .get("completionRate")
+        .and_then(Value::as_f64)
+        .ok_or_else(|| invalid_request(operation, "field `completionRate` must be a number"))?;
+    if !(0.0..=1.0).contains(&completion_rate) {
+        return Err(invalid_request(
+            operation,
+            "field `completionRate` must be within 0..=1",
+        ));
+    }
+
+    if let Some(focus) = request.get("focus") {
+        if !focus.is_string() {
+            return Err(invalid_request(operation, "field `focus` must be a string"));
+        }
+    }
+
+    for key in ["adherence", "progression", "recovery", "consistency"] {
+        if let Some(value) = request.get(key) {
+            if !value.is_number() {
+                return Err(invalid_request(
+                    operation,
+                    format!("field `{key}` must be a number"),
+                ));
+            }
+        }
+    }
+
+    if let Some(value) = request.get("completionQuality") {
+        if !value.is_number() && !value.is_string() {
+            return Err(invalid_request(
+                operation,
+                "field `completionQuality` must be a string or number",
+            ));
+        }
+    }
+
+    Ok(())
 }
 
 pub fn parse_input(input: &EngineInputV1) -> Result<TypedEngineInput, BoundaryError> {
@@ -1175,6 +1255,12 @@ fn parse_result(operation: &Operation, value: &Value) -> Result<TypedEngineResul
                 context: "result",
                 message: error.to_string(),
             }),
+        Operation::AdvanceCycle => AdvanceCycleResult::from_value(value)
+            .map(TypedEngineResult::AdvanceCycle)
+            .map_err(|error| BoundaryError::InvalidOutput {
+                context: "result",
+                message: error.to_string(),
+            }),
     }
 }
 
@@ -1197,6 +1283,14 @@ fn to_result_value(result: &TypedEngineResult) -> Result<Value, BoundaryError> {
                 })
         }
         TypedEngineResult::CompleteSession(result) => {
+            result
+                .to_value()
+                .map_err(|error| BoundaryError::InvalidOutput {
+                    context: "result",
+                    message: error.to_string(),
+                })
+        }
+        TypedEngineResult::AdvanceCycle(result) => {
             result
                 .to_value()
                 .map_err(|error| BoundaryError::InvalidOutput {

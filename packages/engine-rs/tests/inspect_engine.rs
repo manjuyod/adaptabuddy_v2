@@ -1,5 +1,5 @@
 use engine_rs::fixtures::{fixture_names, named_fixture};
-use engine_rs::{complete_session, initialize_cycle, plan_session, Operation};
+use engine_rs::{advance_cycle, complete_session, initialize_cycle, plan_session, Operation};
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -17,6 +17,9 @@ fn run_fixture(name: &str) {
             complete_session(&input)
                 .unwrap_or_else(|error| panic!("fixture {name} failed: {error}"));
         }
+        Operation::AdvanceCycle => {
+            advance_cycle(&input).unwrap_or_else(|error| panic!("fixture {name} failed: {error}"));
+        }
     }
 }
 
@@ -33,6 +36,7 @@ fn fixture_catalog_names_build_and_execute_successfully() {
         "complete-compromised",
         "complete-partial",
         "complete-missed",
+        "advance-baseline",
     ];
 
     assert_eq!(fixture_names(), expected);
@@ -76,6 +80,7 @@ fn cli_rejects_unknown_fixture_names() {
     assert!(stderr.contains("Unknown fixture"));
     assert!(stderr.contains("plan-baseline"));
     assert!(stderr.contains("complete-missed"));
+    assert!(stderr.contains("advance-baseline"));
 }
 
 fn inspect_engine_binary() -> PathBuf {

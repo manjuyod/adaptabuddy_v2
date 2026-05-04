@@ -1,14 +1,19 @@
 import type {
   ClassPresetId,
   CanonicalClassArchetype,
+  AdvanceCycleRequest,
+  AdvanceCycleResponse,
   InitializeCycleRequest,
   InitializeCycleResponse,
   NormalizedGamificationState,
   UserStats,
 } from "@adaptabuddy/contracts";
 import {
+  AdvanceCycleResponseSchema,
   CanonicalClassArchetypeSchema,
   ClassPresetIdSchema,
+  InitializeCycleRequestSchema,
+  SelectableClassPresetIdSchema,
 } from "@adaptabuddy/contracts";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createSupabaseServerActionClient } from "@/lib/supabase/next";
@@ -82,6 +87,56 @@ type EngineGamificationStateRow = {
   last_awarded_at?: string | null;
 };
 
+type EngineCyclePlanRow = {
+  id: number;
+  user_id: string;
+  profile_id: number;
+  primary_program_id?: number | null;
+  resolved_class_archetype?: string | null;
+  total_weeks?: number | null;
+  total_sessions?: number | null;
+  current_session_index?: number | null;
+  current_microcycle_index?: number | null;
+  current_mesocycle_index?: number | null;
+  is_active?: boolean | null;
+};
+
+type EngineCycleProfileRow = {
+  id: number;
+  user_id: string;
+  class_preset_id?: string | null;
+  class_choice?: string | null;
+  goal_bias?: string | null;
+  available_days_per_week?: number | null;
+  fatigue_preference?: "low" | "moderate" | "high" | null;
+  injury_muscle_group_slugs?: string[] | null;
+  macrocycle_weeks?: number | null;
+};
+
+type EngineCycleProgramMixRow = {
+  program_id?: number | null;
+  selection_weight?: number | string | null;
+  role?: string | null;
+};
+
+type EngineCycleSessionRow = {
+  id: number;
+  user_id: string;
+  plan_id: number;
+  session_index: number;
+  completed_at?: string | null;
+  program_id?: number | null;
+  program_day_id?: number | null;
+  program_day_name?: string | null;
+};
+
+type EngineAdvanceCycleOutput = {
+  result?: Record<string, unknown> | null;
+  statePatch?: Record<string, unknown> | null;
+  decisionLog?: unknown[] | null;
+  replayReceipt?: Record<string, unknown> | null;
+};
+
 const DEFAULT_CLASS_ROWS: ClassRow[] = [
   { id: "classless", is_selectable: true, status: "active", base_archetype: "hybrid" },
   { id: "bb", is_selectable: true, status: "active", base_archetype: "hybrid" },
@@ -140,6 +195,13 @@ const parseCanonicalClassArchetype = (
 
 const parseClassPresetId = (value: unknown): ClassPresetId | null => {
   const parsed = ClassPresetIdSchema.safeParse(value);
+  return parsed.success ? parsed.data : null;
+};
+
+const parseSelectableClassPresetId = (
+  value: unknown
+): InitializeCycleRequest["classPresetId"] | null => {
+  const parsed = SelectableClassPresetIdSchema.safeParse(value);
   return parsed.success ? parsed.data : null;
 };
 
@@ -849,4 +911,569 @@ export async function handleInitializeCycle(
     primaryProgramId: result.primaryProgramId,
     totalSessions: sessions.length,
   };
+}
+
+const asNumber = (value: unknown, fallback = 0): number => {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+  return fallback;
+};
+
+const toSelectedPrograms = (
+  rows: EngineCycleProgramMixRow[]
+): InitializeCycleRequest["selectedPrograms"] => {
+  const selected = rows
+    .map((row) => ({
+      programId: Number(row.program_id),
+      weight: asNumber(row.selection_weight, 0),
+    }))
+    .filter((row) => Number.isInteger(row.programId) && row.programId > 0 && row.weight > 0);
+  const total = selected.reduce((sum, row) => sum + row.weight, 0);
+  if (total <= 0) {
+    return [];
+  }
+  return selected.map((row) => ({
+    programId: row.programId,
+    weight: row.weight / total,
+  }));
+};
+
+const toInitializeCycleRequestFromRows = (
+  profile: EngineCycleProfileRow,
+  programMix: EngineCycleProgramMixRow[]
+): InitializeCycleRequest | null => {
+  const classPresetId = parseSelectableClassPresetId(
+    profile.class_preset_id ?? profile.class_choice ?? "classless"
+  );
+  const selectedPrograms = toSelectedPrograms(programMix);
+  if (!classPresetId || selectedPrograms.length === 0) {
+    return null;
+  }
+
+  return {
+    classPresetId,
+    goalBias: (profile.goal_bias as InitializeCycleRequest["goalBias"]) ?? "balanced",
+    availableDaysPerWeek: Number(profile.available_days_per_week ?? 3),
+    fatiguePreference: profile.fatigue_preference ?? "moderate",
+    injuryMuscleGroupSlugs: profile.injury_muscle_group_slugs ?? [],
+    macrocycleWeeks: Number(profile.macrocycle_weeks ?? 8),
+    selectedPrograms,
+  };
+};
+
+const deriveProgressionTrend = (rows: Array<Record<string, unknown>>): string => {
+  const trends = rows.map((row) => row.trend).filter((value): value is string => typeof value === "string");
+  if (trends.includes("blocked")) return "blocked";
+  if (trends.includes("regressing")) return "regressing";
+  if (trends.includes("improving")) return "improving";
+  return "stalled";
+};
+
+const deriveRecoveryStatus = (gamification: EngineGamificationStateRow | null): string => {
+  const missed = Number(gamification?.missed_session_count ?? 0);
+  if (missed >= 4) return "overreached";
+  if (missed >= 2) return "strained";
+  return "recoverable";
+};
+
+const asString = (value: unknown): string | null =>
+  typeof value === "string" && value.length > 0 ? value : null;
+
+const scoreFromSignal = (value: unknown, fallback: number): number => {
+  const parsed = asNumber(value, fallback / 100);
+  return Math.round(parsed <= 1 ? parsed * 100 : parsed);
+};
+
+const normalizeAdvanceCycleResult = (
+  rawResult: Record<string, unknown>,
+  context: {
+    planId: string;
+    seasonIndex: number;
+    completedSessions: number;
+    missedSessions: number;
+    totalSessions: number;
+    completionRate: number;
+    progressionTrend: "improving" | "stalled" | "regressing" | "blocked";
+    recoveryStatus: "recoverable" | "strained" | "overreached" | "injury_constrained";
+    currentRequest: InitializeCycleRequest;
+    replayReceipt: Record<string, unknown>;
+  }
+) => {
+  const rawBreakdown = (rawResult.rankBreakdown ?? {}) as Record<string, unknown>;
+  const seasonRank = asString(rawResult.seasonRank) ?? asString(rawResult.rankTier) ?? "B";
+  const finalScore = scoreFromSignal(rawBreakdown.score ?? rawBreakdown.finalScore, 65);
+  const rankBreakdown = {
+    adherenceScore: scoreFromSignal(rawBreakdown.adherence ?? rawBreakdown.adherenceScore, 65),
+    qualityScore: scoreFromSignal(rawBreakdown.completionQuality ?? rawBreakdown.qualityScore, 65),
+    progressionScore: scoreFromSignal(rawBreakdown.progression ?? rawBreakdown.progressionScore, 65),
+    recoveryScore: scoreFromSignal(rawBreakdown.recovery ?? rawBreakdown.recoveryScore, 65),
+    consistencyScore: scoreFromSignal(rawBreakdown.consistency ?? rawBreakdown.consistencyScore, 65),
+    constraintModifier: asNumber(rawBreakdown.constraintModifier, 0),
+    finalScore,
+    rank: seasonRank,
+  };
+
+  const rawAwards = Array.isArray(rawResult.awards) ? rawResult.awards : [];
+  const awards = rawAwards.flatMap((award) => {
+    if (!award || typeof award !== "object") return [];
+    const row = award as Record<string, unknown>;
+    const id = asString(row.id) ?? asString(row.awardId);
+    const label = asString(row.label);
+    if (!id || !label) return [];
+    return [{
+      id,
+      label,
+      reason: asString(row.reason) ?? label,
+      xp: Math.max(0, Math.round(asNumber(row.xp, 0))),
+    }];
+  });
+
+  const rawSummary =
+    rawResult.seasonSummary && typeof rawResult.seasonSummary === "object"
+      ? (rawResult.seasonSummary as Record<string, unknown>)
+      : {};
+  const seasonSummary = {
+    planId: asString(rawSummary.planId) ?? context.planId,
+    seasonIndex: Math.max(1, Math.round(asNumber(rawSummary.seasonIndex, context.seasonIndex))),
+    completedSessions: Math.max(
+      0,
+      Math.round(asNumber(rawSummary.completedSessions, context.completedSessions))
+    ),
+    missedSessions: Math.max(0, Math.round(asNumber(rawSummary.missedSessions, context.missedSessions))),
+    totalSessions: Math.max(0, Math.round(asNumber(rawSummary.totalSessions, context.totalSessions))),
+    completionRate: Math.min(1, Math.max(0, asNumber(rawSummary.completionRate, context.completionRate))),
+    progressionTrend: context.progressionTrend,
+    recoveryStatus: context.recoveryStatus,
+  };
+
+  const parsedNextCycleRequest = InitializeCycleRequestSchema.safeParse(rawResult.nextCycleRequest);
+  const nextCycleRequest = parsedNextCycleRequest.success
+    ? parsedNextCycleRequest.data
+    : context.currentRequest;
+
+  const rawPreview =
+    rawResult.nextCyclePreview && typeof rawResult.nextCyclePreview === "object"
+      ? (rawResult.nextCyclePreview as Record<string, unknown>)
+      : {};
+  const nextCyclePreview = {
+    rankEffect:
+      asString(rawPreview.rankEffect) ??
+      (seasonRank === "S" || seasonRank === "A"
+        ? "increase_difficulty"
+        : seasonRank === "D"
+          ? "deload"
+          : "maintain_direction"),
+    programBlendDirection:
+      asString(rawPreview.programBlendDirection) ??
+      asString(rawPreview.recommendedClassChoice) ??
+      nextCycleRequest.goalBias,
+    difficultyAdjustment: Math.max(
+      -3,
+      Math.min(3, Math.round(asNumber(rawPreview.difficultyAdjustment, seasonRank === "S" ? 1 : 0)))
+    ),
+    recoveryAdjustment: Math.max(
+      -3,
+      Math.min(3, Math.round(asNumber(rawPreview.recoveryAdjustment, seasonRank === "D" ? 1 : 0)))
+    ),
+    unlockEligibility: Array.isArray(rawPreview.unlockEligibility)
+      ? rawPreview.unlockEligibility.filter((value): value is string => typeof value === "string")
+      : [],
+    constraintNotes: Array.isArray(rawPreview.constraintNotes)
+      ? rawPreview.constraintNotes.filter((value): value is string => typeof value === "string")
+      : [],
+  };
+
+  return {
+    status: "success" as const,
+    planId: context.planId,
+    seasonIndex: Math.max(1, Math.round(asNumber(rawResult.seasonIndex, context.seasonIndex))),
+    seasonRank,
+    rankBreakdown,
+    awardedXp: Math.max(
+      0,
+      Math.round(asNumber(rawResult.awardedXp, awards.reduce((sum, award) => sum + award.xp, 0)))
+    ),
+    awards,
+    seasonSummary,
+    nextCycleRequest,
+    nextCyclePreview,
+    transitionId: "1",
+    replayReceipt: context.replayReceipt,
+  };
+};
+
+export async function handleAdvanceCycle(
+  userId: string,
+  input: AdvanceCycleRequest,
+  options?: {
+    requestId?: string;
+    route?: string;
+  }
+): Promise<AdvanceCycleResponse> {
+  const effectiveAt = new Date().toISOString();
+  const supabase = await createSupabaseServerActionClient();
+  const writeClient = createSupabaseAdminClient();
+
+  if (!writeClient) {
+    return {
+      status: "error",
+      errors: ["Season persistence requires a server write client"],
+    };
+  }
+
+  try {
+    let existingTransition: Record<string, unknown> | null = null;
+    if (input.idempotencyKey) {
+      const { data: existingTransitionRow, error: existingTransitionError } = await supabase
+        .from("engine_cycle_transitions")
+        .select(
+          "id, plan_id, season_index, season_rank, awarded_xp, next_cycle_request, next_cycle_preview, replay_receipt"
+        )
+        .eq("user_id", userId)
+        .eq("idempotency_key", input.idempotencyKey)
+        .maybeSingle();
+      if (existingTransitionError) {
+        return {
+          status: "error",
+          errors: ["Failed to load existing season transition"],
+        };
+      }
+      existingTransition = (existingTransitionRow as Record<string, unknown> | null) ?? null;
+    }
+
+    if (existingTransition) {
+      return {
+        status: "error",
+        errors: ["Season transition already exists for this idempotency key"],
+      };
+    }
+
+    let planQuery = supabase
+      .from("engine_cycle_plans")
+      .select(
+        "id, user_id, profile_id, primary_program_id, resolved_class_archetype, total_weeks, total_sessions, current_session_index, current_microcycle_index, current_mesocycle_index, is_active"
+      )
+      .eq("user_id", userId);
+    planQuery = input.planId
+      ? planQuery.eq("id", Number(input.planId))
+      : planQuery.eq("is_active", true);
+
+    const { data: planRow, error: planError } = await planQuery.maybeSingle();
+    if (planError) {
+      return {
+        status: "error",
+        errors: ["Failed to load active cycle plan"],
+      };
+    }
+    const plan = planRow as EngineCyclePlanRow | null;
+    if (!plan) {
+      return {
+        status: "error",
+        errors: ["Active cycle plan not found"],
+      };
+    }
+
+    const { data: sessionRows, error: sessionsError } = await supabase
+      .from("engine_cycle_sessions")
+      .select("id, user_id, plan_id, session_index, completed_at, program_id, program_day_id, program_day_name")
+      .eq("plan_id", plan.id)
+      .order("session_index", { ascending: true });
+    if (sessionsError) {
+      return {
+        status: "error",
+        errors: ["Failed to load active cycle sessions"],
+      };
+    }
+
+    const sessions = ((sessionRows ?? []) as EngineCycleSessionRow[]).filter(
+      (session) => session.user_id === userId
+    );
+    const totalSessions = Number(plan.total_sessions ?? sessions.length);
+    const completedSessions = sessions.filter((session) => session.completed_at).length;
+    const missedSessions = Math.max(0, totalSessions - completedSessions);
+    if (totalSessions <= 0 || completedSessions < totalSessions) {
+      return {
+        status: "error",
+        errors: ["Active cycle is not complete"],
+      };
+    }
+
+    const { data: profileRow, error: profileError } = await supabase
+      .from("engine_cycle_profiles")
+      .select(
+        "id, user_id, class_preset_id, class_choice, goal_bias, available_days_per_week, fatigue_preference, injury_muscle_group_slugs, macrocycle_weeks"
+      )
+      .eq("id", plan.profile_id)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (profileError || !profileRow) {
+      return {
+        status: "error",
+        errors: ["Failed to load cycle profile"],
+      };
+    }
+
+    const { data: programMixRows, error: programMixError } = await supabase
+      .from("engine_cycle_program_mix")
+      .select("program_id, selection_weight, role")
+      .eq("profile_id", plan.profile_id);
+    if (programMixError) {
+      return {
+        status: "error",
+        errors: ["Failed to load cycle program mix"],
+      };
+    }
+
+    const currentRequest = toInitializeCycleRequestFromRows(
+      profileRow as EngineCycleProfileRow,
+      (programMixRows ?? []) as EngineCycleProgramMixRow[]
+    );
+    if (!currentRequest) {
+      return {
+        status: "error",
+        errors: ["Failed to build next-cycle baseline request"],
+      };
+    }
+
+    const { data: gamificationRow } = await supabase
+      .from("engine_gamification_states")
+      .select(
+        "id, user_id, plan_id, xp, level, adherence_streak, completed_session_count, missed_session_count, last_adherence_outcome_classification, last_awarded_at, class_archetype"
+      )
+      .eq("plan_id", plan.id)
+      .maybeSingle();
+
+    const { data: progressionRows } = await supabase
+      .from("engine_progression_states")
+      .select("exercise_id, current_action, trend")
+      .eq("plan_id", plan.id);
+
+    const seasonIndex = Math.max(1, Number(plan.id));
+    const completionRate = totalSessions > 0 ? completedSessions / totalSessions : 0;
+    const progressionTrend = deriveProgressionTrend(
+      (progressionRows ?? []) as Array<Record<string, unknown>>
+    );
+    const recoveryStatus = deriveRecoveryStatus(gamificationRow as EngineGamificationStateRow | null);
+
+    const referenceSnapshot = {
+      referenceVersion: "2026-03",
+      operation: "advance_cycle",
+    };
+    const referenceHash = computeCanonicalReplayReferenceHash(referenceSnapshot);
+
+    const engineOutput = (await runEngineInput({
+      schemaVersion: "engine.v1",
+      operation: "advance_cycle",
+      determinism: {
+        seed: `advance-${userId}-${plan.id}`,
+        effectiveAt,
+        ruleVersion: "rules-2026-03",
+        referenceHash,
+        canonicalizationVersion: CANON_REPLAY_CANONICALIZATION_VERSION,
+      },
+      referenceSnapshot,
+      stateSnapshot: {
+        plan,
+        gamification: gamificationRow ?? null,
+        progression: progressionRows ?? [],
+      },
+      policySnapshot: {
+        rankThresholds: { S: 92, A: 80, B: 65, C: 50 },
+      },
+      request: {
+        seasonIndex,
+        completionRate,
+        adherence: completionRate,
+        completionQuality: completionRate >= 0.95 ? "complete_clean" : "complete_compromised",
+        progression:
+          progressionTrend === "improving"
+            ? 0.85
+            : progressionTrend === "stalled"
+              ? 0.65
+              : progressionTrend === "regressing"
+                ? 0.35
+                : 0.15,
+        recovery:
+          recoveryStatus === "recoverable"
+            ? 0.85
+            : recoveryStatus === "strained"
+              ? 0.65
+              : 0.35,
+        consistency: completionRate,
+        focus: currentRequest.goalBias,
+      },
+      metadata: {
+        correlationId: `cycle-advance-${userId}`,
+      },
+    })) as EngineAdvanceCycleOutput;
+
+    const result = engineOutput?.result;
+    if (!result) {
+      return {
+        status: "error",
+        errors: ["Engine did not return an advance_cycle result"],
+      };
+    }
+
+    const responseCandidate = normalizeAdvanceCycleResult(result, {
+      planId: String(plan.id),
+      seasonIndex,
+      completedSessions,
+      missedSessions,
+      totalSessions,
+      completionRate,
+      progressionTrend: progressionTrend as "improving" | "stalled" | "regressing" | "blocked",
+      recoveryStatus: recoveryStatus as "recoverable" | "strained" | "overreached" | "injury_constrained",
+      currentRequest,
+      replayReceipt: engineOutput.replayReceipt ?? {},
+    });
+
+    const prePersistParsed = AdvanceCycleResponseSchema.safeParse(responseCandidate);
+    if (!prePersistParsed.success || prePersistParsed.data.status !== "success") {
+      return {
+        status: "error",
+        errors: ["Engine did not return an advance_cycle result"],
+      };
+    }
+    const parsedAdvance = prePersistParsed.data;
+
+    const { data: summaryRow, error: summaryError } = await writeClient
+      .from("engine_cycle_season_summaries")
+      .insert({
+        user_id: userId,
+        plan_id: plan.id,
+        season_index: parsedAdvance.seasonIndex,
+        season_rank: parsedAdvance.seasonRank,
+        rank_breakdown: parsedAdvance.rankBreakdown,
+        summary_payload: parsedAdvance.seasonSummary,
+        completed_sessions: parsedAdvance.seasonSummary.completedSessions,
+        missed_sessions: parsedAdvance.seasonSummary.missedSessions,
+        total_sessions: parsedAdvance.seasonSummary.totalSessions,
+        completion_rate: parsedAdvance.seasonSummary.completionRate,
+      })
+      .select("id")
+      .single();
+    if (summaryError || !summaryRow) {
+      return {
+        status: "error",
+        errors: ["Failed to persist season summary"],
+      };
+    }
+
+    if (parsedAdvance.awards.length > 0) {
+      const { error: awardsError } = await writeClient.from("engine_cycle_season_awards").insert(
+        parsedAdvance.awards.map((award) => ({
+          user_id: userId,
+          plan_id: plan.id,
+          season_summary_id: (summaryRow as { id: number }).id,
+          award_id: award.id,
+          label: award.label,
+          reason: award.reason,
+          xp: award.xp,
+        }))
+      );
+      if (awardsError) {
+        await writeClient
+          .from("engine_cycle_season_summaries")
+          .delete()
+          .eq("id", (summaryRow as { id: number }).id)
+          .eq("user_id", userId)
+          .eq("plan_id", plan.id);
+        return {
+          status: "error",
+          errors: ["Failed to persist season awards"],
+        };
+      }
+    }
+
+    const { data: transitionRow, error: transitionError } = await writeClient
+      .from("engine_cycle_transitions")
+      .insert({
+        user_id: userId,
+        plan_id: plan.id,
+        season_summary_id: (summaryRow as { id: number }).id,
+        season_index: parsedAdvance.seasonIndex,
+        season_rank: parsedAdvance.seasonRank,
+        awarded_xp: parsedAdvance.awardedXp,
+        next_cycle_request: parsedAdvance.nextCycleRequest,
+        next_cycle_preview: parsedAdvance.nextCyclePreview,
+        replay_receipt: parsedAdvance.replayReceipt,
+        decision_log: engineOutput.decisionLog ?? [],
+        engine_result: result,
+        state_patch: engineOutput.statePatch ?? {},
+        status: "recommended",
+        idempotency_key: input.idempotencyKey ?? null,
+      })
+      .select("id")
+      .single();
+    if (transitionError || !transitionRow) {
+      await writeClient
+        .from("engine_cycle_season_awards")
+        .delete()
+        .eq("season_summary_id", (summaryRow as { id: number }).id)
+        .eq("user_id", userId)
+        .eq("plan_id", plan.id);
+      await writeClient
+        .from("engine_cycle_season_summaries")
+        .delete()
+        .eq("id", (summaryRow as { id: number }).id)
+        .eq("user_id", userId)
+        .eq("plan_id", plan.id);
+      return {
+        status: "error",
+        errors: ["Failed to persist season transition"],
+      };
+    }
+
+    await writeClient.from("engine_session_traces").insert({
+      user_id: userId,
+      operation: "advance_cycle",
+      cycle_plan_id: plan.id,
+      cycle_session_id: null,
+      workout_log_id: null,
+      input_material: {
+        schemaVersion: "engine.v1",
+        operation: "advance_cycle",
+        request: {
+          planId: String(plan.id),
+          seasonIndex,
+          completedSessions,
+          missedSessions,
+          totalSessions,
+          completionRate,
+        },
+      },
+      decision_log: engineOutput.decisionLog ?? [],
+      replay_receipt: parsedAdvance.replayReceipt,
+      engine_result: result,
+    });
+
+    return AdvanceCycleResponseSchema.parse({
+      ...parsedAdvance,
+      transitionId: String((transitionRow as { id: number }).id),
+    });
+  } catch (error) {
+    logServerEvent({
+      route: options?.route ?? "/api/v0/cycles/advance",
+      action: "handleAdvanceCycle",
+      severity: "error",
+      reason: "dependency_error",
+      requestId: options?.requestId,
+      userId,
+      details: {
+        planId: input.planId ?? null,
+      },
+      error,
+    });
+
+    return {
+      status: "error",
+      errors: ["Engine cycle advancement failed. Please try again."],
+    };
+  }
 }

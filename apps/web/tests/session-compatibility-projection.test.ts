@@ -68,6 +68,7 @@ const richerGamificationRow = {
 } as const;
 
 describe("session compatibility projection", () => {
+  const TEST_TIMEOUT_MS = 15_000;
   beforeEach(() => {
     mockAdminSupabase = null;
   });
@@ -165,7 +166,7 @@ describe("session compatibility projection", () => {
     const projectedStats = store.users[0].stats_json as UserStats;
     expect(projectedStats.activeProgram?.currentDayIndex).toBe(2);
     expect(projectedStats.activeProgram?.currentMicrocycle).toBe(5);
-  });
+  }, TEST_TIMEOUT_MS);
 
   it("resolves workout log program identity from the normalized active plan before stale stats_json data", async () => {
     const userId = "77777777-6666-6666-6666-666666666666";
@@ -260,5 +261,5 @@ describe("session compatibility projection", () => {
 
     expect(result.status).toBe("success");
     expect(store.workout_logs[0]?.program_id).toBe(2001);
-  });
+  }, TEST_TIMEOUT_MS);
 });

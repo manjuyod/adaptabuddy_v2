@@ -2,17 +2,12 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Cormorant_Garamond } from "next/font/google";
 import { type CSSProperties, useEffect, useState } from "react";
 import { NEW_GAME_ROUTE } from "@/lib/start-screen";
 
 type TitleRoute = "/dashboard" | "/settings" | typeof NEW_GAME_ROUTE;
 
-const cormorantGaramond = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  display: "swap"
-});
+const cormorantGaramondClassName = "font-serif";
 
 const menuButtons: Array<{ label: "New Game" | "Continue" | "Settings"; href: TitleRoute }> = [
   { label: "New Game", href: NEW_GAME_ROUTE },
@@ -108,7 +103,7 @@ export function TitleMenuScreen({ variant }: { variant: TitleMenuVariant }) {
         />
 
         <p
-          className={cormorantGaramond.className}
+          className={cormorantGaramondClassName}
           style={{
             position: "absolute",
             top: "22%",
@@ -139,7 +134,7 @@ export function TitleMenuScreen({ variant }: { variant: TitleMenuVariant }) {
 
         <nav
           aria-label="Start menu"
-          className={cormorantGaramond.className}
+          className={cormorantGaramondClassName}
           style={{
             position: "absolute",
             left: "50%",

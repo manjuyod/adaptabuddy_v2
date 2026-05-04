@@ -13,6 +13,10 @@ vi.mock("../src/lib/supabase/next", () => ({
   createSupabaseServerActionClient: async () => mockSupabase,
 }));
 
+vi.mock("../src/lib/supabase/admin", () => ({
+  createSupabaseAdminClient: () => null,
+}));
+
 describe("e2e session flow", () => {
   it("generates then completes a session and updates stats_json", async () => {
     const userId = "11111111-1111-1111-1111-111111111111";

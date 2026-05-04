@@ -148,6 +148,7 @@ const analytics = {
 
 const mockGetRecentWorkoutHistory = vi.fn();
 const mockGetDeterministicAnalyticsReadModel = vi.fn();
+let activeCycleStatus: "active" | "completed" = "active";
 
 vi.mock("next/link", () => ({
   default: ({
@@ -184,6 +185,59 @@ vi.mock("../src/lib/supabase/next", () => ({
       }),
     },
     from: (table: string) => {
+      if (table === "engine_cycle_plans") {
+        const query = {
+          select: () => query,
+          eq: () => query,
+          maybeSingle: async () => ({
+            data: {
+              id: 7,
+            },
+          }),
+        };
+        return query;
+      }
+      if (table === "engine_cycle_transitions") {
+        const query = {
+          select: () => query,
+          eq: () => query,
+          order: () => query,
+          limit: () => query,
+          maybeSingle: async () => ({
+            data: {
+              id: 99,
+              plan_id: 7,
+              season_index: 1,
+              season_rank: "A",
+              awarded_xp: 120,
+              next_cycle_request: {
+                classPresetId: "bb",
+                goalBias: "balanced",
+                availableDaysPerWeek: 4,
+                fatiguePreference: "moderate",
+                injuryMuscleGroupSlugs: [],
+                macrocycleWeeks: 12,
+                selectedPrograms: [{ programId: 2001, weight: 1 }],
+              },
+              next_cycle_preview: {
+                rankEffect: "maintain_direction",
+                programBlendDirection: "balanced",
+                difficultyAdjustment: 0,
+                recoveryAdjustment: 0,
+                unlockEligibility: [],
+                constraintNotes: [],
+              },
+            },
+          }),
+        };
+        return {
+          select: query.select,
+          eq: query.eq,
+          order: query.order,
+          limit: query.limit,
+          maybeSingle: query.maybeSingle,
+        };
+      }
       if (table !== "users") {
         throw new Error(`Unexpected table: ${table}`);
       }
@@ -206,7 +260,7 @@ vi.mock("../src/modules/programs/service", () => ({
   getUserActiveCycleView: async () => ({
     activeCycleView: {
       source: "normalized",
-      status: "active",
+      status: activeCycleStatus,
       programId: "2001",
       startedAt: "2026-04-01T00:00:00.000Z",
       daysPerWeek: 4,
@@ -234,12 +288,17 @@ vi.mock("../src/modules/reporting/service", () => ({
     mockGetDeterministicAnalyticsReadModel(...args),
 }));
 
+vi.mock("../src/modules/cycles/actions", () => ({
+  startNextSeasonFromTransition: "/dashboard",
+}));
+
 import DashboardPage from "../app/(game)/dashboard/page";
 
 describe("dashboard analytics migration", () => {
   beforeEach(() => {
     mockGetRecentWorkoutHistory.mockReset();
     mockGetDeterministicAnalyticsReadModel.mockReset();
+    activeCycleStatus = "active";
     mockGetRecentWorkoutHistory.mockRejectedValue(new Error("dashboard must use analytics"));
     mockGetDeterministicAnalyticsReadModel.mockResolvedValue(analytics);
   });
@@ -282,5 +341,17 @@ describe("dashboard analytics migration", () => {
     expect(screen.getByText("Detailed per-muscle volume is not available yet.")).toBeTruthy();
     expect(screen.queryByText(/9,999/)).toBeNull();
     expect(screen.queryByText(/Total weekly volume/)).toBeNull();
+  });
+
+  it("renders season result and next-season action for a completed normalized cycle", async () => {
+    activeCycleStatus = "completed";
+
+    const page = await DashboardPage();
+    render(page);
+
+    expect(screen.getByText("Season Result")).toBeTruthy();
+    expect(screen.getByText("Rank A")).toBeTruthy();
+    expect(screen.getByText("120 XP awarded")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Start Next Season" })).toBeTruthy();
   });
 });

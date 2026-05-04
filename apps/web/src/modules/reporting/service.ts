@@ -38,7 +38,7 @@ import {
 type TraceRow = {
   id: number;
   user_id: string;
-  operation: "plan_session" | "complete_session";
+  operation: "plan_session" | "complete_session" | "advance_cycle";
   cycle_plan_id?: number | null;
   cycle_session_id?: number | null;
   workout_log_id?: number | null;
@@ -298,7 +298,7 @@ const buildReplayDebugBundle = (
     | "missing_engine_result"
     | "missing_input_material"
     | "invalid_trace_material",
-  operation: "plan_session" | "complete_session"
+  operation: "plan_session" | "complete_session" | "advance_cycle"
 ): ReplayDebugBundle => {
   const redactedDecisionLog = readDebugDecisionLog(trace);
   const replayReceipt = toReplayReceipt(trace.replay_receipt);
@@ -352,7 +352,7 @@ const buildReplayDebugBundle = (
 
 const buildReplayDebugBundleFromParsedTrace = (
   trace: TraceRow,
-  operation: "plan_session" | "complete_session",
+  operation: "plan_session" | "complete_session" | "advance_cycle",
   replayMaterial: Record<string, unknown>,
   engineResult: Record<string, unknown>,
   decisionLog: Array<DecisionLogEntry>
@@ -1370,3 +1370,36 @@ export const getWorkoutCompletionReadModels = async (
     replayDebugBundle,
   };
 };
+export const deriveAdvanceCycleReplayDebugBundle = (trace: TraceRow): ReplayDebugBundle => {
+  if (trace.operation !== "advance_cycle") {
+    return buildReplayDebugBundle(
+      trace,
+      "unavailable",
+      "invalid_trace_material",
+      "advance_cycle"
+    );
+  }
+
+  const decisionLog = readDebugDecisionLog(trace);
+  const engineResult = parseEngineResult(trace.engine_result);
+  const replayReceipt = toReplayReceipt(trace.replay_receipt);
+  if (!engineResult) {
+    return buildReplayDebugBundle(trace, "unavailable", "missing_engine_result", "advance_cycle");
+  }
+  if (!replayReceipt) {
+    return buildReplayDebugBundle(trace, "unavailable", "missing_replay_receipt", "advance_cycle");
+  }
+  if (readReplayDebugInputMaterial(trace).availability !== "available") {
+    return buildReplayDebugBundle(trace, "unavailable", "missing_input_material", "advance_cycle");
+  }
+
+  return buildReplayDebugBundleFromParsedTrace(
+    trace,
+    "advance_cycle",
+    replayReceipt as Record<string, unknown>,
+    redactBetaDebugValue(engineResult) as Record<string, unknown>,
+    decisionLog
+  );
+};
+
+

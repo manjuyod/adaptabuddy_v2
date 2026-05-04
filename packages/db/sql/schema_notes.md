@@ -30,6 +30,7 @@
 | 018_engine_24_replay_debug_input_material | 018_engine_24_replay_debug_input_material.sql | 2026-05-01 | Add redacted replay debug input material to engine traces and restrict trace/RPC evidence writes to server-owned paths |
 | 019_wave_7_beta_feedback_reports | 019_wave_7_beta_feedback_reports.sql | 2026-05-02 | Add authenticated user-owned beta feedback report capture table and Wave 7 RLS-controlled support feedback persistence |
 | 020_wave_7_beta_feedback_sequence_grants | 020_wave_7_beta_feedback_sequence_grants.sql | 2026-05-03 | Tighten beta feedback report identity sequence grants to authenticated users only |
+| 021_wave_9_season_loop_product_shell | 021_wave_9_season_loop_product_shell.sql | 2026-05-04 | Add app-owned season summaries, awards, transitions, and advance_cycle trace support |
 
 ## users.stats_json Schema
 

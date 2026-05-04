@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   derivePlanSessionExplanation,
+  deriveAdvanceCycleReplayDebugBundle,
   derivePlanSessionReplayDebugBundle,
   deriveWorkoutCompletionExplanation,
   deriveWorkoutCompletionReplayDebugBundle,
@@ -1540,4 +1541,30 @@ describe("reporting service", () => {
 
     expect(readModels.explanation?.sessionOutcomeClassification).toBe("complete_compromised");
   });
+  it("returns available replay debug bundle for advance_cycle traces", () => {
+    const bundle = deriveAdvanceCycleReplayDebugBundle({
+      id: 901,
+      user_id: "user-1",
+      operation: "advance_cycle",
+      cycle_plan_id: 11,
+      cycle_session_id: null,
+      workout_log_id: null,
+      input_material: { seed: "seed" },
+      decision_log: [{ stepType: "state_update", ruleId: "advance", outcome: "ok" }],
+      replay_receipt: {
+        inputHash: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        outputHash: "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        seedUsed: "seed",
+        effectiveAt: "2026-02-13T10:00:00.000Z",
+        implementationVersion: "engine-rs-mvp-0",
+        policyVersion: "policy-2026-02",
+        referenceHash: "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      },
+      engine_result: { seasonIndex: 1, rankTier: "silver", awardedXp: 300, nextCycleRequest: {} },
+    });
+
+    expect(bundle.operation).toBe("advance_cycle");
+    expect(bundle.availability).toBe("available");
+  });
+
 });

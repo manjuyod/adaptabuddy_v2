@@ -15,12 +15,26 @@ import {
   getWeeklyVolumeSummary,
 } from "@/modules/dashboard/summary";
 import { ProgressionTimelineChart } from "@/modules/dashboard/components/ProgressionTimelineChart";
+import { startNextSeasonFromTransition } from "@/modules/cycles/actions";
 
 const fatigueBarClassBySeverity = {
   low: "bg-emerald-400",
   moderate: "bg-amber-400",
   high: "bg-red-400",
 } as const;
+
+type LatestSeasonTransition = {
+  id: number;
+  plan_id?: number | null;
+  season_rank?: string | null;
+  awarded_xp?: number | null;
+  next_cycle_preview?: {
+    rankEffect?: string;
+    programBlendDirection?: string;
+    difficultyAdjustment?: number;
+    recoveryAdjustment?: number;
+  } | null;
+};
 
 const formatWorkoutDate = (dateValue: string) =>
   new Intl.DateTimeFormat("en-US", {
@@ -47,6 +61,30 @@ export default async function DashboardPage() {
   ]);
 
   const stats = (userRow?.stats_json as UserStats) ?? getDefaultUserStats();
+  let latestSeasonTransition: LatestSeasonTransition | null = null;
+
+  if (activeCycleView?.status === "completed") {
+    const { data: activePlanRow } = await supabase
+      .from("engine_cycle_plans")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (activePlanRow?.id) {
+      const { data: transitionRow } = await supabase
+        .from("engine_cycle_transitions")
+        .select("id, plan_id, season_rank, awarded_xp, next_cycle_preview")
+        .eq("user_id", user.id)
+        .eq("plan_id", activePlanRow.id)
+        .eq("status", "recommended")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      latestSeasonTransition = (transitionRow as LatestSeasonTransition | null) ?? null;
+    }
+  }
 
   let activeProgramName = "No active program";
   if (activeCycleView) {
@@ -86,6 +124,44 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid gap-4 xl:grid-cols-3">
+        {latestSeasonTransition ? (
+          <div className="rounded-xl border border-amber-700/60 bg-amber-500/10 p-5 shadow-lg xl:col-span-3">
+            <p className="text-xs uppercase tracking-[0.18em] text-amber-200">
+              Season Result
+            </p>
+            <div className="mt-3 grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
+              <div>
+                <p className="text-2xl font-semibold text-slate-100">
+                  Rank {latestSeasonTransition.season_rank ?? "-"}
+                </p>
+                <p className="mt-1 text-sm text-amber-100">
+                  {Number(latestSeasonTransition.awarded_xp ?? 0).toLocaleString()} XP awarded
+                </p>
+                {latestSeasonTransition.next_cycle_preview ? (
+                  <p className="mt-2 text-sm text-slate-300">
+                    {latestSeasonTransition.next_cycle_preview.rankEffect ?? "Next season ready"} ·{" "}
+                    {latestSeasonTransition.next_cycle_preview.programBlendDirection ?? "balanced"} ·
+                    difficulty {latestSeasonTransition.next_cycle_preview.difficultyAdjustment ?? 0}
+                  </p>
+                ) : null}
+              </div>
+              <form action={startNextSeasonFromTransition}>
+                <input
+                  type="hidden"
+                  name="transitionId"
+                  value={String(latestSeasonTransition.id)}
+                />
+                <button
+                  type="submit"
+                  className="rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400"
+                >
+                  Start Next Season
+                </button>
+              </form>
+            </div>
+          </div>
+        ) : null}
+
         <div className="rounded-xl border border-slate-800 bg-surface/80 p-5 shadow-lg">
           <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Active Program</p>
           <p className="mt-2 text-xl font-semibold text-slate-100">{activeProgramName}</p>

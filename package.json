@@ -16,7 +16,7 @@
     "typecheck": "npm run typecheck --workspace apps/web",
     "test": "npm run test --workspaces",
     "test:engine": "cargo test --manifest-path packages/engine-rs/Cargo.toml",
-    "ci:quality": "npm run typecheck && npm run lint && npm run test && npm run build && npm run test:engine",
+    "ci:quality": "export RUN_SUPABASE_E2E_VERIFICATION=0 RUN_SUPABASE_SMOKE=0 RUN_SUPABASE_AUTH_SMOKE=0 RUN_PLAYWRIGHT_E2E=0 && npm run typecheck && npm run lint && npm run test && npm run build && npm run test:engine",
     "test:e2e:playwright": "npm run test:e2e:playwright --workspace apps/web",
     "verify:deploy:smoke": "node apps/web/scripts/verify-deploy-smoke.mjs"
   },

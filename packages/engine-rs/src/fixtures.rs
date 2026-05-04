@@ -6,7 +6,7 @@ pub const EFFECTIVE_AT: &str = "2026-02-13T10:00:00.000Z";
 pub const REFERENCE_HASH: &str =
     "sha256:ba49fccccc6a22098b9cdd5dd9b26eb51617a0e52ab69183e4e64609dfe21fb4";
 
-const FIXTURE_NAMES: [&str; 10] = [
+const FIXTURE_NAMES: [&str; 11] = [
     "initialize-cycle-baseline",
     "plan-baseline",
     "plan-no-solution",
@@ -17,6 +17,7 @@ const FIXTURE_NAMES: [&str; 10] = [
     "complete-compromised",
     "complete-partial",
     "complete-missed",
+    "advance-baseline",
 ];
 
 pub fn fixture_names() -> &'static [&'static str] {
@@ -35,6 +36,7 @@ pub fn named_fixture(name: &str) -> Option<EngineInputV1> {
         "complete-compromised" => Some(complete_session_compromised_input()),
         "complete-partial" => Some(complete_session_partial_input()),
         "complete-missed" => Some(complete_session_missed_input()),
+        "advance-baseline" => Some(advance_cycle_input()),
         _ => None,
     }
 }
@@ -501,5 +503,97 @@ pub fn complete_session_missed_input() -> EngineInputV1 {
         input.request["session"]["overallRpe"] = json!(10);
         input.state_snapshot["readinessState"]["systemicFatigue"] = json!("moderate");
         input.state_snapshot["progressionState"]["records"][0]["trend"] = json!("improving");
+    })
+}
+
+pub fn advance_cycle_input() -> EngineInputV1 {
+    let mut input = complete_session_input();
+    input.operation = Operation::AdvanceCycle;
+    input.request = json!({
+        "seasonIndex": 1,
+        "completionRate": 0.8,
+        "focus": "balanced"
+    });
+    input
+}
+
+pub fn advance_cycle_input_with(mutator: impl FnOnce(&mut EngineInputV1)) -> EngineInputV1 {
+    let mut input = advance_cycle_input();
+    mutator(&mut input);
+    input
+}
+
+pub fn advance_cycle_s_rank_input() -> EngineInputV1 {
+    advance_cycle_input_with(|input| {
+        input.request = json!({
+            "seasonIndex": 1,
+            "completionRate": 0.98,
+            "adherence": 0.96,
+            "completionQuality": 0.97,
+            "progression": 0.95,
+            "recovery": 0.94,
+            "consistency": 0.97,
+            "focus": "strength"
+        });
+    })
+}
+
+pub fn advance_cycle_a_rank_input() -> EngineInputV1 {
+    advance_cycle_input_with(|input| {
+        input.request = json!({
+            "seasonIndex": 2,
+            "completionRate": 0.88,
+            "adherence": 0.86,
+            "completionQuality": 0.85,
+            "progression": 0.82,
+            "recovery": 0.84,
+            "consistency": 0.83,
+            "focus": "strength"
+        });
+    })
+}
+
+pub fn advance_cycle_b_rank_input() -> EngineInputV1 {
+    advance_cycle_input_with(|input| {
+        input.request = json!({
+            "seasonIndex": 3,
+            "completionRate": 0.74,
+            "adherence": 0.72,
+            "completionQuality": 0.71,
+            "progression": 0.7,
+            "recovery": 0.69,
+            "consistency": 0.73,
+            "focus": "balanced"
+        });
+    })
+}
+
+pub fn advance_cycle_c_rank_input() -> EngineInputV1 {
+    advance_cycle_input_with(|input| {
+        input.request = json!({
+            "seasonIndex": 4,
+            "completionRate": 0.59,
+            "adherence": 0.57,
+            "completionQuality": 0.55,
+            "progression": 0.54,
+            "recovery": 0.56,
+            "consistency": 0.58,
+            "focus": "balanced"
+        });
+    })
+}
+
+pub fn advance_cycle_d_rank_input() -> EngineInputV1 {
+    advance_cycle_input_with(|input| {
+        input.request = json!({
+            "seasonIndex": 5,
+            "completionRate": 0.31,
+            "adherence": 0.28,
+            "completionQuality": 0.25,
+            "progression": 0.26,
+            "recovery": 0.27,
+            "consistency": 0.24,
+            "focus": "recovery"
+        });
     })
 }

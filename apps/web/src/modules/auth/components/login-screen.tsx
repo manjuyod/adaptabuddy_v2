@@ -3,7 +3,6 @@
 import clsx from "clsx";
 import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
-import { Cormorant_Garamond } from "next/font/google";
 import {
   type CSSProperties,
   type MouseEvent,
@@ -23,11 +22,19 @@ type LoginScreenProps = {
   redirectTo?: string;
 };
 
-const cormorantGaramond = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  display: "swap"
-});
+const cormorantGaramondClassName = "font-serif";
+
+const normalizeFormAction = (
+  value: unknown
+): string | ((payload: FormData) => void | Promise<void>) | undefined => {
+  if (typeof value === "string") {
+    return value;
+  }
+  if (typeof value === "function") {
+    return (payload: FormData) => (value as (next: FormData) => void | Promise<void>)(payload);
+  }
+  return undefined;
+};
 
 function AuthMessage({ error, message }: AuthFormState) {
   return (
@@ -241,7 +248,7 @@ function SignInForm({
   const [state, formAction] = useFormState(signInAction, initialState);
 
   return (
-    <form action={formAction} className="space-y-2.5">
+    <form action={normalizeFormAction(formAction)} className="space-y-2.5">
       <input type="hidden" name="redirectTo" value={redirectTo ?? ""} />
 
       <div>
@@ -293,7 +300,7 @@ function SignUpForm({
   const [state, formAction] = useFormState(signUpAction, initialState);
 
   return (
-    <form action={formAction} className="space-y-2.5">
+    <form action={normalizeFormAction(formAction)} className="space-y-2.5">
       <input type="hidden" name="redirectTo" value={redirectTo ?? ""} />
 
       <div>
@@ -415,7 +422,7 @@ export function LoginScreen({ initialTab = "signin", redirectTo }: LoginScreenPr
           }}
         />
         <p
-          className={cormorantGaramond.className}
+          className={cormorantGaramondClassName}
           style={{
             position: "absolute",
             top: "22%",
@@ -444,7 +451,7 @@ export function LoginScreen({ initialTab = "signin", redirectTo }: LoginScreenPr
           AdaptaBuddy
         </p>
         <section
-          className={clsx(cormorantGaramond.className, "p-6")}
+          className={clsx(cormorantGaramondClassName, "p-6")}
           style={{
             width: "100%",
             maxWidth: "420px",

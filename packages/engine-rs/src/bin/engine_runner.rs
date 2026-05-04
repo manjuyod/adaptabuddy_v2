@@ -1,5 +1,6 @@
 use engine_rs::{
-    complete_session, initialize_cycle, plan_session, EngineInputV1, EngineOutputV1, Operation,
+    advance_cycle, complete_session, initialize_cycle, plan_session, EngineInputV1, EngineOutputV1,
+    Operation,
 };
 use std::io::{self, Read};
 
@@ -32,5 +33,6 @@ fn execute(input: &EngineInputV1) -> Result<EngineOutputV1, engine_rs::EngineErr
         Operation::InitializeCycle => initialize_cycle(input),
         Operation::PlanSession => plan_session(input),
         Operation::CompleteSession => complete_session(input),
+        Operation::AdvanceCycle => advance_cycle(input),
     }
 }

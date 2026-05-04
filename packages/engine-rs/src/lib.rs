@@ -13,8 +13,8 @@ pub mod scoring;
 pub mod state_update;
 
 use adaptation::{
-    complete_session as complete_session_impl, initialize_cycle as initialize_cycle_impl,
-    plan_session as plan_session_impl,
+    advance_cycle as advance_cycle_impl, complete_session as complete_session_impl,
+    initialize_cycle as initialize_cycle_impl, plan_session as plan_session_impl,
 };
 use boundary::BoundaryError;
 use serde::{Deserialize, Serialize};
@@ -28,6 +28,7 @@ pub enum Operation {
     InitializeCycle,
     PlanSession,
     CompleteSession,
+    AdvanceCycle,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -124,5 +125,11 @@ pub fn initialize_cycle(input: &EngineInputV1) -> Result<EngineOutputV1, EngineE
 pub fn complete_session(input: &EngineInputV1) -> Result<EngineOutputV1, EngineError> {
     let typed_input = boundary::TypedEngineInput::from_public(input)?;
     let typed_output = complete_session_impl::complete_session(&typed_input);
+    typed_output.to_public().map_err(EngineError::from)
+}
+
+pub fn advance_cycle(input: &EngineInputV1) -> Result<EngineOutputV1, EngineError> {
+    let typed_input = boundary::TypedEngineInput::from_public(input)?;
+    let typed_output = advance_cycle_impl::advance_cycle(&typed_input);
     typed_output.to_public().map_err(EngineError::from)
 }

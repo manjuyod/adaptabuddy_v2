@@ -436,7 +436,16 @@ describe("replay certification verifier", () => {
     );
   });
 
-  it("throws when input and output operations are paired incorrectly", () => {
+  
+  it("accepts advance_cycle as a valid operation contract pair", () => {
+    const advanceManifest: ReplayManifest = structuredClone(REPLAY_BASELINE_MANIFEST);
+    advanceManifest.input.operation = "advance_cycle";
+    advanceManifest.output.operation = "advance_cycle";
+
+    expect(() => verifyReplayManifest(advanceManifest)).toThrow(HashMismatchError);
+    expect(() => verifyReplayManifest(advanceManifest)).not.toThrow(BundleContractMismatchError);
+  });
+it("throws when input and output operations are paired incorrectly", () => {
     const mismatchedOperationManifest = cloneManifest(REPLAY_BASELINE_MANIFEST);
     mismatchedOperationManifest.output.operation = "complete_session";
     expect(() => verifyReplayManifest(mismatchedOperationManifest)).toThrow(

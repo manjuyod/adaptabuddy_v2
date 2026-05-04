@@ -10,7 +10,7 @@ generation. It should no longer complete setup by only saving preferences and a 
 
 ## Status
 
-- `State`: Active
+- `State`: Complete
 - `Priority`: High
 - `Depends On`:
   - `docs/archive/specs/engine_08_initialize_cycle_boundary.md`
@@ -131,3 +131,9 @@ Wave 8 closes when:
   normalized active cycle exists
 - no Rust engine contract, envelope, replay-policy, or DB schema migration is required
 
+Completion evidence:
+
+- `New Game` continues to route to `/onboarding`.
+- `completeOnboarding` maps onboarding intake into `InitializeCycleRequest` and invokes `handleInitializeCycle`.
+- Normalized cycle plans, sessions, program mix, and gamification state remain the canonical initialized-cycle source.
+- The legacy `stats_json.activeProgram` projection remains compatibility-only when normalized active cycle state exists.

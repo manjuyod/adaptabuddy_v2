@@ -1,3 +1,4 @@
+use crate::domain::StatePatch;
 use serde::{Deserialize, Serialize};
 use serde_json::{Number, Value};
 
@@ -112,6 +113,48 @@ pub struct CompleteSessionResult {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct AdvanceCycleRankBreakdown {
+    pub completion_rate: Number,
+    pub adherence: Number,
+    pub completion_quality: Number,
+    pub progression: Number,
+    pub recovery: Number,
+    pub consistency: Number,
+    pub score: Number,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct AdvanceCycleAward {
+    pub award_id: String,
+    pub label: String,
+    pub xp: u32,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct AdvanceCyclePreview {
+    pub season_index: u32,
+    pub season_rank: String,
+    pub recommended_class_choice: String,
+    pub next_cycle_request: Value,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct AdvanceCycleResult {
+    pub season_index: u32,
+    pub season_summary: String,
+    pub season_rank: String,
+    pub rank_breakdown: AdvanceCycleRankBreakdown,
+    pub awards: Vec<AdvanceCycleAward>,
+    pub evolution_patch: StatePatch,
+    pub next_cycle_request: Value,
+    pub next_cycle_preview: AdvanceCyclePreview,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case", deny_unknown_fields)]
 pub enum DecisionStepType {
     Initialize,
@@ -202,6 +245,46 @@ impl PlanSessionResult {
 }
 
 impl CompleteSessionResult {
+    pub fn from_value(value: &Value) -> Result<Self, serde_json::Error> {
+        serde_json::from_value(value.clone())
+    }
+
+    pub fn to_value(&self) -> Result<Value, serde_json::Error> {
+        serde_json::to_value(self)
+    }
+}
+
+impl AdvanceCycleResult {
+    pub fn from_value(value: &Value) -> Result<Self, serde_json::Error> {
+        serde_json::from_value(value.clone())
+    }
+
+    pub fn to_value(&self) -> Result<Value, serde_json::Error> {
+        serde_json::to_value(self)
+    }
+}
+
+impl AdvanceCycleRankBreakdown {
+    pub fn from_value(value: &Value) -> Result<Self, serde_json::Error> {
+        serde_json::from_value(value.clone())
+    }
+
+    pub fn to_value(&self) -> Result<Value, serde_json::Error> {
+        serde_json::to_value(self)
+    }
+}
+
+impl AdvanceCycleAward {
+    pub fn from_value(value: &Value) -> Result<Self, serde_json::Error> {
+        serde_json::from_value(value.clone())
+    }
+
+    pub fn to_value(&self) -> Result<Value, serde_json::Error> {
+        serde_json::to_value(self)
+    }
+}
+
+impl AdvanceCyclePreview {
     pub fn from_value(value: &Value) -> Result<Self, serde_json::Error> {
         serde_json::from_value(value.clone())
     }

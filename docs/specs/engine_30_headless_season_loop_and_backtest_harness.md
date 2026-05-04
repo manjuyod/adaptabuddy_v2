@@ -18,7 +18,7 @@ initialize_cycle
 
 ## Status
 
-- `State`: Active
+- `State`: Complete
 - `Priority`: High
 - `Depends On`:
   - `docs/archive/specs/engine_08_initialize_cycle_boundary.md`
@@ -232,6 +232,13 @@ Engine 30-specific gates:
 - public API failure tests for `advance_cycle`
 - next-cycle request compatibility tests against `initialize_cycle`
 - multi-season invariant tests
+
+Completion evidence:
+
+- `advance_cycle` is exposed as a public Rust operation through the existing `EngineInputV1` / `EngineOutputV1` envelope.
+- Rank fixtures now cover `S`, `A`, `B`, `C`, and `D`.
+- The headless `season_loop_backtest` binary emits deterministic JSON with archetype summaries and invariant failures.
+- Targeted Rust verification passed for `advance_cycle`, `season_loop_backtest`, and replay hash tests during implementation.
 
 ## Out Of Scope
 

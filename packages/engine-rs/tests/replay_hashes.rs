@@ -1,7 +1,7 @@
 #[path = "support/fixtures.rs"]
 mod fixtures;
 
-use engine_rs::{complete_session, plan_session};
+use engine_rs::{advance_cycle, complete_session, plan_session};
 use serde_json::{json, Value};
 
 fn replay_receipt(output: &Value) -> &serde_json::Map<String, Value> {
@@ -112,6 +112,33 @@ fn replay_receipt_hashes_match_sha256_format_for_complete_session() {
     let output = output_json(
         &complete_session(&fixtures::complete_session_input()).expect("complete_session"),
     );
+
+    assert_sha256_receipt_hash(&output, "inputHash");
+    assert_sha256_receipt_hash(&output, "outputHash");
+}
+
+#[test]
+fn advance_cycle_replay_receipt_hashes_are_stable_for_identical_input() {
+    let input = engine_rs::fixtures::advance_cycle_input();
+
+    let first = output_json(&advance_cycle(&input).expect("first advance_cycle invocation"));
+    let second = output_json(&advance_cycle(&input).expect("second advance_cycle invocation"));
+
+    assert_replay_hashes_match(&first, &second);
+    assert_eq!(
+        replay_receipt(&first).get("seedUsed"),
+        replay_receipt(&second).get("seedUsed")
+    );
+    assert_eq!(first["result"]["seasonRank"], json!("B"));
+    assert!(first["result"]["seasonSummary"].is_string());
+    assert!(first["result"]["nextCyclePreview"].is_object());
+}
+
+#[test]
+fn replay_receipt_hashes_match_sha256_format_for_advance_cycle() {
+    let input = engine_rs::fixtures::advance_cycle_b_rank_input();
+
+    let output = output_json(&advance_cycle(&input).expect("advance_cycle"));
 
     assert_sha256_receipt_hash(&output, "inputHash");
     assert_sha256_receipt_hash(&output, "outputHash");

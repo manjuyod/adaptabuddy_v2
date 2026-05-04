@@ -15,6 +15,10 @@ vi.mock("../src/lib/supabase/next", () => ({
   createSupabaseServerActionClient: async () => mockSupabase,
 }));
 
+vi.mock("../src/lib/supabase/admin", () => ({
+  createSupabaseAdminClient: () => null,
+}));
+
 describe("api v0 services", () => {
   it("allocates volume based on fatigue state", async () => {
     const userId = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";

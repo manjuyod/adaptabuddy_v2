@@ -14,7 +14,7 @@
 
 Wave 2 is complete. Wave 3 is complete and archived. Wave 4 is complete through canonical replay serialization and numeric policy: normalized engine-owned cycle tables remain canonical for initialized-cycle identity, cursor state, gamification, and app-owned analytics derivation, while `users.stats_json.activeProgram` remains compatibility-only for the current shell.
 
-The pre-beta app-shell hardening lane is complete: Wave 5 completed the beta alignment, release-evidence, and cross-language replay certification work through Engine 28 without revising the Rust public engine envelopes, Engine 29 completed the required live Supabase Playwright breaker suite for browser-visible success and failure paths beyond release-promotion paperwork, and Wave 6 closed the private beta promotion lane after Docker build/runtime evidence passed for the exact candidate. The roadmap now defers further live beta learning as a primary architecture signal until the local Season Loop exists end to end. Wave 8 remains the active product/app-shell spec for wiring `New Game` into the existing engine-first `initialize_cycle` path, Engine 30 is the active engine spec for a headless Season Loop and backtest harness, and Wave 9 is the planned product-shell integration for season rank, awards, and next-season recommendations. Playwright browser E2E remains a required release-candidate gate for `apps/web`, not a substitute for local backtesting.
+The pre-beta app-shell hardening lane is complete: Wave 5 completed the beta alignment, release-evidence, and cross-language replay certification work through Engine 28 without revising the Rust public engine envelopes, Engine 29 completed the required live Supabase Playwright breaker suite for browser-visible success and failure paths beyond release-promotion paperwork, and Wave 6 closed the private beta promotion lane after Docker build/runtime evidence passed for the exact candidate. Wave 8, Engine 30, and Wave 9 now close the local Season Loop: `New Game` initializes normalized engine-backed cycles, the Rust engine can evaluate and backtest season transitions, and the app shell can persist and present season rank, awards, and next-season recommendations. Playwright browser E2E remains a required release-candidate gate for `apps/web`, not a substitute for local backtesting.
 
 Current architecture split:
 - Engine: `packages/engine-rs` owns deterministic decision logic for `initialize_cycle`, `plan_session`, and `complete_session`
@@ -36,8 +36,9 @@ Active and planned numbered specs live under `docs/specs/`. Completed historical
 ## Active Spec Queue
 
 Current active spec:
-- `[ACTIVE]` `docs/specs/wave_8_new_game_engine_first_workflow.md`
-- `[ACTIVE]` `docs/specs/engine_30_headless_season_loop_and_backtest_harness.md`
+- `[DONE]` `docs/specs/wave_8_new_game_engine_first_workflow.md`
+- `[DONE]` `docs/specs/engine_30_headless_season_loop_and_backtest_harness.md`
+- `[DONE]` `docs/specs/wave_9_season_loop_product_shell.md`
 
 Current launch lane:
 - `[DONE]` `Production Beta Readiness` for `apps/web`
@@ -47,8 +48,8 @@ Current operations lane:
 - `[PLANNED]` `Wave 7: Private Beta Operations And Learning Loop` after Season Loop local backtesting and product-shell completion
 
 Current product/app-shell lane:
-- `[ACTIVE]` `Wave 8: New Game Engine-First Workflow`
-- `[NEXT]` `Wave 9: Season Loop Product Shell`
+- `[DONE]` `Wave 8: New Game Engine-First Workflow`
+- `[DONE]` `Wave 9: Season Loop Product Shell`
 
 Current Wave 5 queue:
 - `[DONE]` `docs/archive/specs/engine_23_app_replay_invocation_alignment.md`
@@ -236,7 +237,7 @@ Exit criteria:
 - Wave 9 product shell can run New Game through a season transition locally.
 - Live beta can produce useful evidence about a complete loop rather than about missing loop mechanics.
 
-## Wave 8: New Game Engine-First Workflow `[ACTIVE]`
+## Wave 8: New Game Engine-First Workflow `[DONE]`
 
 Goal:
 - Wire the `New Game` product path into the existing engine-first cycle initialization flow so onboarding creates a normalized active cycle before workout generation.
@@ -265,7 +266,7 @@ Exit criteria:
 - Workout generation after `New Game` invokes the existing cycle-backed `plan_session` path.
 - Legacy `stats_json.activeProgram` is not the primary New Game activation source when a normalized active cycle exists.
 
-## Engine 30: Headless Season Loop And Backtest Harness `[ACTIVE]`
+## Engine 30: Headless Season Loop And Backtest Harness `[DONE]`
 
 Goal:
 - Add `advance_cycle` and a local backtest harness so the engine can evaluate completed macrocycle seasons, rank outcomes, award progress, emit bounded next-cycle requests, and replay chained seasons without the app, Supabase, or live beta traffic.
@@ -291,7 +292,7 @@ Exit criteria:
 - Multi-season backtests are replay-stable for identical seeds.
 - Rank effects stay within configured caps and do not create empty or impossible next cycles.
 
-## Wave 9: Season Loop Product Shell `[NEXT]`
+## Wave 9: Season Loop Product Shell `[DONE]`
 
 Goal:
 - Integrate Engine 30 into `apps/web` so users can complete a season, see rank and awards, review the next-season recommendation, and start the next season through the existing initialize-cycle path.
@@ -323,7 +324,7 @@ Exit criteria:
 3. Treat `engine_13` as complete and archived.
 4. Treat `docs/archive/specs/engine_17_user_facing_explanation_consumers.md` as complete and archived.
 5. Treat `docs/archive/specs/engine_23_app_replay_invocation_alignment.md` through `docs/archive/specs/engine_29_pre_beta_playwright_e2e_hardening.md` as complete and archived.
-6. Engine 30 is the active numbered engine spec for the headless Season Loop and local backtest harness.
+6. Engine 30 is complete for the headless Season Loop and local backtest harness.
 7. Keep live Supabase verification gated outside the default green lane.
 8. Treat Playwright browser E2E as a required release-candidate gate for `apps/web`.
 9. Treat `users.stats_json` compatibility ownership and sunset mapping as documented by `docs/archive/specs/engine_25_stats_json_compatibility_sunset_map.md`.
@@ -334,9 +335,9 @@ Exit criteria:
 14. Treat `docs/archive/specs/engine_22_canonical_replay_serialization_and_numeric_policy.md` as complete and archived.
 15. Treat `rc-3db65a2-20260502` as promoted according to `docs/operations/private_beta_release_record.md`.
 16. Treat live Wave 7 beta observations as downstream validation until the local Season Loop exists end to end.
-17. Treat `docs/specs/wave_8_new_game_engine_first_workflow.md` as the active New Game workflow spec until it is completed and archived.
-18. Treat `docs/specs/engine_30_headless_season_loop_and_backtest_harness.md` as the active engine spec.
-19. Treat `docs/specs/wave_9_season_loop_product_shell.md` as the next app-shell spec after Wave 8 and Engine 30.
+17. Treat `docs/specs/wave_8_new_game_engine_first_workflow.md` as complete pending any future archival pass.
+18. Treat `docs/specs/engine_30_headless_season_loop_and_backtest_harness.md` as complete pending any future archival pass.
+19. Treat `docs/specs/wave_9_season_loop_product_shell.md` as complete pending any future archival pass.
 
 ## Explicit Risks And Tradeoffs
 

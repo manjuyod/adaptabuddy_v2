@@ -1,6 +1,7 @@
 use engine_rs::fixtures::{fixture_names, named_fixture};
 use engine_rs::{
-    complete_session, initialize_cycle, plan_session, EngineInputV1, EngineOutputV1, Operation,
+    advance_cycle, complete_session, initialize_cycle, plan_session, EngineInputV1, EngineOutputV1,
+    Operation,
 };
 
 fn main() {
@@ -29,6 +30,7 @@ fn execute_fixture(input: &EngineInputV1) -> Result<EngineOutputV1, engine_rs::E
         Operation::InitializeCycle => initialize_cycle(input),
         Operation::PlanSession => plan_session(input),
         Operation::CompleteSession => complete_session(input),
+        Operation::AdvanceCycle => advance_cycle(input),
     }
 }
 

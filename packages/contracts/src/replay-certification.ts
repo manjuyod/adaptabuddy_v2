@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 
-export type ReplayOperation = "initialize_cycle" | "plan_session" | "complete_session";
+export type ReplayOperation = "initialize_cycle" | "plan_session" | "complete_session" | "advance_cycle";
 
 const ACCEPTED_CANONICALIZATION_VERSIONS = ["canon-replay-v1", "canon-v1"] as const;
 const CANONICALIZATION_POLICY_VERSION = "canon-replay-v1";

@@ -90,7 +90,7 @@ export type ReplayDebugBundleUnavailableReason = z.infer<
 >;
 
 const ReplayDebugBundleContextSchema = z.object({
-  operation: z.enum(["plan_session", "complete_session"]),
+  operation: z.enum(["plan_session", "complete_session", "advance_cycle"]),
   traceId: z.string().min(1),
   cyclePlanId: z.string().nullable(),
   cycleSessionId: z.string().nullable(),
@@ -113,7 +113,7 @@ export const ReplayDebugBundleAvailableSchema = ReplayDebugBundleContextSchema.e
 export const ReplayDebugBundleUnavailableSchema = z.object({
   availability: z.literal("unavailable"),
   reason: ReplayDebugBundleUnavailableReasonSchema,
-  operation: z.enum(["plan_session", "complete_session"]),
+  operation: z.enum(["plan_session", "complete_session", "advance_cycle"]),
   traceId: z.string().min(1),
   cyclePlanId: z.string().nullable(),
   cycleSessionId: z.string().nullable(),
@@ -141,7 +141,7 @@ export type ReplayDebugBundleUnavailable = z.infer<typeof ReplayDebugBundleUnava
 export const PersistedSessionTraceSchema = z.object({
   id: z.coerce.number().int().positive(),
   userId: z.string().min(1),
-  operation: z.enum(["plan_session", "complete_session"]),
+  operation: z.enum(["plan_session", "complete_session", "advance_cycle"]),
   cyclePlanId: z.coerce.number().int().positive().nullable(),
   cycleSessionId: z.coerce.number().int().positive().nullable(),
   workoutLogId: z.coerce.number().int().positive().nullable(),

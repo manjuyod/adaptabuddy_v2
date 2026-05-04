@@ -19,7 +19,7 @@ Wave 9 should make the existing app feel like a repeatable training game loop wi
 
 ## Status
 
-- `State`: Planned
+- `State`: Complete
 - `Priority`: High after Wave 8 and Engine 30
 - `Depends On`:
   - `docs/specs/wave_8_new_game_engine_first_workflow.md`
@@ -128,6 +128,13 @@ Required scenario coverage:
 - persistence tests or fakes for season summaries and transition records
 - UI tests for season result and next-season preview states
 - mocked Playwright journey for New Game through first season transition
+
+Completion evidence:
+
+- `POST /api/v0/cycles/advance` is authenticated, rate limited, and validates a narrow app-edge request that does not accept client-supplied season facts.
+- `handleAdvanceCycle` derives season facts from the authenticated user's normalized completed cycle and persists app-owned summaries, awards, transitions, replay receipts, and trace material.
+- Dashboard completed-cycle state displays season rank, awarded XP, next-season preview, and a start-next-season action that reuses the existing initialize-cycle path.
+- Local unit coverage exists for contracts, route behavior, service derivation/persistence fakes, reporting replay bundles, and dashboard season-result UI.
 
 Live Supabase E2E and Playwright browser E2E remain release-candidate gates only after the local Season Loop works end to end.
 
