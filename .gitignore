@@ -20,3 +20,4 @@ test-results
 apps/web/.playwright-cli/
 packages/engine-rs/target/
 .gitnexus
+/apps/web/public/backgrounds/inspiration/
