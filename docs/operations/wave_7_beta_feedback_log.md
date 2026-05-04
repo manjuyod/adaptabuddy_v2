@@ -163,18 +163,43 @@ Copy one block per feedback item.
 - Follow-up link: `apps/web/tests/supabase-e2e-verification.test.ts`
 - Date closed (UTC): `2026-05-04T23:09:00Z`
 
+### FDB-20260504-005
+
+- Status: `closed`
+- Date opened (UTC): `2026-05-04T23:29:00Z`
+- Reporter: `internal test`
+- Owner: `codex-agent`
+- Source: internal test
+- Release candidate: `main@8e79ef3`
+- Environment: `local Windows PowerShell beta deploy rehearsal`
+- Route or screen: standalone production runtime smoke
+- Primary classification: `unknown`
+- Secondary classifications: `app-shell`
+- Severity: `low`
+- User impact: Local beta rehearsal smoke can fail before route checks if the standalone server path is not quoted on Windows workspaces containing spaces.
+- Summary: The production-style smoke first used `next start`, which served traffic but emitted the existing standalone-output warning. Switching to `apps/web/.next/standalone/apps/web/server.js` initially failed because the repo path contains spaces and `Start-Process` passed the path to `node.exe` without preserving it as one argument.
+- Evidence:
+  - Request ID: `n/a`
+  - Replay reference: `n/a`
+  - Route evidence: `node apps/web/scripts/verify-deploy-smoke.mjs http://127.0.0.1:3018`
+  - Screenshot/video/log link: `.tmp/beta-rehearsal-standalone-3018.out.log`
+- Triage notes: Quoted the standalone server path explicitly and reran the deploy smoke against the built standalone artifact. Smoke passed with `/offline` 200, `/api/health` 200, Supabase connected, and expected 405 method-boundary checks.
+- Decision: `closed_after_standalone_smoke_passed`
+- Follow-up link:
+- Date closed (UTC): `2026-05-04T23:29:30Z`
+
 ## Rollup
 
 | Classification | Count | Notes |
 | --- | ---: | --- |
-| `app-shell` | 1 | `FDB-20260504-002` |
+| `app-shell` | 1 | `FDB-20260504-002`; secondary on `FDB-20260504-005` |
 | `adapter-contract` | 1 | `FDB-20260504-004`; secondary on `FDB-20260504-003` |
 | `persistence-rls` | 0 |  |
 | `telemetry-read-model` | 0 |  |
 | `replay-debuggability` | 0 |  |
 | `deterministic-engine-behavior` | 1 | `FDB-20260504-003` |
 | `product-copy` | 0 |  |
-| `unknown` | 1 | `FDB-20260504-001` |
+| `unknown` | 2 | `FDB-20260504-001`, `FDB-20260504-005` |
 
 ## Engine-Spec Gate
 

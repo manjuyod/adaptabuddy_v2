@@ -84,6 +84,49 @@ Only `deterministic-engine-behavior` evidence, local backtest failures, replay f
 
 ## Current Decision
 
+## Proposed Decision: 2026-05-04
+
+- Decision: `open_engine_spec`
+- Proposed spec number: Engine 32
+- Proposed title: Personalized Next-Cycle Blend Evolution
+- Decision owner: `user`
+- Evidence status: `sufficient`
+- Summary: Initial-cycle blending is now implemented and locally rehearsed, but `advance_cycle` still builds a generic next-cycle request that can drop the user's actual selected blend. Feedback `FDB-20260504-003` is an actionable deterministic-engine behavior gap because the season transition should preserve and evolve engine-owned program blend, baselines, fatigue, injuries, and adherence signals in a replayable way.
+
+### Evidence Links
+
+| Source | ID | Classification | Severity | Request ID | Replay reference | Route evidence | Owner/status |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| feedback | `FDB-20260504-003` | `deterministic-engine-behavior` | `medium` | `n/a` | `pending advance_cycle blended fixture` | `packages/engine-rs/src/adaptation/advance_cycle.rs` | `codex-agent/actionable` |
+| rehearsal | `rc-8e79ef3-20260504` | `deterministic-engine-behavior` | `medium` | `n/a` | `cargo test --manifest-path packages/engine-rs/Cargo.toml --test initialize_cycle initialize_cycle_` | local beta rehearsal | `user/ready_for_remote_deploy` |
+
+### Boundary Analysis
+
+- Why this is not app-shell work: the app can pass current-cycle context, but deciding how a blended cycle evolves after a season is deterministic training-engine behavior.
+- Why this is not adapter-contract work: schemas can validate the additional context fields, but they cannot decide blend retention, weight changes, fatigue carry-forward, or baseline preservation.
+- Why this is not persistence-rls work: persisted cycle rows are reference input only; storage must not define the evolution rules.
+- Why this is not telemetry-read-model work: read models can present the next-season preview only after the engine emits structured next-cycle direction.
+- Why this is not replay-debuggability work: replay receipts already exist; the missing piece is the replayable rule set for personalized next-cycle evolution.
+- Why this is not product-copy work: the output must be a valid `initialize_cycle` request, not explanatory text.
+- Why the current Rust public engine envelopes are insufficient: `advance_cycle` currently accepts season signals but not enough current-cycle context to preserve actual selected program blend, baselines, injuries, and fatigue intent.
+
+### Candidate Engine Scope
+
+- Engine operation(s): `advance_cycle`, with compatibility checks through `initialize_cycle`
+- Proposed invariant or deterministic fixture: powerlifting + bench + 100 push-ups, squat/deadlift 225, bench 100, push-up max 20, knee/quads issue, high fatigue, then season advancement.
+- Replay expectation: identical current-cycle context and season signals produce identical rank, awards, next-cycle request, decision log, and replay hashes.
+- Public envelope impact: `possible`; prefer optional `advance_cycle` request context fields over an envelope version change.
+- App integration impact: `apps/web` cycle service must pass normalized current-cycle context into Rust and persist the returned preview without treating DB rows as engine-native types.
+
+### Decision
+
+- Final decision: `open_engine_spec`
+- Decider: `user`
+- Date (UTC): `2026-05-04`
+- Follow-up: `docs/superpowers/plans/2026-05-04-next-cycle-blend-evolution.md`
+
+## Historical Decision: Engine 30
+
 - Decision: `open_engine_spec`
 - Proposed spec number: Engine 30
 - Proposed title: Headless Season Loop And Backtest Harness
