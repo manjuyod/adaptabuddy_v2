@@ -36,9 +36,9 @@ Active and planned numbered specs live under `docs/specs/`. Completed historical
 ## Active Spec Queue
 
 Current active spec:
-- `[ACTIVE]` `docs/specs/wave_10_cli_season_loop_harness.md`
-- `[NEXT]` `docs/specs/wave_11_simulation_evidence_and_balance_triage.md`
-- `[LATER]` `docs/specs/wave_12_product_shell_reentry.md`
+- `[DONE]` `docs/specs/wave_10_cli_season_loop_harness.md`
+- `[DONE]` `docs/specs/wave_11_simulation_evidence_and_balance_triage.md`
+- `[ACTIVE]` `docs/specs/wave_12_product_shell_reentry.md`
 
 Recently completed active specs:
 - `[DONE]` `docs/specs/wave_8_new_game_engine_first_workflow.md`
@@ -55,7 +55,7 @@ Current operations lane:
 Current product/app-shell lane:
 - `[DONE]` `Wave 8: New Game Engine-First Workflow`
 - `[DONE]` `Wave 9: Season Loop Product Shell`
-- `[LATER]` `Wave 12: Product Shell Re-entry` after Wave 10/11 CLI evidence
+- `[ACTIVE]` `Wave 12: Product Shell Re-entry` after Wave 10/11 CLI evidence
 
 Current Wave 5 queue:
 - `[DONE]` `docs/archive/specs/engine_23_app_replay_invocation_alignment.md`
@@ -323,7 +323,7 @@ Exit criteria:
 - Season transition records include replay receipts and decision-log references.
 - Live beta testing is explicitly re-enabled as downstream release validation after local Season Loop gates pass.
 
-## Wave 10: CLI Season Loop Harness `[ACTIVE]`
+## Wave 10: CLI Season Loop Harness `[DONE]`
 
 Goal:
 - Promote the headless Season Loop harness into the active confidence gate before further frontend or live-beta expansion.
@@ -352,13 +352,16 @@ Exit criteria:
 - Root npm scripts expose the harness.
 - Wave 11 has a stable report format for balance and evidence triage.
 
-## Wave 11: Simulation Evidence And Balance Triage `[NEXT]`
+## Wave 11: Simulation Evidence And Balance Triage `[DONE]`
 
 Goal:
 - Use the Wave 10 CLI harness to produce repeatable local evidence about Season Loop balance, rank outcomes, awards, progression drift, and next-cycle recommendations.
 
 Planned spec:
 - `docs/specs/wave_11_simulation_evidence_and_balance_triage.md`
+
+Evidence:
+- `docs/operations/wave_11_cli_simulation_evidence.md`
 
 Primary work:
 - Run the CLI harness across supported archetypes and cycle counts.
@@ -377,7 +380,7 @@ Exit criteria:
 - No new numbered engine spec is proposed without replayable evidence or a local invariant failure.
 - Wave 12 has a clear list of product-shell work backed by local CLI evidence.
 
-## Wave 12: Product Shell Re-entry `[LATER]`
+## Wave 12: Product Shell Re-entry `[ACTIVE]`
 
 Goal:
 - Return to `apps/web` only after CLI Season Loop evidence is stable enough to support user-facing product work.
@@ -402,10 +405,10 @@ Exit criteria:
 
 ## Immediate Next Milestones
 
-1. Treat Wave 10 as the active implementation lane.
-2. Harden the CLI Season Loop harness before returning to frontend or live-beta-led work.
-3. Treat Wave 11 as the next evidence and balance-triage lane.
-4. Treat Wave 12 as later product-shell re-entry after Wave 10/11 evidence.
+1. Treat Wave 12 as the active implementation lane.
+2. Treat Wave 10 as complete for the CLI Season Loop harness.
+3. Treat Wave 11 as complete for initial simulation evidence and balance triage.
+4. Use `docs/operations/wave_11_cli_simulation_evidence.md` as the product-shell re-entry evidence baseline.
 5. Keep live Supabase verification gated outside the default green lane.
 6. Treat Playwright browser E2E as a required release-candidate gate for `apps/web`.
 7. Treat `rc-3db65a2-20260502` as promoted according to `docs/operations/private_beta_release_record.md`.

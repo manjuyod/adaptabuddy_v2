@@ -6,7 +6,7 @@ Use the Wave 10 CLI harness to produce repeatable local evidence about Season Lo
 
 ## Status
 
-- `State`: Next
+- `State`: Complete
 - `Priority`: High
 - `Depends On`:
   - `docs/specs/wave_10_cli_season_loop_harness.md`
@@ -26,6 +26,12 @@ Use the Wave 10 CLI harness to produce repeatable local evidence about Season Lo
 - Balance concerns are classified with owner/status.
 - No new numbered engine spec is proposed without replayable evidence or a local invariant failure.
 - Wave 12 has a clear list of product-shell work that is backed by local CLI evidence.
+
+## Completion Evidence
+
+- Evidence record: `docs/operations/wave_11_cli_simulation_evidence.md`
+- Result: all supported rank scenarios emitted expected rank timelines, replay summaries, and zero invariant failures.
+- Decision: no new engine-boundary spec is needed from this initial evidence pass.
 
 ## Out Of Scope
 
