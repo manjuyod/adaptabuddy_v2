@@ -35,15 +35,16 @@ Run the evidence gates in this order so later failures can be attributed to a kn
 | 4 | Lint | `npm run lint` | Yes |
 | 5 | Test suite | `npm run test` | Yes |
 | 6 | Production web build | `npm run build --workspace apps/web` | Yes |
-| 7 | Local deploy smoke | Terminal A: `cd apps/web && npm run build && npm run start`; Terminal B: `npm run verify:deploy:smoke` | Yes |
-| 8 | Docker build | `docker version`; `docker context ls`; `docker build --secret id=build_env,src=.env -t adaptabuddy-web:<release-candidate-id> .` | Yes |
-| 9 | Docker runtime smoke | `docker run --rm -d --name adaptabuddy-web-smoke -p 3001:3000 --env-file .env adaptabuddy-web:<release-candidate-id>`; `docker ps --filter name=adaptabuddy-web-smoke --filter status=running`; `npm run verify:deploy:smoke -- http://127.0.0.1:3001`; `docker stop adaptabuddy-web-smoke` | Yes |
-| 10 | Environment readiness | Complete the environment checklist below | Yes |
-| 11 | Migration parity | Compare latest local migration with target `supabase_migrations.schema_migrations` | Yes |
-| 12 | Live Supabase E2E | `RUN_SUPABASE_E2E_VERIFICATION=1 npm run test --workspace apps/web -- tests/supabase-e2e-verification.test.ts` | Yes, manual/gated |
-| 13 | Authenticated analytics evidence | Credentialed `GET /api/v0/reporting/analytics` against the candidate host, or live/manual evidence proving the deterministic analytics route returns `status:"success"` with `availability` | Yes, manual/gated |
-| 14 | Playwright browser breaker suite | `RUN_PLAYWRIGHT_E2E=1 npm run test:e2e:playwright` | Yes, pre-beta required |
-| 15 | Owner signoff | Complete owner signoff and final decision | Yes |
+| 7 | CLI Season Loop evidence | `npm run engine:season-loop -- --cycles 5`; record evidence pointer to `docs/operations/wave_11_cli_simulation_evidence.md` or a newer candidate-specific report | Yes |
+| 8 | Local deploy smoke | Terminal A: `cd apps/web && npm run build && npm run start`; Terminal B: `npm run verify:deploy:smoke` | Yes |
+| 9 | Docker build | `docker version`; `docker context ls`; `docker build --secret id=build_env,src=.env -t adaptabuddy-web:<release-candidate-id> .` | Yes |
+| 10 | Docker runtime smoke | `docker run --rm -d --name adaptabuddy-web-smoke -p 3001:3000 --env-file .env adaptabuddy-web:<release-candidate-id>`; `docker ps --filter name=adaptabuddy-web-smoke --filter status=running`; `npm run verify:deploy:smoke -- http://127.0.0.1:3001`; `docker stop adaptabuddy-web-smoke` | Yes |
+| 11 | Environment readiness | Complete the environment checklist below | Yes |
+| 12 | Migration parity | Compare latest local migration with target `supabase_migrations.schema_migrations` | Yes |
+| 13 | Live Supabase E2E | `RUN_SUPABASE_E2E_VERIFICATION=1 npm run test --workspace apps/web -- tests/supabase-e2e-verification.test.ts` | Yes, manual/gated |
+| 14 | Authenticated analytics evidence | Credentialed `GET /api/v0/reporting/analytics` against the candidate host, or live/manual evidence proving the deterministic analytics route returns `status:"success"` with `availability` | Yes, manual/gated |
+| 15 | Playwright browser breaker suite | `RUN_PLAYWRIGHT_E2E=1 npm run test:e2e:playwright` | Yes, pre-beta required |
+| 16 | Owner signoff | Complete owner signoff and final decision | Yes |
 
 Allowed result values: `PENDING`, `PASS`, `FAIL`, `NOT_RUN`, `BLOCKED`, `PASS_WITH_ACCEPTED_RISK`.
 
@@ -57,6 +58,7 @@ Allowed result values: `PENDING`, `PASS`, `FAIL`, `NOT_RUN`, `BLOCKED`, `PASS_WI
 | Lint | `PENDING` |  |  | Release owner |  |
 | Test suite | `PENDING` |  |  | Release owner |  |
 | Production web build | `PENDING` |  |  | Release owner |  |
+| CLI Season Loop evidence | `PENDING` |  |  | Release owner |  |
 | Local deploy smoke | `PENDING` |  |  | Release owner |  |
 | Docker build | `PENDING` |  |  | Release owner |  |
 | Docker runtime smoke | `PENDING` |  |  | Release owner |  |
@@ -79,6 +81,19 @@ Allowed result values: `PENDING`, `PASS`, `FAIL`, `NOT_RUN`, `BLOCKED`, `PASS_WI
 | `/api/v0/reporting/analytics` | `POST` smoke probe; `GET` authenticated flow | `405` for smoke method-boundary probe without credentials or DB writes; authenticated analytics read must be proven by API/reporting tests plus live/manual candidate evidence where credentials/env allow | `npm run verify:deploy:smoke`; authenticated analytics manual gate |
 
 If an authenticated route check cannot run because credentials, test users, or live env access are unavailable, record `BLOCKED` with the missing dependency. Do not convert it to an informal note.
+
+## CLI Season Loop Evidence
+
+This gate must run before live Supabase E2E, authenticated analytics evidence, or Playwright browser verification. It proves the local deterministic Season Loop evidence baseline before browser or live-environment checks are used as release confidence.
+
+| Check | Evidence |
+| --- | --- |
+| Harness command | `npm run engine:season-loop -- --cycles 5` |
+| Expected schema | `engine.v1` |
+| Expected rank coverage | `S`, `A`, `B`, `C`, and `D` represented in `rankTimeline` |
+| Replay evidence | every archetype has replay receipt summary fields |
+| Invariant failures | `[]` |
+| Evidence pointer | `docs/operations/wave_11_cli_simulation_evidence.md` or newer candidate-specific evidence |
 
 ## Environment Readiness
 
@@ -135,6 +150,6 @@ Accepted risks require release-owner and environment-owner approval. A failed re
 
 Final decision rules:
 
-- `PROMOTE`: all required gates are `PASS` or explicitly approved `PASS_WITH_ACCEPTED_RISK`; live Supabase E2E passed; authenticated analytics evidence passed; owners approve.
+- `PROMOTE`: all required gates are `PASS` or explicitly approved `PASS_WITH_ACCEPTED_RISK`; CLI Season Loop evidence passed; live Supabase E2E passed; authenticated analytics evidence passed; owners approve.
 - `HOLD`: any required gate is `FAIL`, `BLOCKED`, or `NOT_RUN`.
 - `ROLLBACK`: candidate was deployed and a rollback trigger from the deployment checklist fired.

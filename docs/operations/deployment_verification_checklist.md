@@ -63,6 +63,10 @@ Use this checklist for every `apps/web` launch-candidate deployment before promo
 - [ ] Candidate metadata: commit SHA and release candidate ID are recorded in `docs/operations/private_beta_release_evidence_pack.md` or the release ticket.
 - [ ] Env parity: required keys match target environment (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and either `SUPABASE_SERVICE_ROLE_KEY` or `SUPABASE_TARGET_SERVICE_ROLE_KEY`).
 - [ ] Migration audit: latest migration in `packages/db/sql/` is applied to target project and no pending schema drift remains.
+- [ ] CLI Season Loop evidence is recorded before live Supabase E2E, authenticated analytics, or Playwright browser verification:
+  - `npm run engine:season-loop -- --cycles 5`
+  - Evidence pointer defaults to `docs/operations/wave_11_cli_simulation_evidence.md` unless a newer candidate-specific report supersedes it.
+  - Required result: `schemaVersion:"engine.v1"`, all supported rank scenarios represented, replay receipt summaries present, and `invariantFailures: []`.
 - [ ] Smoke run completion: host and container smoke both pass.
 - [ ] Live Supabase verification status is recorded in the release runbook; it remains manual/gated and outside the default green lane.
 - [ ] Authenticated analytics evidence for `GET /api/v0/reporting/analytics` is recorded as `PASS`, `FAIL`, or `BLOCKED`.
@@ -92,6 +96,7 @@ Use this checklist for every `apps/web` launch-candidate deployment before promo
 - Host smoke result:
 - Container smoke result:
 - Migration audit result:
+- CLI Season Loop evidence result:
 - Live Supabase E2E result:
 - Authenticated analytics evidence:
 - Playwright result (required pre-beta):

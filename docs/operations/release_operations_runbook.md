@@ -46,12 +46,13 @@ Promotion is blocked if candidate metadata, release candidate ID, or owner assig
 For the private beta lane, run the sequence in this order:
 
 1. Local clean-room quality gates.
-2. Local production runtime smoke.
-3. Docker build, Docker runtime smoke, and container cleanup.
-4. Environment readiness and migration parity.
-5. Live Supabase endpoint verification.
-6. Authenticated analytics evidence.
-7. Required Playwright browser verification.
+2. CLI Season Loop evidence.
+3. Local production runtime smoke.
+4. Docker build, Docker runtime smoke, and container cleanup.
+5. Environment readiness and migration parity.
+6. Live Supabase endpoint verification.
+7. Authenticated analytics evidence.
+8. Required Playwright browser verification.
 
 This ordering is the current launch path for the private beta. Engine 22 canonical replay implementation is complete and is not a separate promotion blocker.
 
@@ -67,7 +68,22 @@ Run from repo root:
 
 All required checks must pass for promotion eligibility.
 
-### 2.2 Deployment Verification
+### 2.2 CLI Season Loop Evidence
+
+Run from repo root before live Supabase, authenticated analytics, or Playwright browser verification:
+
+- `npm run engine:season-loop -- --cycles 5`
+
+Pass means:
+
+- the report uses `schemaVersion:"engine.v1"`
+- `rankTimeline` represents `S`, `A`, `B`, `C`, and `D`
+- every archetype includes replay receipt summary fields
+- `invariantFailures` is an empty array
+
+Record the evidence pointer in `docs/operations/private_beta_release_evidence_pack.md`. The baseline evidence record is `docs/operations/wave_11_cli_simulation_evidence.md`; candidate-specific reports may supersede it.
+
+### 2.3 Deployment Verification
 
 - Follow `docs/operations/deployment_verification_checklist.md` Sections 1-4
 - For local production runtime verification:
@@ -78,7 +94,7 @@ All required checks must pass for promotion eligibility.
   - `docker context ls`
   - On Windows, confirm Docker Desktop is running the Linux/WSL2 engine and the active context is `desktop-linux`.
   - `docker build --secret id=build_env,src=.env -t adaptabuddy-web:<candidate> .`
-  - Stop the local host runtime from Section 2.2, or keep it on a different port.
+  - Stop the local host runtime from Section 2.3, or keep it on a different port.
   - `docker run --rm -d --name adaptabuddy-web-smoke -p 3001:3000 --env-file .env adaptabuddy-web:<candidate>`
   - `docker ps --filter name=adaptabuddy-web-smoke --filter status=running`
   - `npm run verify:deploy:smoke -- http://127.0.0.1:3001`
@@ -97,7 +113,7 @@ All required checks must pass for promotion eligibility.
   - `POST /api/v0/reporting/analytics` returns `405` as a non-mutating method-boundary probe
   - authenticated generate, complete, and analytics evidence is linked from live Supabase E2E or a manual credentialed check when credentials and environment allow
 
-### 2.3 Live Supabase Endpoint Verification
+### 2.4 Live Supabase Endpoint Verification
 
 Manual pre-release live verification command:
 
@@ -114,7 +130,7 @@ Also record authenticated analytics evidence for the candidate:
 - Pass: response is `200`, `status` is `success`, `availability` is recorded, and any `analytics:null` response is classified as either expected empty normalized data or a release blocker.
 - If the credentialed analytics check cannot run, record `BLOCKED` with the missing credential, environment, or data dependency. Promotion remains blocked unless the final decision is `HOLD`.
 
-### 2.4 Required Playwright Browser Verification
+### 2.5 Required Playwright Browser Verification
 
 Required pre-beta browser confidence command:
 
@@ -156,6 +172,7 @@ Promotion is allowed only if all gates below are `PASS` or explicitly approved `
 
 - Candidate metadata includes commit SHA and release candidate ID
 - Quality gates complete
+- CLI Season Loop evidence complete
 - Deployment verification checklist complete
 - Docker runtime smoke complete
 - Environment readiness checklist complete
@@ -229,6 +246,7 @@ Minimum rollback action sequence:
 - Deployment verification result:
 - Docker build result:
 - Docker runtime smoke result:
+- CLI Season Loop evidence result:
 - Env readiness result:
 - Migration parity result:
 - Live Supabase verification result:
