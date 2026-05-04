@@ -6,15 +6,18 @@ flowchart TB
   Public --> PublicPlan["pub fn plan_session"]
   Public --> PublicInitialize["pub fn initialize_cycle"]
   Public --> PublicComplete["pub fn complete_session"]
+  Public --> PublicAdvance["pub fn advance_cycle"]
 
   PublicPlan --> ParseInput["boundary::parse_input"]
   PublicInitialize --> ParseInput
   PublicComplete --> ParseInput
+  PublicAdvance --> ParseInput
   ParseInput --> ValidateBoundary["validate policy, determinism,<br/>reference, state, and request"]
 
   ValidateBoundary --> AdaptPlan["adaptation::plan_session"]
   ValidateBoundary --> AdaptInitialize["adaptation::initialize_cycle"]
   ValidateBoundary --> AdaptComplete["adaptation::complete_session"]
+  ValidateBoundary --> AdaptAdvance["adaptation::advance_cycle"]
 
   AdaptPlan --> Constraints["constraints::<br/>hard_block_records<br/>blocked_candidate_ids<br/>collapse_rejection_for_hard_blocks"]
   AdaptPlan --> Derivations["derivations::<br/>plan_progression_need<br/>fatigue_compatibility<br/>class_bias_score<br/>novelty_score<br/>recommended_session_id"]
@@ -29,9 +32,16 @@ flowchart TB
   AdaptComplete --> Gamification["gamification::<br/>award summaries and state patch"]
   AdaptComplete --> Logging
 
+  AdaptAdvance --> SeasonRank["season rank engine<br/>S/A/B/C/D breakdown"]
+  AdaptAdvance --> Awards["season awards and XP"]
+  AdaptAdvance --> Evolution["bounded evolutionPatch"]
+  AdaptAdvance --> NextCycle["nextCycleRequest<br/>valid for initialize_cycle"]
+  AdaptAdvance --> Logging
+
   AdaptPlan --> ReplayReceipt["adaptation::build_replay_receipt"]
   AdaptInitialize --> ReplayReceipt
   AdaptComplete --> ReplayReceipt
+  AdaptAdvance --> ReplayReceipt
   ReplayReceipt --> Replay["replay::<br/>canonical_json_bytes<br/>hash_value<br/>validate_number_scale"]
   ReplayReceipt --> ParseOutput["boundary::parse_output"]
   StateUpdate --> ParseOutput
@@ -62,9 +72,9 @@ flowchart LR
   WebService --> Persist
 ```
 
-## Planned Engine 30 Surface
+## Engine 30 Season Advancement Surface
 
-This diagram is planned future state, not current runtime.
+This diagram shows the current headless season advancement path.
 
 ```mermaid
 flowchart TB
@@ -72,7 +82,7 @@ flowchart TB
   Public --> PublicInitialize["pub fn initialize_cycle"]
   Public --> PublicPlan["pub fn plan_session"]
   Public --> PublicComplete["pub fn complete_session"]
-  Public --> PublicAdvance["pub fn advance_cycle<br/>planned Engine 30"]
+  Public --> PublicAdvance["pub fn advance_cycle"]
 
   PublicAdvance --> AdvanceBoundary["boundary validation<br/>completed season snapshot,<br/>rank policy, determinism"]
   AdvanceBoundary --> SeasonRank["season rank engine<br/>S/A/B/C/D breakdown"]
@@ -82,7 +92,7 @@ flowchart TB
   PublicAdvance --> ReplayReceipt["replay receipt"]
   PublicAdvance --> DecisionLog["structured decision log"]
 
-  Harness["headless backtest harness"] --> PublicInitialize
+  Harness["season_loop_backtest binary<br/>multi-season invariant report"] --> PublicInitialize
   Harness --> PublicPlan
   Harness --> PublicComplete
   Harness --> PublicAdvance

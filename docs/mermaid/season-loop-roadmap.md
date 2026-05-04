@@ -1,6 +1,6 @@
 # Season Loop Roadmap
 
-These diagrams show the planned Season Loop direction. They are not a current runtime inventory.
+These diagrams show the current Season Loop runtime direction after Wave 8, Engine 30, and Wave 9, plus remaining release-only verification lanes.
 
 ## Product Loop
 
@@ -31,17 +31,18 @@ flowchart TB
     Initialize["initialize_cycle"]
     PlanSession["plan_session"]
     CompleteSession["complete_session"]
-    AdvanceCycle["advance_cycle<br/>planned Engine 30"]
-    Backtest["headless backtest harness"]
+    AdvanceCycle["advance_cycle"]
+    Backtest["season_loop_backtest<br/>headless multi-season harness"]
     Rank["season rank and awards"]
     NextRequest["bounded nextCycleRequest"]
   end
 
   subgraph App["apps/web owns"]
     NewGame["New Game onboarding"]
-    AdvanceRoute["POST /api/v0/cycles/advance<br/>planned Wave 9"]
+    AdvanceRoute["POST /api/v0/cycles/advance"]
     Persistence["season summaries,<br/>awards, transitions"]
     UI["dashboard and end-season UI"]
+    StartNext["startNextSeasonFromTransition"]
     Release["live beta and release gates"]
   end
 
@@ -52,6 +53,8 @@ flowchart TB
   AdvanceCycle --> NextRequest
   AdvanceCycle --> Persistence
   Persistence --> UI
+  UI --> StartNext
+  StartNext --> Initialize
   Backtest --> AdvanceCycle
   NextRequest --> Initialize
   UI --> Release

@@ -11,6 +11,7 @@ flowchart LR
   SessionsInitialize["POST /api/v0/sessions/initialize"] --> HandleInitializeCycle["handleInitializeCycle"]
   SessionsGenerate["POST /api/v0/sessions/generate"] --> HandleGenerateSession["handleGenerateSession"]
   SessionsComplete["POST /api/v0/sessions/complete"] --> HandleCompleteSession["handleCompleteSession"]
+  CyclesAdvance["POST /api/v0/cycles/advance"] --> HandleAdvanceCycle["handleAdvanceCycle"]
   HistoryList["GET /api/v0/history/list"] --> GetWorkoutHistory["getWorkoutHistory"]
   HistoryDetail["GET /api/v0/history/[workoutId]"] --> GetWorkoutDetail["getWorkoutDetail"]
   ReportingActive["GET /api/v0/reporting/active-cycle"] --> GetActiveCycleReporting["getActiveCycleReporting"]
@@ -29,6 +30,7 @@ flowchart LR
   SessionsInitialize --> RouteHandler
   SessionsGenerate --> RouteHandler
   SessionsComplete --> RouteHandler
+  CyclesAdvance --> RouteHandler
   HistoryList --> RouteHandler
   HistoryDetail --> RouteHandler
   ReportingActive --> RouteHandler
@@ -68,18 +70,20 @@ sequenceDiagram
   Wrapper-->>Client: JSON response with request id
 ```
 
-## Planned Season Loop Route
+## Season Loop Route
 
-This diagram is planned Wave 9 state, not current runtime.
+This diagram shows the current Wave 9 route and persistence path.
 
 ```mermaid
 flowchart LR
   RouteHandler["runAuthedRoute<br/>auth, validation, rate limits,<br/>request ids"]
-  CyclesAdvance["POST /api/v0/cycles/advance"] --> HandleAdvanceCycle["handleAdvanceCycle<br/>planned"]
-  HandleAdvanceCycle --> BuildInput["build EngineInputV1<br/>operation advance_cycle"]
+  CyclesAdvance["POST /api/v0/cycles/advance"] --> HandleAdvanceCycle["handleAdvanceCycle"]
+  HandleAdvanceCycle --> DeriveFacts["derive season facts<br/>from user-owned normalized cycle rows"]
+  DeriveFacts --> BuildInput["build EngineInputV1<br/>operation advance_cycle"]
   BuildInput --> EngineRunner["runEngineInput"]
-  EngineRunner --> AdvanceCycle["Rust advance_cycle<br/>planned Engine 30"]
+  EngineRunner --> AdvanceCycle["Rust advance_cycle"]
   AdvanceCycle --> Persist["persist season summary,<br/>awards, transition record"]
+  Persist --> Trace["persist advance_cycle trace<br/>for replay debug bundles"]
   Persist --> Response["AdvanceCycleResponse"]
   CyclesAdvance --> RouteHandler
 ```

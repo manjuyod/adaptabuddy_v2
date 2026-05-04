@@ -12,6 +12,7 @@ flowchart TB
   Initialize["POST /api/v0/sessions/initialize<br/>handleInitializeCycle"]
   Generate["POST /api/v0/sessions/generate<br/>handleGenerateSession"]
   Complete["POST /api/v0/sessions/complete<br/>handleCompleteSession"]
+  AdvanceCycleRoute["POST /api/v0/cycles/advance<br/>handleAdvanceCycle"]
   HistoryList["GET /api/v0/history/list<br/>getWorkoutHistory"]
   HistoryDetail["GET /api/v0/history/[workoutId]<br/>getWorkoutDetail"]
   ActiveCycle["GET /api/v0/reporting/active-cycle<br/>getActiveCycleReporting"]
@@ -56,6 +57,8 @@ flowchart TB
 
   subgraph Cycles
     InitializeCycle["handleInitializeCycle"]
+    AdvanceCycleService["handleAdvanceCycle"]
+    StartNextSeason["startNextSeasonFromTransition"]
     ParseClass["parseCanonicalClassArchetype<br/>parseClassPresetId"]
     ShapePrograms["toProgramSelectionPayload<br/>shapeSelectedProgramsForPreset"]
     VerifyTemplates["findProgramTemplateIntegrityErrors"]
@@ -77,6 +80,7 @@ flowchart TB
   subgraph Reporting
     PlanReplay["derivePlanSessionReplayDebugBundle"]
     CompleteReplay["deriveWorkoutCompletionReplayDebugBundle"]
+    AdvanceReplay["deriveAdvanceCycleReplayDebugBundle"]
     PlanExplanation["derivePlanSessionExplanation"]
     CompletionExplanation["deriveWorkoutCompletionExplanation"]
     ActiveReporting["getActiveCycleReporting"]
@@ -107,6 +111,8 @@ flowchart TB
   CompleteOnboarding --> InitializeCycle
   InitializeCycle --> ShapePrograms
   InitializeCycle --> Projection
+  AdvanceCycleRoute --> AdvanceCycleService
+  StartNextSeason --> InitializeCycle
   GenerateSession --> PlanInput
   CompleteSession --> CompleteInput
   GenerateSession --> Trace
@@ -114,6 +120,7 @@ flowchart TB
   CompleteSession --> NormalizedCompletion
   ActiveReporting --> PlanReplay
   ActiveReporting --> CompleteReplay
+  ActiveReporting --> AdvanceReplay
 ```
 
 ## Shared App Libraries
@@ -228,12 +235,12 @@ flowchart TB
 ```mermaid
 flowchart TB
   AuthContracts["auth<br/>SessionUserSchema<br/>EmailPasswordSchema<br/>SignUpWithPasswordSchema"]
-  CyclesContracts["cycles<br/>InitializeCycleRequestSchema<br/>InitializeCycleResponseSchema<br/>gamification/progression rows"]
+  CyclesContracts["cycles<br/>InitializeCycleRequestSchema<br/>InitializeCycleResponseSchema<br/>AdvanceCycleRequestSchema<br/>AdvanceCycleResponseSchema<br/>season rank, awards, preview,<br/>gamification/progression rows"]
   SessionsContracts["sessions<br/>generate and complete schemas"]
   EngineContracts["engine<br/>GeneratedSessionSchema<br/>CompletedSessionSchema<br/>StatsUpdateSchema"]
   DbContracts["db<br/>reference and log row schemas"]
   ProgramsContracts["programs<br/>catalog, day, slot, active program"]
-  ReportingContracts["reporting<br/>analytics, active cycle,<br/>replay debug bundles"]
+  ReportingContracts["reporting<br/>analytics, active cycle,<br/>plan/complete/advance replay debug bundles"]
   FeatureContracts["chaos, deviation, guardrails,<br/>history, optins, preferences,<br/>progression, support,<br/>templates, volume, workouts"]
 
   AuthContracts --> RouteValidation["route and action validation"]
@@ -250,9 +257,9 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-  PublicOps["public operations<br/>plan_session<br/>initialize_cycle<br/>complete_session"]
+  PublicOps["public operations<br/>plan_session<br/>initialize_cycle<br/>complete_session<br/>advance_cycle"]
   Boundary["boundary<br/>parse_input<br/>parse_output<br/>to_public_input<br/>to_public_output<br/>parse_result_value"]
-  Adaptation["adaptation<br/>derived_input_hash<br/>derived_output_hash<br/>build_replay_receipt<br/>operation-specific planners"]
+  Adaptation["adaptation<br/>derived_input_hash<br/>derived_output_hash<br/>build_replay_receipt<br/>operation-specific planners<br/>advance_cycle"]
   Constraints["constraints<br/>hard_block_records<br/>blocked_candidate_ids<br/>collapse_rejection_for_hard_blocks"]
   Progression["progression<br/>classify_trend<br/>branch_plan_action<br/>classify_completion<br/>action_from_completion<br/>progression_state_patch"]
   StateUpdate["state_update<br/>build_completion_state_patch<br/>apply_engine_owned_state_patch"]
@@ -260,7 +267,7 @@ flowchart TB
   Rng["rng<br/>fnv1a64<br/>sha256_hex<br/>derive_subseed<br/>seeded_fraction<br/>seeded_index<br/>seeded_order"]
   Replay["replay<br/>accepted_canonicalization_version<br/>canonical_policy_version<br/>quantize_f64<br/>hash_value<br/>canonical_json_bytes"]
   Logging["logging<br/>decision_log_entry<br/>filter_log<br/>score_log<br/>tie_break_log<br/>classify_log<br/>award_xp_log<br/>replay_receipt"]
-  Binaries["bin<br/>engine_runner<br/>inspect_engine"]
+  Binaries["bin<br/>engine_runner<br/>inspect_engine<br/>season_loop_backtest"]
 
   Binaries --> PublicOps
   PublicOps --> Boundary
@@ -274,13 +281,13 @@ flowchart TB
   Adaptation --> Replay
 ```
 
-## Planned Season Loop Surface
+## Season Loop Surface
 
-This section is planned future state for Engine 30 and Wave 9. It is not a current function inventory.
+This section reflects the current Engine 30 and Wave 9 runtime surface.
 
 ```mermaid
 flowchart TB
-  subgraph Engine30["packages/engine-rs planned"]
+  subgraph Engine30["packages/engine-rs"]
     AdvanceCycle["advance_cycle"]
     SeasonRank["rank completed macrocycle season"]
     Awards["emit awards and unlock eligibility"]
@@ -289,7 +296,7 @@ flowchart TB
     Harness["headless multi-season backtest harness"]
   end
 
-  subgraph Contracts["packages/contracts planned"]
+  subgraph Contracts["packages/contracts"]
     AdvanceRequest["AdvanceCycleRequestSchema"]
     AdvanceResponse["AdvanceCycleResponseSchema"]
     SeasonRankSchema["SeasonRankSchema"]
@@ -297,11 +304,14 @@ flowchart TB
     PreviewSchema["NextCyclePreviewSchema"]
   end
 
-  subgraph AppWave9["apps/web planned"]
+  subgraph AppWave9["apps/web"]
     AdvanceRoute["POST /api/v0/cycles/advance"]
     AdvanceService["handleAdvanceCycle"]
+    StartNext["startNextSeasonFromTransition"]
+    ExistingInitialize["handleInitializeCycle"]
     SeasonPersistence["season transition persistence"]
     SeasonUi["season result and next-season preview UI"]
+    ReplayDebug["advance_cycle replay debug bundles"]
   end
 
   Harness --> AdvanceCycle
@@ -314,5 +324,9 @@ flowchart TB
   AdvanceCycle --> NextCycle
   AdvanceCycle --> AdvanceResponse
   AdvanceService --> SeasonPersistence
+  AdvanceService --> ReplayDebug
   SeasonPersistence --> SeasonUi
+  SeasonUi --> StartNext
+  NextCycle --> StartNext
+  StartNext --> ExistingInitialize
 ```

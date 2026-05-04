@@ -14,10 +14,10 @@ Files:
 - [engine-function-map.md](engine-function-map.md) - Rust engine public operations and supporting deterministic helpers
 - [function-inventory.md](function-inventory.md) - current exported runtime functions plus major internal helpers by area
 - [runtime-function-surface.md](runtime-function-surface.md) - file-by-file runtime function surface for services, actions, libs, and UI components
-- [season-loop-roadmap.md](season-loop-roadmap.md) - planned Season Loop engine, app, cloud-wave, and verification roadmap
+- [season-loop-roadmap.md](season-loop-roadmap.md) - current Season Loop engine/app flow plus remaining verification roadmap
 
 Notes:
 - These diagrams are documentation only. They do not define architecture beyond the canonical engine-first docs.
 - `apps/web` remains the auth/UI/API/DB shell. `packages/engine-rs` remains the deterministic engine baseline.
 - Generated GitNexus context was used for key service call relationships, then source files were checked directly for exported functions and route handlers.
-- Planned Season Loop diagrams must stay explicitly labeled until `advance_cycle` and `/api/v0/cycles/advance` exist in runtime code.
+- Season Loop diagrams now include the current `advance_cycle` engine surface and `/api/v0/cycles/advance` app route.

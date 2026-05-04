@@ -10,6 +10,7 @@ flowchart TB
   ApiRoutes --> Health["apps/web/app/api/health/route.ts<br/>getSupabaseStatus<br/>GET"]
   ApiRoutes --> Callback["apps/web/app/(auth)/callback/route.ts<br/>GET"]
   ApiRoutes --> Sessions["sessions routes<br/>initialize POST<br/>generate POST<br/>complete POST"]
+  ApiRoutes --> Cycles["cycles routes<br/>advance POST"]
   ApiRoutes --> History["history routes<br/>list GET<br/>detail GET"]
   ApiRoutes --> Reporting["reporting routes<br/>active-cycle GET<br/>analytics GET"]
   ApiRoutes --> Updates["mutation routes<br/>preferences POST<br/>optins POST<br/>support feedback POST"]
@@ -42,9 +43,9 @@ flowchart TB
   Modules --> AuthModule["auth<br/>signInAction<br/>signUpAction<br/>signOutAction<br/>logoutUserSession<br/>toAuthedUser"]
   Modules --> OnboardingModule["onboarding<br/>normalizeList<br/>fatiguePreferenceToLevel<br/>normalizeProgramWeights<br/>completeOnboarding"]
   Modules --> ProgramModule["programs<br/>readCanonicalClassArchetype<br/>readClassPresetId<br/>getAvailablePrograms<br/>normalizeSlotRow<br/>normalizeDayRow<br/>getProgramCatalog<br/>getUserActiveCycleView<br/>getUserActiveProgram<br/>getProgramById<br/>updateUserActiveProgram<br/>activateProgramAction"]
-  Modules --> CycleModule["cycles<br/>parseCanonicalClassArchetype<br/>parseClassPresetId<br/>defaultNormalizedGamificationState<br/>toNormalizedGamificationState<br/>toProgramSelectionPayload<br/>normalizeStringList<br/>toExerciseReference<br/>resolveClassPreset<br/>findProgramTemplateIntegrityErrors<br/>buildProjection<br/>readInsertedId<br/>cleanupInitializedCycleState<br/>handleInitializeCycle<br/>shapeSelectedProgramsForPreset"]
+  Modules --> CycleModule["cycles<br/>parseCanonicalClassArchetype<br/>parseClassPresetId<br/>defaultNormalizedGamificationState<br/>toNormalizedGamificationState<br/>toProgramSelectionPayload<br/>normalizeStringList<br/>toExerciseReference<br/>resolveClassPreset<br/>findProgramTemplateIntegrityErrors<br/>buildProjection<br/>readInsertedId<br/>cleanupInitializedCycleState<br/>handleInitializeCycle<br/>handleAdvanceCycle<br/>startNextSeasonFromTransition<br/>shapeSelectedProgramsForPreset"]
   Modules --> SessionModule["sessions<br/>toNullableNumericId<br/>calculateSessionDurationSeconds<br/>calculateSessionVolume<br/>normalizeIdempotencyKey<br/>deriveCompletionIdempotencyKey<br/>normalizeOptionalSeed<br/>createSetLogInsertPayload<br/>redactReplayInputMaterial<br/>toReplayTraceInputMaterial<br/>parseEngineCompleteSessionOutput<br/>parseEnginePlanSessionOutput<br/>persistEngineSessionTrace<br/>rollbackEngineSessionTrace<br/>toCycleSlots<br/>derivePlanSessionFocus<br/>buildCycleBackedCompleteSessionEngineInput<br/>buildCycleBackedPlanSessionEngineInput<br/>syncNormalizedCycleCompletion<br/>persistCompletionTrace<br/>handleGenerateSession<br/>handleCompleteSession<br/>getRecentWorkoutHistory"]
-  Modules --> ReportingModule["reporting<br/>derivePlanSessionReplayDebugBundle<br/>deriveWorkoutCompletionReplayDebugBundle<br/>derivePlanSessionExplanation<br/>deriveWorkoutCompletionExplanation<br/>getActiveCycleReporting<br/>getDeterministicAnalyticsReadModel<br/>getWorkoutCompletionReadModels<br/>detectStatsJsonCompatibilityDrift"]
+  Modules --> ReportingModule["reporting<br/>derivePlanSessionReplayDebugBundle<br/>deriveWorkoutCompletionReplayDebugBundle<br/>deriveAdvanceCycleReplayDebugBundle<br/>derivePlanSessionExplanation<br/>deriveWorkoutCompletionExplanation<br/>getActiveCycleReporting<br/>getDeterministicAnalyticsReadModel<br/>getWorkoutCompletionReadModels<br/>detectStatsJsonCompatibilityDrift"]
   Modules --> HistoryModule["history<br/>getRelationName<br/>getMetadataString<br/>parseSetCountMap<br/>getWorkoutHistory<br/>getWorkoutDetail"]
   Modules --> DashboardModule["dashboard<br/>formatMuscleLabel<br/>formatExerciseLabel<br/>getFatigueSummary<br/>getRecentWorkoutSummary<br/>getDashboardRecentWorkouts<br/>getDashboardCycleSummary<br/>getProgressionTimelineSeries<br/>getWeeklyVolumeSummary"]
   Modules --> OtherServices["other services<br/>handleGenerateWorkout<br/>handleOptInUpdate<br/>handlePreferencesUpdate<br/>submitBetaFeedback<br/>handleResolveTemplate<br/>handleGuardrailEvaluate<br/>handleVolumeAllocate<br/>handleProgressionRecommend<br/>handleDeviationAnalyze<br/>handleChaosPlan"]
@@ -67,9 +68,9 @@ flowchart TB
 ```mermaid
 flowchart TB
   Engine["packages/engine-rs/src"]
-  Engine --> Public["lib.rs<br/>plan_session<br/>initialize_cycle<br/>complete_session"]
+  Engine --> Public["lib.rs<br/>plan_session<br/>initialize_cycle<br/>complete_session<br/>advance_cycle"]
   Engine --> Boundary["boundary.rs<br/>parse_reference_snapshot<br/>parse_state_snapshot<br/>parse_policy_snapshot<br/>parse_input<br/>parse_output<br/>to_public_input<br/>to_public_output<br/>parse_result_value"]
-  Engine --> Adaptation["adaptation<br/>plan_session<br/>initialize_cycle<br/>complete_session<br/>derived_input_hash<br/>derived_output_hash<br/>build_replay_receipt"]
+  Engine --> Adaptation["adaptation<br/>plan_session<br/>initialize_cycle<br/>complete_session<br/>advance_cycle<br/>derived_input_hash<br/>derived_output_hash<br/>build_replay_receipt"]
   Engine --> Constraints["constraints.rs<br/>hard_block_records<br/>blocked_candidate_ids<br/>collapse_rejection_for_hard_blocks"]
   Engine --> Progression["progression.rs<br/>classify_trend<br/>branch_plan_action<br/>classify_completion<br/>action_from_completion<br/>progression_action_summary<br/>progression_state_patch"]
   Engine --> StateUpdate["state_update.rs<br/>build_completion_state_patch<br/>apply_engine_owned_state_patch"]
@@ -77,5 +78,5 @@ flowchart TB
   Engine --> Rng["rng.rs<br/>fnv1a64<br/>fnv1a64_hex<br/>sha256_hex<br/>derive_subseed<br/>seeded_fraction<br/>seeded_index<br/>seeded_order"]
   Engine --> Replay["replay.rs<br/>accepted_canonicalization_version<br/>canonical_policy_version<br/>quantize_f64<br/>number_from_scaled_f64<br/>validate_number_scale<br/>hash_value<br/>canonical_json_bytes"]
   Engine --> Logging["logging.rs<br/>decision_log_entry<br/>filter_log<br/>score_log<br/>tie_break_log<br/>classify_log<br/>award_xp_log<br/>replay_receipt<br/>semantic_state_patch<br/>empty_state_patch"]
-  Engine --> Bins["bin<br/>engine_runner main/run/execute<br/>inspect_engine main/run/execute_fixture"]
+  Engine --> Bins["bin<br/>engine_runner main/run/execute<br/>inspect_engine main/run/execute_fixture<br/>season_loop_backtest main"]
 ```
