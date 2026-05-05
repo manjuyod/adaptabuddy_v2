@@ -1238,12 +1238,15 @@ fn validate_request(
         }
         Operation::PlanSession => validate_plan_session_request(operation, value),
         Operation::CompleteSession => validate_complete_session_request(operation, value),
-        Operation::AdvanceCycle => validate_advance_cycle_request(operation, value),
+        Operation::AdvanceCycle => {
+            validate_advance_cycle_request(operation, reference_snapshot, value)
+        }
     }
 }
 
 fn validate_advance_cycle_request(
     operation: &Operation,
+    reference_snapshot: &ReferenceSnapshot,
     value: &Value,
 ) -> Result<(), BoundaryError> {
     let request = value.as_object().ok_or_else(|| {
@@ -1265,6 +1268,10 @@ fn validate_advance_cycle_request(
             "recovery",
             "consistency",
             "focus",
+            "currentCycleRequest",
+            "programAdaptationInputs",
+            "completedSessionCount",
+            "missedSessionCount",
         ],
     )?;
 
@@ -1293,6 +1300,50 @@ fn validate_advance_cycle_request(
     if let Some(focus) = request.get("focus") {
         if !focus.is_string() {
             return Err(invalid_request(operation, "field `focus` must be a string"));
+        }
+    }
+
+    if let Some(current_cycle_request) = request.get("currentCycleRequest") {
+        if !current_cycle_request.is_object() {
+            return Err(invalid_request(
+                operation,
+                "field `currentCycleRequest` must be an object",
+            ));
+        }
+        let mut validation_request = current_cycle_request.clone();
+        if validation_request.get("programAdaptationInputs").is_none() {
+            if let Some(program_adaptation_inputs) = request.get("programAdaptationInputs") {
+                if let Some(validation_request) = validation_request.as_object_mut() {
+                    validation_request.insert(
+                        "programAdaptationInputs".to_string(),
+                        program_adaptation_inputs.clone(),
+                    );
+                }
+            }
+        }
+        validate_initialize_cycle_request(operation, reference_snapshot, &validation_request)?;
+    }
+
+    if let Some(program_adaptation_inputs) = request.get("programAdaptationInputs") {
+        if !program_adaptation_inputs.is_object() {
+            return Err(invalid_request(
+                operation,
+                "field `programAdaptationInputs` must be an object",
+            ));
+        }
+    }
+
+    for key in ["completedSessionCount", "missedSessionCount"] {
+        if let Some(value) = request.get(key) {
+            let count = value.as_i64().ok_or_else(|| {
+                invalid_request(operation, format!("field `{key}` must be an integer"))
+            })?;
+            if count < 0 {
+                return Err(invalid_request(
+                    operation,
+                    format!("field `{key}` must be >= 0"),
+                ));
+            }
         }
     }
 
@@ -1952,6 +2003,110 @@ mod tests {
             typed.initialize_cycle_class_choice,
             Some(CanonicalClassArchetype::Strength)
         );
+    }
+
+    #[test]
+    fn parse_input_accepts_optional_advance_cycle_context_fields() {
+        let mut input = valid_input(SCHEMA_VERSION, Operation::AdvanceCycle);
+        input.request = json!({
+            "seasonIndex": 2,
+            "completionRate": 0.82,
+            "adherence": 0.79,
+            "progression": 0.77,
+            "recovery": 0.74,
+            "consistency": 0.8,
+            "focus": "strength",
+            "currentCycleRequest": {
+                "profile": {
+                    "classChoice": "strength",
+                    "goalBias": "strength",
+                    "availableDaysPerWeek": 3,
+                    "fatiguePreference": "high",
+                    "injuryMuscleGroupSlugs": ["quads"]
+                },
+                "macrocycleWeeks": 8,
+                "selectedPrograms": [
+                    {
+                        "programId": "program-upper-1",
+                        "weight": 1.0,
+                        "days": [
+                            {
+                                "programDayId": "day-upper-1",
+                                "dayIndex": 0,
+                                "name": "Upper Day",
+                                "slots": [
+                                    {
+                                        "slotId": "slot-upper-1",
+                                        "slotIndex": 0,
+                                        "slotType": "main",
+                                        "movementPattern": "horizontal_press",
+                                        "setsMin": 3,
+                                        "setsMax": 4,
+                                        "repsMin": 4,
+                                        "repsMax": 6,
+                                        "muscleTargets": { "chest": 1.0 },
+                                        "tagsRequired": ["compound"]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            "programAdaptationInputs": {
+                "strengthBaselines": {
+                    "squat": {
+                        "estimatedOneRepMax": 225,
+                        "unit": "lbs",
+                        "source": "onboarding"
+                    },
+                    "deadlift": {
+                        "estimatedOneRepMax": 225,
+                        "unit": "lbs",
+                        "source": "onboarding"
+                    },
+                    "bench_press": {
+                        "estimatedOneRepMax": 100,
+                        "unit": "lbs",
+                        "source": "onboarding"
+                    },
+                    "overhead_press": {
+                        "estimatedOneRepMax": 75,
+                        "unit": "lbs",
+                        "source": "onboarding"
+                    }
+                }
+            },
+            "completedSessionCount": 12,
+            "missedSessionCount": 1
+        });
+
+        let typed = parse_input(&input).expect("advance_cycle input should parse");
+
+        assert!(typed.request.get("currentCycleRequest").is_some());
+        assert!(typed.request.get("programAdaptationInputs").is_some());
+    }
+
+    #[test]
+    fn parse_input_rejects_unknown_advance_cycle_request_fields() {
+        let mut input = valid_input(SCHEMA_VERSION, Operation::AdvanceCycle);
+        input.request = json!({
+            "seasonIndex": 2,
+            "completionRate": 0.82,
+            "focus": "strength",
+            "unexpectedField": true
+        });
+
+        let error = parse_input(&input).expect_err("unknown field should fail");
+
+        assert!(matches!(
+            error,
+            BoundaryError::InvalidSnapshot {
+                context: "request",
+                ..
+            }
+        ));
+        assert!(error.to_string().contains("unknown field"));
     }
 
     #[test]

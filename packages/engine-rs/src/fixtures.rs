@@ -523,6 +523,371 @@ pub fn advance_cycle_input_with(mutator: impl FnOnce(&mut EngineInputV1)) -> Eng
     input
 }
 
+pub fn advance_cycle_blended_power_bench_pushup_input() -> EngineInputV1 {
+    let mut input = EngineInputV1 {
+        schema_version: SCHEMA_VERSION.to_string(),
+        operation: Operation::AdvanceCycle,
+        determinism: Determinism {
+            seed: "seed-advance-cycle-blended-power-bench-pushup".to_string(),
+            effective_at: "2026-05-04T10:00:00.000Z".to_string(),
+            rule_version: "rules-2026-05".to_string(),
+            reference_hash: String::new(),
+            canonicalization_version: "canon-replay-v1".to_string(),
+        },
+        reference_snapshot: advance_cycle_blended_reference_snapshot(),
+        state_snapshot: advance_cycle_blended_state_snapshot(),
+        policy_snapshot: policy_snapshot(),
+        request: advance_cycle_blended_request(),
+        metadata: metadata(),
+    };
+
+    input.determinism.reference_hash =
+        crate::replay::hash_value(&input.reference_snapshot).expect("reference hash");
+    input
+}
+
+fn advance_cycle_blended_reference_snapshot() -> Value {
+    serde_json::from_str(
+        r#"{
+            "referenceVersion": "2026-05",
+            "exercises": [
+                {
+                    "id": "push_up",
+                    "slug": "push_up",
+                    "name": "Push-Up",
+                    "movementPattern": "push",
+                    "equipment": ["bodyweight"],
+                    "tags": ["challenge"]
+                },
+                {
+                    "id": "squat",
+                    "slug": "squat",
+                    "name": "Back Squat",
+                    "movementPattern": "squat",
+                    "equipment": ["barbell"],
+                    "tags": ["compound"]
+                },
+                {
+                    "id": "deadlift",
+                    "slug": "deadlift",
+                    "name": "Deadlift",
+                    "movementPattern": "hinge",
+                    "equipment": ["barbell"],
+                    "tags": ["compound"]
+                },
+                {
+                    "id": "bench_press",
+                    "slug": "bench_press",
+                    "name": "Bench Press",
+                    "movementPattern": "push",
+                    "equipment": ["barbell", "bench"],
+                    "tags": ["compound"]
+                },
+                {
+                    "id": "overhead_press",
+                    "slug": "overhead_press",
+                    "name": "Overhead Press",
+                    "movementPattern": "push",
+                    "equipment": ["barbell"],
+                    "tags": ["compound"]
+                }
+            ],
+            "programs": [
+                {
+                    "id": "program-powerlifting",
+                    "slug": "powerlifting",
+                    "name": "Powerlifting",
+                    "daysPerWeek": 3
+                },
+                {
+                    "id": "program-bench",
+                    "slug": "bench",
+                    "name": "Bench",
+                    "daysPerWeek": 3
+                },
+                {
+                    "id": "program-challenge",
+                    "slug": "challenge",
+                    "name": "100 Pushups",
+                    "daysPerWeek": 3
+                }
+            ]
+        }"#,
+    )
+    .expect("valid blended advance_cycle reference snapshot")
+}
+
+fn advance_cycle_blended_state_snapshot() -> Value {
+    serde_json::from_str(
+        r#"{
+            "athleteProfile": {
+                "height": 178,
+                "weight": 82.5,
+                "trainingAge": 3,
+                "goalBias": "strength",
+                "availableDaysPerWeek": 3,
+                "classArchetype": "hybrid"
+            },
+            "readinessState": {
+                "systemicFatigue": "severe",
+                "muscleFatigue": {
+                    "quads": 88,
+                    "chest": 55,
+                    "shoulders": 62
+                }
+            },
+            "injuryState": {
+                "activeLimitations": ["knee"],
+                "blockedMovementPatterns": ["squat"]
+            },
+            "performanceState": {
+                "knownLifts": {
+                    "squat": {
+                        "estimated1RM": 225,
+                        "lastWeight": 225,
+                        "lastReps": 1
+                    },
+                    "deadlift": {
+                        "estimated1RM": 225,
+                        "lastWeight": 225,
+                        "lastReps": 1
+                    },
+                    "bench_press": {
+                        "estimated1RM": 100,
+                        "lastWeight": 100,
+                        "lastReps": 5
+                    },
+                    "overhead_press": {
+                        "estimated1RM": 75,
+                        "lastWeight": 75,
+                        "lastReps": 5
+                    }
+                }
+            },
+            "progressionState": {
+                "records": [
+                    {
+                        "exerciseId": "push_up",
+                        "previousPerformanceReference": {
+                            "weight": 0,
+                            "reps": 20
+                        },
+                        "trend": "stalled",
+                        "currentAction": "maintain",
+                        "consecutiveSuccessfulCompletions": 2,
+                        "consecutiveStallOrRegressionCount": 1,
+                        "swapRecommendationCount": 0,
+                        "lastSessionOutcomeClassification": "complete_compromised",
+                        "lastCompletedAt": "2026-05-02T10:00:00.000Z"
+                    }
+                ]
+            },
+            "gamificationState": {
+                "xp": 240,
+                "level": 4,
+                "adherenceStreak": 4,
+                "completedSessionCount": 22,
+                "missedSessionCount": 3,
+                "lastAdherenceOutcomeClassification": "complete_compromised",
+                "lastAwardedAt": "2026-05-02T10:00:00.000Z"
+            },
+            "activeProgramState": {
+                "programId": "program-powerlifting",
+                "currentDayIndex": 2,
+                "currentMicrocycle": 3
+            },
+            "recentCompletions": [
+                {
+                    "exerciseId": "squat",
+                    "completedAt": "2026-05-02T10:00:00.000Z",
+                    "quality": "partial"
+                }
+            ]
+        }"#,
+    )
+    .expect("valid blended advance_cycle state snapshot")
+}
+
+fn advance_cycle_blended_request() -> Value {
+    serde_json::from_str(
+        r#"{
+            "seasonIndex": 4,
+            "completionRate": 0.76,
+            "adherence": 0.81,
+            "completionQuality": 0.72,
+            "progression": 0.74,
+            "recovery": 0.38,
+            "consistency": 0.79,
+            "focus": "strength",
+            "completedSessionCount": 22,
+            "missedSessionCount": 3,
+            "programAdaptationInputs": {
+                "challengeBaselines": {
+                    "push_up": {
+                        "maxReps": 20
+                    }
+                },
+                "strengthBaselines": {
+                    "squat": {
+                        "estimatedOneRepMax": 225,
+                        "unit": "lbs",
+                        "source": "onboarding"
+                    },
+                    "deadlift": {
+                        "estimatedOneRepMax": 225,
+                        "unit": "lbs",
+                        "source": "onboarding"
+                    },
+                    "bench_press": {
+                        "estimatedOneRepMax": 100,
+                        "unit": "lbs",
+                        "source": "onboarding"
+                    },
+                    "overhead_press": {
+                        "estimatedOneRepMax": 75,
+                        "unit": "lbs",
+                        "source": "onboarding"
+                    }
+                }
+            },
+            "currentCycleRequest": {
+                "profile": {
+                    "classChoice": "strength",
+                    "goalBias": "strength",
+                    "availableDaysPerWeek": 3,
+                    "fatiguePreference": "high",
+                    "injuryMuscleGroupSlugs": ["quads"]
+                },
+                "macrocycleWeeks": 8,
+                "selectedPrograms": [
+                    {
+                        "programId": "program-powerlifting",
+                        "weight": 0.5,
+                        "days": [
+                            {
+                                "programDayId": "power-day-1",
+                                "dayIndex": 0,
+                                "name": "Power Day",
+                                "slots": [
+                                    {
+                                        "slotId": "power-squat-main",
+                                        "slotIndex": 0,
+                                        "slotType": "main",
+                                        "movementPattern": "squat",
+                                        "setsMin": 5,
+                                        "setsMax": 5,
+                                        "repsMin": 3,
+                                        "repsMax": 5,
+                                        "muscleTargets": {
+                                            "quads": 1.0
+                                        },
+                                        "tagsRequired": ["compound"]
+                                    },
+                                    {
+                                        "slotId": "power-deadlift-main",
+                                        "slotIndex": 1,
+                                        "slotType": "main",
+                                        "movementPattern": "deadlift",
+                                        "setsMin": 4,
+                                        "setsMax": 4,
+                                        "repsMin": 3,
+                                        "repsMax": 5,
+                                        "muscleTargets": {
+                                            "glutes": 1.0,
+                                            "hamstrings": 0.8
+                                        },
+                                        "tagsRequired": ["compound"]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "programId": "program-bench",
+                        "weight": 0.3,
+                        "days": [
+                            {
+                                "programDayId": "bench-day-1",
+                                "dayIndex": 0,
+                                "name": "Bench Day",
+                                "slots": [
+                                    {
+                                        "slotId": "bench-main",
+                                        "slotIndex": 0,
+                                        "slotType": "main",
+                                        "movementPattern": "push",
+                                        "setsMin": 4,
+                                        "setsMax": 5,
+                                        "repsMin": 4,
+                                        "repsMax": 6,
+                                        "muscleTargets": {
+                                            "chest": 1.0
+                                        },
+                                        "tagsRequired": ["compound"]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "programId": "program-challenge",
+                        "weight": 0.2,
+                        "templateKind": "challenge_progression",
+                        "adaptiveTemplate": {
+                            "challenge": "100_pushups",
+                            "exercise": {
+                                "canonical_name": "Push-Up",
+                                "slug": "push_up"
+                            },
+                            "initial_test_groups": [
+                                {
+                                    "group": "group_1",
+                                    "min": 0,
+                                    "max": 10
+                                },
+                                {
+                                    "group": "group_2",
+                                    "min": 11,
+                                    "max": 20
+                                },
+                                {
+                                    "group": "group_3",
+                                    "min": 21,
+                                    "max": 999
+                                }
+                            ],
+                            "groups": {
+                                "group_2": {
+                                    "weeks": [
+                                        {
+                                            "week": 1,
+                                            "days": [
+                                                {
+                                                    "day_index": 1,
+                                                    "rest_seconds": 60,
+                                                    "sets": [
+                                                        { "reps": 9 },
+                                                        { "reps": 11 },
+                                                        { "reps": 8 },
+                                                        { "reps": 8 },
+                                                        { "reps": 11, "type": "min_plus" }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        "days": []
+                    }
+                ]
+            }
+        }"#,
+    )
+    .expect("valid blended advance_cycle request")
+}
+
 pub fn advance_cycle_s_rank_input() -> EngineInputV1 {
     advance_cycle_input_with(|input| {
         input.request = json!({

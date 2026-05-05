@@ -538,20 +538,21 @@ const hasRequiredStrengthBaselines = (
 };
 
 const normalizeProgramAdaptationInputs = (
-  value: InitializeCycleRequest["programAdaptationInputs"] | undefined,
+  value: unknown,
 ) => {
   const record = readRecord(value);
-  const challengeBaselines = record.challengeBaselines;
+  const challengeBaselines = readRecord(record.challengeBaselines);
   const strengthBaselines = normalizeStrengthBaselines(
     record.strengthBaselines,
   );
+  const hasChallengeBaselines = Object.keys(challengeBaselines).length > 0;
 
-  if (challengeBaselines === undefined && strengthBaselines === undefined) {
+  if (!hasChallengeBaselines && strengthBaselines === undefined) {
     return undefined;
   }
 
   return {
-    ...(challengeBaselines !== undefined ? { challengeBaselines } : {}),
+    challengeBaselines,
     ...(strengthBaselines !== undefined ? { strengthBaselines } : {}),
   };
 };
@@ -1460,6 +1461,24 @@ const toInitializeCycleRequestFromRows = (
   };
 };
 
+const toEngineCurrentCycleRequest = (
+  currentRequest: InitializeCycleRequest,
+  selectedPrograms: CycleProgramSelectionPayload[],
+  resolvedClassArchetype: CanonicalClassArchetype,
+  adaptationInputs: ReturnType<typeof normalizeProgramAdaptationInputs>,
+) => ({
+  profile: {
+    classChoice: resolvedClassArchetype,
+    goalBias: currentRequest.goalBias,
+    availableDaysPerWeek: currentRequest.availableDaysPerWeek,
+    fatiguePreference: currentRequest.fatiguePreference,
+    injuryMuscleGroupSlugs: currentRequest.injuryMuscleGroupSlugs,
+  },
+  macrocycleWeeks: currentRequest.macrocycleWeeks,
+  selectedPrograms,
+  ...(adaptationInputs ? { programAdaptationInputs: adaptationInputs } : {}),
+});
+
 const deriveProgressionTrend = (
   rows: Array<Record<string, unknown>>,
 ): string => {
@@ -1811,6 +1830,52 @@ export async function handleAdvanceCycle(
         errors: ["Failed to build next-cycle baseline request"],
       };
     }
+    const resolvedClassArchetype =
+      parseCanonicalClassArchetype(plan.resolved_class_archetype) ?? "hybrid";
+    const selectedProgramIds = currentRequest.selectedPrograms.map((program) =>
+      Number(program.programId),
+    );
+
+    const [
+      { data: programRows, error: programRowsError },
+      { data: dayRows, error: dayRowsError },
+      { data: slotRows, error: slotRowsError },
+    ] = await Promise.all([
+      supabase
+        .from("programs")
+        .select("id, slug, name, is_active, metadata")
+        .in("id", selectedProgramIds),
+      supabase
+        .from("program_days")
+        .select("id, program_id, day_index, name")
+        .in("program_id", selectedProgramIds),
+      supabase
+        .from("program_slots")
+        .select(
+          "id, program_day_id, slot_index, slot_type, locked_exercise_id, movement_pattern, sets_min, sets_max, reps_min, reps_max, muscle_targets, tags_required, prescription",
+        ),
+    ]);
+    if (programRowsError || dayRowsError || slotRowsError) {
+      return {
+        status: "error",
+        errors: ["Failed to load current cycle program templates"],
+      };
+    }
+    const currentProgramSelectionPayload = toProgramSelectionPayload(
+      currentRequest.selectedPrograms,
+      (programRows ?? []) as ProgramRow[],
+      (dayRows ?? []) as ProgramDayRow[],
+      (slotRows ?? []) as ProgramSlotRow[],
+    );
+    const currentProgramAdaptationInputs = normalizeProgramAdaptationInputs(
+      input.programAdaptationInputs ?? currentRequest.programAdaptationInputs,
+    );
+    const currentCycleRequest = toEngineCurrentCycleRequest(
+      currentRequest,
+      currentProgramSelectionPayload,
+      resolvedClassArchetype,
+      currentProgramAdaptationInputs,
+    );
 
     const { data: gamificationRow } = await supabase
       .from("engine_gamification_states")
@@ -1838,6 +1903,15 @@ export async function handleAdvanceCycle(
     const referenceSnapshot = {
       referenceVersion: "2026-03",
       operation: "advance_cycle",
+      programs: ((programRows ?? []) as ProgramRow[])
+        .slice()
+        .sort((left, right) => left.id - right.id)
+        .map((program) => ({
+          id: String(program.id),
+          slug: program.slug ?? String(program.id),
+          name: program.name,
+          daysPerWeek: currentRequest.availableDaysPerWeek,
+        })),
     };
     const referenceHash =
       computeCanonicalReplayReferenceHash(referenceSnapshot);
@@ -1865,6 +1939,12 @@ export async function handleAdvanceCycle(
         seasonIndex,
         completionRate,
         adherence: completionRate,
+        completedSessionCount: completedSessions,
+        missedSessionCount: missedSessions,
+        currentCycleRequest,
+        ...(currentProgramAdaptationInputs
+          ? { programAdaptationInputs: currentProgramAdaptationInputs }
+          : {}),
         completionQuality:
           completionRate >= 0.95 ? "complete_clean" : "complete_compromised",
         progression:

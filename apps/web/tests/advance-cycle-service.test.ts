@@ -108,6 +108,40 @@ describe("handleAdvanceCycle", () => {
           role: "primary",
         },
       ],
+      programs: [
+        {
+          id: 2001,
+          slug: "powerlifting-core",
+          name: "Powerlifting Core",
+          is_active: true,
+          metadata: {},
+        },
+      ],
+      program_days: [
+        {
+          id: 3001,
+          program_id: 2001,
+          day_index: 0,
+          name: "Day 1",
+        },
+      ],
+      program_slots: [
+        {
+          id: 4001,
+          program_day_id: 3001,
+          slot_index: 0,
+          slot_type: "main",
+          locked_exercise_id: null,
+          movement_pattern: "squat",
+          sets_min: 3,
+          sets_max: 5,
+          reps_min: 3,
+          reps_max: 5,
+          muscle_targets: { quads: 1 },
+          tags_required: ["compound"],
+          prescription: {},
+        },
+      ],
       engine_cycle_plans: [
         {
           id: 1,
@@ -165,7 +199,18 @@ describe("handleAdvanceCycle", () => {
     mockAdminSupabase = createMockSupabase(store);
   });
   it("returns success when engine emits advance_cycle result", async () => {
-    const result = await handleAdvanceCycle("user-1", { planId: "1" });
+    const result = await handleAdvanceCycle("user-1", {
+      planId: "1",
+      programAdaptationInputs: {
+        challengeBaselines: {},
+        strengthBaselines: {
+          squat: { estimatedOneRepMax: 225, unit: "lbs" },
+          deadlift: { estimatedOneRepMax: 225, unit: "lbs" },
+          bench_press: { estimatedOneRepMax: 100, unit: "lbs" },
+          overhead_press: { estimatedOneRepMax: 75, unit: "lbs" },
+        },
+      },
+    });
 
     expect(result.status).toBe("success");
     if (result.status === "success") {
@@ -177,11 +222,46 @@ describe("handleAdvanceCycle", () => {
     expect(runEngineInput).toHaveBeenCalledTimes(1);
     const invocation = vi.mocked(runEngineInput).mock.calls[0]?.[0] as {
       determinism?: { referenceHash?: string };
-      request?: { completionRate?: number; seasonIndex?: number };
+      request?: {
+        completionRate?: number;
+        seasonIndex?: number;
+        completedSessionCount?: number;
+        missedSessionCount?: number;
+        currentCycleRequest?: {
+          profile?: { fatiguePreference?: string };
+          selectedPrograms?: Array<{
+            programId?: string;
+            days?: Array<{ slots?: unknown[] }>;
+          }>;
+          programAdaptationInputs?: {
+            strengthBaselines?: {
+              bench_press?: { estimatedOneRepMax?: number };
+            };
+          };
+        };
+        programAdaptationInputs?: {
+          strengthBaselines?: {
+            bench_press?: { estimatedOneRepMax?: number };
+          };
+        };
+      };
     };
     expect(invocation.determinism?.referenceHash).toMatch(/^sha256:/);
     expect(invocation.request?.completionRate).toBe(1);
     expect(invocation.request?.seasonIndex).toBe(1);
+    expect(invocation.request?.completedSessionCount).toBe(2);
+    expect(invocation.request?.missedSessionCount).toBe(0);
+    expect(invocation.request?.currentCycleRequest?.profile?.fatiguePreference).toBe("moderate");
+    expect(invocation.request?.currentCycleRequest?.selectedPrograms?.[0]?.programId).toBe("2001");
+    expect(invocation.request?.currentCycleRequest?.selectedPrograms?.[0]?.days?.[0]?.slots).toHaveLength(1);
+    expect(
+      invocation.request?.currentCycleRequest?.programAdaptationInputs?.strengthBaselines
+        ?.bench_press?.estimatedOneRepMax,
+    ).toBe(100);
+    expect(
+      invocation.request?.programAdaptationInputs?.strengthBaselines?.bench_press
+        ?.estimatedOneRepMax,
+    ).toBe(100);
     expect(store.engine_cycle_season_summaries).toHaveLength(1);
     expect(store.engine_cycle_season_awards).toHaveLength(1);
     expect(store.engine_cycle_transitions).toHaveLength(1);
@@ -197,6 +277,44 @@ describe("handleAdvanceCycle", () => {
 
     expect(result.status).toBe("error");
     expect(runEngineInput).toHaveBeenCalledTimes(0);
+  });
+
+  it("uses server-derived season facts and current cycle context over client supplied context", async () => {
+    await handleAdvanceCycle("user-1", {
+      planId: "1",
+      completedSessionCount: 999,
+      missedSessionCount: 999,
+      currentCycleRequest: {
+        classPresetId: "classless",
+        goalBias: "conditioning",
+        availableDaysPerWeek: 1,
+        fatiguePreference: "low",
+        injuryMuscleGroupSlugs: ["client-spoof"],
+        macrocycleWeeks: 1,
+        selectedPrograms: [{ programId: 9999, weight: 1 }],
+      },
+    });
+
+    const invocation = vi.mocked(runEngineInput).mock.calls[0]?.[0] as {
+      request?: {
+        completedSessionCount?: number;
+        missedSessionCount?: number;
+        currentCycleRequest?: {
+          profile?: {
+            goalBias?: string;
+            injuryMuscleGroupSlugs?: string[];
+          };
+          selectedPrograms?: Array<{ programId?: string }>;
+        };
+      };
+    };
+    expect(invocation.request?.completedSessionCount).toBe(2);
+    expect(invocation.request?.missedSessionCount).toBe(0);
+    expect(invocation.request?.currentCycleRequest?.profile?.goalBias).toBe("balanced");
+    expect(
+      invocation.request?.currentCycleRequest?.profile?.injuryMuscleGroupSlugs,
+    ).toEqual([]);
+    expect(invocation.request?.currentCycleRequest?.selectedPrograms?.[0]?.programId).toBe("2001");
   });
 
   it("rejects active cycles that are not complete", async () => {

@@ -115,7 +115,7 @@ Copy one block per feedback item.
 
 ### FDB-20260504-003
 
-- Status: `actionable`
+- Status: `closed`
 - Date opened (UTC): `2026-05-04T22:27:00Z`
 - Reporter: `internal test`
 - Owner: `codex-agent`
@@ -127,16 +127,16 @@ Copy one block per feedback item.
 - Secondary classifications: `adapter-contract`
 - Severity: `medium`
 - User impact: A user whose first cycle blends powerlifting, bench specialization, and challenge work may not see that exact blend intelligently evolved in the next-cycle request after season advancement.
-- Summary: True initial-cycle blending now aggregates selected program work, but next-season personalization remains generic and should become a separate replay-backed engine spec once beta evidence confirms the transition behavior users expect.
+- Summary: True initial-cycle blending now aggregates selected program work, and `advance_cycle` now preserves/evolves provided current-cycle blend context into a personalized next-cycle request.
 - Evidence:
   - Request ID: `n/a`
-  - Replay reference: `pending future advance_cycle replay evidence`
-  - Route evidence: `packages/engine-rs/src/adaptation/advance_cycle.rs`
+  - Replay reference: `advance_cycle_blended_power_bench_pushup_input`
+  - Route evidence: `cargo test --manifest-path packages/engine-rs/Cargo.toml --test advance_cycle`
   - Screenshot/video/log link:
-- Triage notes: Keep this out of the current onboarding/initialize-cycle slice. The current implementation preserves compatibility by leaving `advance_cycle` next-cycle generation unchanged.
-- Decision: `track_for_future_engine_spec`
-- Follow-up link: `docs/operations/next_engine_spec_decision_memo.md`
-- Date closed (UTC):
+- Triage notes: Implemented Engine 32 next-cycle blend evolution with deterministic Rust tests for blend preservation, rank-driven weights, replay stability, and initialize-cycle compatibility. App service now passes server-built current-cycle context into Rust.
+- Decision: `closed_after_personalized_advance_cycle`
+- Follow-up link: `docs/superpowers/plans/2026-05-04-next-cycle-blend-evolution.md`
+- Date closed (UTC): `2026-05-04T23:53:45Z`
 
 ### FDB-20260504-004
 

@@ -243,6 +243,10 @@ export const AdvanceCycleRequestSchema = z
   .object({
     planId: z.string().min(1).max(64).optional(),
     idempotencyKey: z.string().trim().min(1).max(128).optional(),
+    currentCycleRequest: InitializeCycleRequestSchema.optional(),
+    programAdaptationInputs: ProgramAdaptationInputsSchema.optional(),
+    completedSessionCount: z.number().int().min(0).optional(),
+    missedSessionCount: z.number().int().min(0).optional(),
   })
   .strict();
 

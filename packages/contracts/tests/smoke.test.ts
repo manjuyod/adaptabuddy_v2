@@ -289,6 +289,47 @@ describe("contracts smoke", () => {
         },
       },
     }).success).toBe(true);
+    expect(contracts.AdvanceCycleRequestSchema.safeParse({
+      planId: "plan-1",
+      currentCycleRequest: {
+        classPresetId: "powa",
+        goalBias: "strength",
+        availableDaysPerWeek: 3,
+        fatiguePreference: "high",
+        injuryMuscleGroupSlugs: ["quads"],
+        macrocycleWeeks: 8,
+        selectedPrograms: [
+          { programId: 1, weight: 0.5 },
+          { programId: 2, weight: 0.3 },
+          { programId: 3, weight: 0.2 },
+        ],
+      },
+      programAdaptationInputs: {
+        challengeBaselines: {
+          push_up: { maxReps: 20 },
+        },
+        strengthBaselines: {
+          squat: {
+            estimatedOneRepMax: 225,
+            unit: "lbs",
+          },
+          deadlift: {
+            estimatedOneRepMax: 225,
+            unit: "lbs",
+          },
+          bench_press: {
+            estimatedOneRepMax: 100,
+            unit: "lbs",
+          },
+          overhead_press: {
+            estimatedOneRepMax: 75,
+            unit: "lbs",
+          },
+        },
+      },
+      completedSessionCount: 18,
+      missedSessionCount: 0,
+    }).success).toBe(true);
     expect(InitializeCycleRequestSchema.safeParse({
       classPresetId: "powa",
       goalBias: "strength",

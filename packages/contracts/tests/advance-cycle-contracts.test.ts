@@ -13,9 +13,38 @@ describe("advance cycle contract schemas", () => {
     const parsed = AdvanceCycleRequestSchema.parse({
       planId: "42",
       idempotencyKey: "advance-plan-42",
+      currentCycleRequest: {
+        classPresetId: "powa",
+        goalBias: "strength",
+        availableDaysPerWeek: 3,
+        fatiguePreference: "high",
+        injuryMuscleGroupSlugs: ["quads"],
+        macrocycleWeeks: 8,
+        selectedPrograms: [
+          { programId: 2001, weight: 0.5 },
+          { programId: 2002, weight: 0.3 },
+          { programId: 2003, weight: 0.2 },
+        ],
+      },
+      programAdaptationInputs: {
+        challengeBaselines: {
+          push_up: { maxReps: 20 },
+        },
+        strengthBaselines: {
+          squat: { estimatedOneRepMax: 225, unit: "lbs" },
+          deadlift: { estimatedOneRepMax: 225, unit: "lbs" },
+          bench_press: { estimatedOneRepMax: 100, unit: "lbs" },
+          overhead_press: { estimatedOneRepMax: 75, unit: "lbs" },
+        },
+      },
+      completedSessionCount: 18,
+      missedSessionCount: 0,
     });
 
     expect(parsed.planId).toBe("42");
+    expect(parsed.currentCycleRequest?.selectedPrograms).toHaveLength(3);
+    expect(parsed.programAdaptationInputs?.challengeBaselines?.push_up?.maxReps).toBe(20);
+    expect(parsed.completedSessionCount).toBe(18);
   });
 
   it("rejects client supplied season facts", () => {
