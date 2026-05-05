@@ -41,6 +41,7 @@ Active and planned numbered specs live under `docs/specs/`. Completed historical
 Current active lane:
 
 - `[ACTIVE]` `Wave 7: Private Beta Operations And Learning Loop`
+- `[NEXT]` `docs/specs/wave_13_full_app_hd2d_ui_ux_pass.md` after current release/deploy gate
 
 Recently completed active specs:
 
@@ -69,6 +70,7 @@ Current product/app-shell lane:
 - `[DONE]` `Wave 8: New Game Engine-First Workflow`
 - `[DONE]` `Wave 9: Season Loop Product Shell`
 - `[DONE]` `Wave 12: Product Shell Re-entry` after Wave 10/11 CLI evidence
+- `[NEXT]` `Wave 13: Full-App HD-2D UI/UX And Animation Pass` after current release/deploy gate
 
 Current Wave 5 queue:
 
@@ -477,6 +479,38 @@ Exit criteria:
 - Release-gate documentation preserves replay receipt expectations and route-level evidence requirements for support.
 - Live beta validation resumes as downstream release evidence, not as the first proof that the loop works.
 
+## Wave 13: Full-App HD-2D UI/UX And Animation Pass `[NEXT]`
+
+Goal:
+
+- Run a full-app, page-by-page UI/UX pass that turns the current beta product shell into a coherent HD-2D training game interface without changing engine, database, API, auth, or persistence boundaries.
+
+Planned spec:
+
+- `docs/specs/wave_13_full_app_hd2d_ui_ux_pass.md`
+
+Primary work:
+
+- Inventory every public, auth, game-loop, settings/support, loading, offline, error, and debug page.
+- Execute page work in end-to-end user journey order from first visit through repeat training loop and support states.
+- Add Motion for React as the app animation dependency and route usage through shared animation primitives/tokens.
+- Generate layered HD-2D page assets under a dedicated project namespace instead of overwriting inspiration assets.
+- Require page packets with screenshots, GitNexus impact summaries, scene briefs, animation notes, tests, and browser evidence.
+
+Boundary:
+
+- Wave 13 is product-shell UI/UX work.
+- Engine, DB schema, API contract, auth, and persistence behavior remain unchanged unless a later accepted spec explicitly changes them.
+- Live Supabase Playwright remains a scoped hybrid/release gate, not the default per-change green lane.
+
+Exit criteria:
+
+- Every page cluster has a page packet with desktop/mobile screenshot evidence and acceptance criteria.
+- Motion is installed and consumed through shared app-shell animation primitives.
+- Major pages have HD-2D layered visual direction and saved workspace assets where needed.
+- Normal-motion and reduced-motion browser behavior are verified for animated surfaces.
+- Hybrid E2E evidence exists for onboarding, workout logging, and season transition before release promotion.
+
 ## Immediate Next Milestones
 
 1. Treat Wave 7 private beta operations as the active operations lane.
@@ -492,6 +526,7 @@ Exit criteria:
 11. Treat `docs/specs/engine_30_headless_season_loop_and_backtest_harness.md` as complete pending any future archival pass.
 12. Treat `docs/specs/wave_9_season_loop_product_shell.md` as complete pending any future archival pass.
 13. Treat `users.stats_json` compatibility ownership and sunset mapping as documented by `docs/archive/specs/engine_25_stats_json_compatibility_sunset_map.md`.
+14. Queue `docs/specs/wave_13_full_app_hd2d_ui_ux_pass.md` after the current release/deploy gate as the next product-shell UI/UX lane.
 
 ## Explicit Risks And Tradeoffs
 
