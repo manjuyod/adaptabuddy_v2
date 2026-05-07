@@ -1,0 +1,343 @@
+<h2>Auth Composited Preview V2</h2>
+<p class="subtitle">Composition iteration: the road/path layer is trimmed, anchored to the bottom, and kept behind the centered auth menu.</p>
+
+<style>
+  .auth-preview-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 18px;
+    align-items: start;
+  }
+
+  .auth-scene {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    background: #05070d;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.38);
+  }
+
+  .auth-scene.desktop {
+    aspect-ratio: 16 / 9;
+    min-height: 520px;
+  }
+
+  .auth-scene.mobile {
+    width: 100%;
+    aspect-ratio: 390 / 844;
+    min-height: 560px;
+  }
+
+  .auth-scene img,
+  .auth-layer {
+    position: absolute;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .base-bg {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(0.96) contrast(1.08) brightness(0.76);
+  }
+
+  .grade {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 50% 42%, rgba(255, 205, 116, 0.14), transparent 28%),
+      linear-gradient(90deg, rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0.08) 36%, rgba(0, 0, 0, 0.12) 64%, rgba(0, 0, 0, 0.68)),
+      linear-gradient(180deg, rgba(0, 0, 0, 0.08), transparent 34%, rgba(0, 0, 0, 0.42));
+  }
+
+  .atmosphere {
+    z-index: 1;
+    inset: -10% -6% auto -6%;
+    width: 112%;
+    height: auto;
+    opacity: 0.24;
+    mix-blend-mode: screen;
+    filter: blur(1.8px) saturate(0.84);
+  }
+
+  .house {
+    z-index: 2;
+    right: -8%;
+    bottom: 10%;
+    width: 33%;
+    opacity: 0.72;
+    filter: saturate(0.86) brightness(0.82) drop-shadow(-18px 24px 24px rgba(0, 0, 0, 0.42));
+  }
+
+  .trees-left {
+    z-index: 3;
+    left: -4%;
+    bottom: 11%;
+    width: 30%;
+    opacity: 0.78;
+    filter: saturate(0.78) brightness(0.64) drop-shadow(18px 20px 26px rgba(0, 0, 0, 0.42));
+  }
+
+  .trees-right {
+    z-index: 3;
+    right: 13%;
+    bottom: 12%;
+    width: 23%;
+    opacity: 0.42;
+    transform: scaleX(-1);
+    filter: saturate(0.72) brightness(0.56) blur(0.4px);
+  }
+
+  .interaction {
+    z-index: 5;
+    left: 50%;
+    top: 56%;
+    width: 34%;
+    transform: translate(-50%, -50%);
+    opacity: 0.28;
+    mix-blend-mode: screen;
+    filter: blur(0.8px) saturate(0.75);
+  }
+
+  .foreground {
+    z-index: 4;
+    left: 50%;
+    bottom: -1px;
+    width: 98%;
+    transform: translateX(-50%);
+    opacity: 0.72;
+    filter: saturate(0.78) brightness(0.68) drop-shadow(0 -18px 30px rgba(0, 0, 0, 0.34));
+  }
+
+  .practical {
+    z-index: 6;
+    left: 50%;
+    bottom: 16%;
+    width: 34%;
+    transform: translateX(-50%);
+    opacity: 0.34;
+    mix-blend-mode: screen;
+    filter: saturate(0.8) brightness(0.76);
+  }
+
+  .title-layer {
+    z-index: 7;
+    position: absolute;
+    left: 50%;
+    top: 27%;
+    width: 94%;
+    transform: translateX(-50%);
+    color: rgba(255, 255, 255, 0.3);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(68px, 8.8vw, 132px);
+    font-style: italic;
+    font-weight: 300;
+    line-height: 0.88;
+    letter-spacing: 0.04em;
+    text-align: center;
+    text-transform: uppercase;
+    text-shadow: 0 8px 34px rgba(0, 0, 0, 0.82), 0 0 26px rgba(255, 223, 160, 0.24);
+  }
+
+  .auth-menu {
+    z-index: 8;
+    position: absolute;
+    left: 50%;
+    top: 54%;
+    width: min(390px, 38%);
+    min-width: 320px;
+    transform: translate(-50%, -50%);
+    color: rgba(255, 243, 213, 0.92);
+    text-align: center;
+    text-shadow: 0 4px 14px rgba(0, 0, 0, 0.9);
+  }
+
+  .field-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    border-bottom: 2px solid rgba(255, 224, 164, 0.56);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 24px;
+    font-style: italic;
+    color: rgba(255, 242, 210, 0.82);
+  }
+
+  .field-line + .field-line {
+    margin-top: 9px;
+  }
+
+  .menu-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    align-items: center;
+    margin-top: 24px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 15px;
+    color: #fff1c8;
+  }
+
+  .menu-action {
+    width: 168px;
+    padding: 7px 12px;
+    border-left: 2px solid transparent;
+    border-right: 2px solid transparent;
+  }
+
+  .menu-action.primary {
+    border-color: rgba(255, 209, 127, 0.72);
+    background: rgba(29, 18, 13, 0.2);
+  }
+
+  .mobile .atmosphere {
+    inset: -6% -48% auto -44%;
+    width: 188%;
+    opacity: 0.2;
+  }
+
+  .mobile .house {
+    right: -42%;
+    bottom: 12%;
+    width: 78%;
+    opacity: 0.58;
+  }
+
+  .mobile .trees-left {
+    left: -42%;
+    bottom: 18%;
+    width: 74%;
+    opacity: 0.5;
+  }
+
+  .mobile .trees-right {
+    display: none;
+  }
+
+  .mobile .interaction {
+    top: 49%;
+    width: 80%;
+    opacity: 0.22;
+  }
+
+  .mobile .foreground {
+    bottom: -1px;
+    width: 205%;
+    opacity: 0.58;
+  }
+
+  .mobile .practical {
+    bottom: 25%;
+    width: 88%;
+    opacity: 0.22;
+  }
+
+  .mobile .title-layer {
+    top: 23%;
+    width: 125%;
+    font-size: 58px;
+    opacity: 0.9;
+  }
+
+  .mobile .auth-menu {
+    top: 45%;
+    width: 72%;
+    min-width: 0;
+  }
+
+  .mobile .field-line {
+    height: 40px;
+    font-size: 22px;
+  }
+
+  .mobile .menu-actions {
+    gap: 8px;
+    margin-top: 20px;
+    font-size: 14px;
+  }
+
+  @media (max-width: 980px) {
+    .auth-preview-shell {
+      grid-template-columns: 1fr;
+    }
+
+    .auth-scene.desktop {
+      min-height: 360px;
+    }
+  }
+</style>
+
+<div class="auth-preview-shell">
+  <div class="auth-scene desktop">
+    <img class="base-bg" src="http://localhost:3000/backgrounds/login/login-bg.png" alt="">
+    <img class="auth-layer atmosphere" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/depth-atmosphere-v1.png" alt="">
+    <img class="auth-layer house" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/midground-architecture-v1.png" alt="">
+    <img class="auth-layer trees-left" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/natural-environment-v1.png" alt="">
+    <img class="auth-layer trees-right" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/natural-environment-v1.png" alt="">
+    <span class="grade"></span>
+    <img class="auth-layer interaction" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/interaction-light-v1.png" alt="">
+    <div class="title-layer">AdaptaBuddy</div>
+    <div class="auth-menu">
+      <div class="field-line">Email</div>
+      <div class="field-line">Password</div>
+      <div class="menu-actions">
+        <div class="menu-action primary">Log In</div>
+        <div class="menu-action">Sign Up</div>
+        <div class="menu-action">OAuth</div>
+        <div class="menu-action">Google</div>
+      </div>
+    </div>
+    <img class="auth-layer practical" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/practical-light-v1.png" alt="">
+    <img class="auth-layer foreground" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/foreground-stage-v1-trimmed.png" alt="">
+  </div>
+
+  <div class="auth-scene mobile">
+    <img class="base-bg" src="http://localhost:3000/backgrounds/login/login-bg.png" alt="">
+    <img class="auth-layer atmosphere" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/depth-atmosphere-v1.png" alt="">
+    <img class="auth-layer house" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/midground-architecture-v1.png" alt="">
+    <img class="auth-layer trees-left" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/natural-environment-v1.png" alt="">
+    <span class="grade"></span>
+    <img class="auth-layer interaction" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/interaction-light-v1.png" alt="">
+    <div class="title-layer">AdaptaBuddy</div>
+    <div class="auth-menu">
+      <div class="field-line">Email</div>
+      <div class="field-line">Password</div>
+      <div class="menu-actions">
+        <div class="menu-action primary">Log In</div>
+        <div class="menu-action">Sign Up</div>
+        <div class="menu-action">OAuth</div>
+        <div class="menu-action">Google</div>
+      </div>
+    </div>
+    <img class="auth-layer practical" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/practical-light-v1.png" alt="">
+    <img class="auth-layer foreground" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/foreground-stage-v1-trimmed.png" alt="">
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="iterate-assets" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Iterate assets</h3>
+      <p>Scene concept is close, but regenerate or reposition one or more assets before production.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="iterate-composition" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Iterate composition</h3>
+      <p>Assets are acceptable for draft, but the title/menu/layer placement needs adjustment.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="approve-preview" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Approve preview direction</h3>
+      <p>Use this as the basis for the production auth screen implementation.</p>
+    </div>
+  </div>
+</div>

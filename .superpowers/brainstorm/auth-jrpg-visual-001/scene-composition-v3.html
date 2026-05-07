@@ -1,0 +1,84 @@
+<h2>Revised Direction: Composited HD-2D Scene</h2>
+<p class="subtitle">Not props sprinkled on top. The auth screen should be assembled like a miniature HD-2D set: background, midground, foreground, light, atmosphere, and the form as an in-world interaction point.</p>
+
+<div class="mockup">
+  <div class="mockup-header">Scene composition model: assets as depth layers</div>
+  <div class="mockup-body" style="padding:0; overflow:hidden; background:#070a12;">
+    <div style="position:relative; aspect-ratio:16/9; min-height:500px; overflow:hidden; background:linear-gradient(180deg,#141b30 0%,#263048 22%,#d9995b 44%,#273525 45%,#0a0f16 100%);">
+      <div style="position:absolute; inset:0; background:radial-gradient(circle at 46% 38%,rgba(255,230,162,.52),transparent 20%),linear-gradient(90deg,rgba(0,0,0,.72),transparent 32%,transparent 67%,rgba(0,0,0,.74)),linear-gradient(180deg,rgba(255,255,255,.08),transparent 24%,rgba(0,0,0,.5) 100%);"></div>
+
+      <div style="position:absolute; left:36%; top:15%; width:28%; height:42%; opacity:.55; filter:blur(1px); background:#8b5f38; clip-path:polygon(50% 0,78% 28%,78% 100%,22% 100%,22% 28%); box-shadow:0 0 36px rgba(255,179,88,.25);"></div>
+      <div style="position:absolute; left:8%; top:25%; width:18%; height:36%; opacity:.7; background:#18212a; box-shadow:0 0 0 4px #3a2518,12px -18px 0 #283743;"></div>
+      <div style="position:absolute; right:12%; top:24%; width:18%; height:38%; opacity:.72; background:#172029; box-shadow:0 0 0 4px #3a2518,-12px -18px 0 #283743;"></div>
+
+      <div style="position:absolute; left:-3%; top:10%; width:23%; height:82%; background:#0f151e; box-shadow:0 0 0 5px #2e1e16,20px -34px 0 #27343e,38px -54px 0 #2e1e16;">
+        <div style="position:absolute; right:20%; top:25%; width:17%; height:14%; background:#ffc057; box-shadow:0 0 28px #ffad3f;"></div>
+        <div style="position:absolute; right:36%; top:52%; width:14%; height:13%; background:#ffb346; box-shadow:0 0 24px #ff9e35;"></div>
+      </div>
+      <div style="position:absolute; right:-5%; top:5%; width:27%; height:88%; background:#0d141d; box-shadow:0 0 0 5px #2e1e16,-22px -36px 0 #27343e,-44px -58px 0 #2e1e16;">
+        <div style="position:absolute; left:28%; top:31%; width:16%; height:14%; background:#ffc057; box-shadow:0 0 30px #ffad3f;"></div>
+        <div style="position:absolute; left:50%; top:48%; width:13%; height:13%; background:#ffb346; box-shadow:0 0 24px #ff9e35;"></div>
+      </div>
+
+      <div style="position:absolute; left:20%; bottom:22%; width:10%; height:23%; background:#132d1d; box-shadow:16px -13px 0 #2c6840,33px 7px 0 #0f2117;"></div>
+      <div style="position:absolute; right:24%; bottom:22%; width:9%; height:24%; background:#132d1d; box-shadow:15px -14px 0 #2c6840,-16px 8px 0 #0f2117;"></div>
+      <div style="position:absolute; left:27%; bottom:17%; width:10%; height:11%; background:#4f301b; box-shadow:0 -12px 0 #9e5a2c,0 -22px 0 #d89448;"></div>
+      <div style="position:absolute; right:28%; bottom:17%; width:8%; height:12%; background:#4f301b; box-shadow:0 -12px 0 #d89448,0 -12px 30px rgba(255,184,88,.78);"></div>
+
+      <div style="position:absolute; left:0; right:0; bottom:0; height:24%; background:linear-gradient(90deg,#15171c 0%,#4c3a2f 24%,#76604a 50%,#4c3a2f 76%,#15171c 100%); box-shadow:0 -22px 40px rgba(0,0,0,.48);"></div>
+      <div style="position:absolute; left:0; right:0; bottom:0; height:24%; opacity:.28; background:repeating-linear-gradient(90deg,transparent 0 24px,rgba(0,0,0,.5) 24px 27px),repeating-linear-gradient(0deg,transparent 0 18px,rgba(0,0,0,.45) 18px 21px);"></div>
+
+      <div style="position:absolute; left:50%; top:44%; transform:translate(-50%,-50%); width:min(34%,430px); height:30%; min-width:330px; background:radial-gradient(circle at 50% 50%,rgba(255,208,128,.24),rgba(255,208,128,.08) 42%,transparent 72%); box-shadow:0 0 70px rgba(255,186,83,.36);"></div>
+      <div style="position:absolute; left:50%; top:43%; transform:translate(-50%,-50%); width:min(31%,390px); min-width:310px; padding:26px 30px 24px; color:#fff4d5; text-align:center;">
+        <div style="font-family:Georgia,serif; font-style:italic; font-size:40px; text-shadow:0 4px 18px #000;">ADAPTABUDDY</div>
+        <div style="height:18px;"></div>
+        <div style="height:38px; border-bottom:2px solid rgba(255,218,152,.6); display:flex; align-items:center; justify-content:center; color:#e7d1b5; font-size:20px;">Email</div>
+        <div style="height:38px; border-bottom:2px solid rgba(255,218,152,.6); display:flex; align-items:center; justify-content:center; color:#e7d1b5; font-size:20px;">Password</div>
+        <div style="height:18px;"></div>
+        <div style="display:flex; justify-content:center; gap:18px; color:#fff0c2; font-size:13px;">Sign Up <span>OAuth</span> <span>Google</span> <strong>Log In</strong></div>
+      </div>
+
+      <div style="position:absolute; left:50%; bottom:13%; transform:translateX(-50%); width:9%; height:7%; border:2px solid #ffd98a; background:rgba(255,191,89,.08); box-shadow:0 0 34px #ffbd63;"></div>
+      <div style="position:absolute; inset:0; pointer-events:none; background:linear-gradient(180deg,rgba(255,255,255,.08),transparent 18%,transparent 70%,rgba(0,0,0,.42)); mix-blend-mode:screen; opacity:.5;"></div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Revised Asset Layers</h3>
+  <p><strong>Base retained:</strong> current login village background, slightly darkened and color-graded for readability.</p>
+  <p><strong>Background depth:</strong> distant gate silhouette or tower, warm sky shaft/fog, subtle parallax haze.</p>
+  <p><strong>Midground architecture:</strong> left and right house/roof cutouts that frame the login area and feel like part of the same town.</p>
+  <p><strong>Natural environment:</strong> clustered pixel trees, shrubs, moss, and path-edge greenery that break up the hard building edges.</p>
+  <p><strong>Foreground stage:</strong> cobblestone/bridge/path strip, barrels/crates, lantern pair, and optional signpost/notice board.</p>
+  <p><strong>Interaction light:</strong> a soft save-point glow and atmospheric vignette behind the form, not a boxy panel.</p>
+</div>
+
+<div class="section">
+  <h3>Composition Rules</h3>
+  <p>Each generated asset should look like it belongs to the same miniature set: warm window light, crisp pixel/voxel detail, shallow depth, cinematic rim light, no flat sticker edges, no isolated icons. Assets must overlap naturally and create a foreground-to-background path into the form.</p>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="approve-v3" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>This is the right scene-setting</h3>
+      <p>Use this richer composited HD-2D layer model as the spec basis.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="more-natural" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>More natural, less staged</h3>
+      <p>Reduce symmetry and make the scene feel more like a lived-in village street.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="more-game" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>More game-like</h3>
+      <p>Add stronger RPG signposting: save crystal, quest board, cursor/focus marker, or guild banner.</p>
+    </div>
+  </div>
+</div>

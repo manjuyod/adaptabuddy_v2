@@ -1,0 +1,65 @@
+<h2>Town Gate Save Point: What It Means</h2>
+<p class="subtitle">The auth screen becomes the first RPG interaction: a traveler reaches the village gate, and the login form is the glowing save-point/menu prompt in the scene.</p>
+
+<div class="mockup">
+  <div class="mockup-header">Desktop composition sketch: current village background + new generated asset layers</div>
+  <div class="mockup-body" style="padding:0; overflow:hidden;">
+    <div style="position:relative; aspect-ratio:16/9; min-height:420px; overflow:hidden; background:linear-gradient(180deg,#182038 0%,#49365c 24%,#d58c52 42%,#25382d 43%,#10151d 100%); image-rendering:pixelated;">
+      <div style="position:absolute; inset:0; background:radial-gradient(circle at 50% 43%,rgba(255,221,143,.48),transparent 19%),linear-gradient(90deg,rgba(0,0,0,.68),transparent 28%,transparent 72%,rgba(0,0,0,.68)),linear-gradient(180deg,transparent 0%,rgba(0,0,0,.4) 88%);"></div>
+
+      <div style="position:absolute; left:0; top:18%; width:20%; height:72%; background:#111821; box-shadow:0 0 0 5px #2a1a14,18px -28px 0 #25313a,34px -44px 0 #2a1a14;">
+        <div style="position:absolute; right:18%; top:28%; width:20%; height:18%; background:#ffb545; box-shadow:0 0 22px #ff9e2e;"></div>
+      </div>
+      <div style="position:absolute; right:-2%; top:10%; width:24%; height:78%; background:#101821; box-shadow:0 0 0 5px #392414,-18px -32px 0 #263440,-34px -50px 0 #392414;">
+        <div style="position:absolute; left:20%; top:32%; width:20%; height:16%; background:#ffc15a; box-shadow:0 0 24px #ff9e2e;"></div>
+      </div>
+      <div style="position:absolute; left:23%; top:29%; width:11%; height:34%; background:#171f26; box-shadow:0 0 0 4px #4b2d1a,9px -20px 0 #26343b;"></div>
+      <div style="position:absolute; right:27%; top:31%; width:13%; height:37%; background:#172027; box-shadow:0 0 0 4px #4b2d1a,-9px -24px 0 #26343b;"></div>
+
+      <div style="position:absolute; left:17%; bottom:13%; width:7%; height:18%; background:#183d26; box-shadow:11px -10px 0 #2d6840,22px 5px 0 #102b1a;"></div>
+      <div style="position:absolute; right:18%; bottom:10%; width:8%; height:21%; background:#173921; box-shadow:13px -12px 0 #2a653b,-13px 6px 0 #102817;"></div>
+      <div style="position:absolute; left:33%; bottom:16%; width:8%; height:11%; background:#513018; box-shadow:0 -12px 0 #b05f2e,0 -22px 0 #e39b45;"></div>
+      <div style="position:absolute; right:34%; bottom:18%; width:7%; height:12%; background:#5a3519; box-shadow:0 -12px 0 #e0a344,0 -12px 24px #ffbd63;"></div>
+
+      <div style="position:absolute; left:50%; top:54%; transform:translate(-50%,-50%); width:min(34%,430px); min-width:330px; padding:30px 34px 28px; border:4px solid rgba(252,198,94,.76); background:linear-gradient(180deg,rgba(22,14,14,.82),rgba(10,13,20,.86)); box-shadow:0 18px 40px rgba(0,0,0,.68),0 0 34px rgba(255,185,82,.28);">
+        <div style="position:absolute; left:50%; top:-42px; transform:translateX(-50%); width:70px; height:70px; border:3px solid rgba(255,220,145,.9); background:rgba(252,188,74,.25); box-shadow:0 0 36px rgba(255,188,74,.76);"></div>
+        <div style="text-align:center; color:#fff2cd; font-weight:800; font-size:30px; letter-spacing:0;">ADAPTABUDDY</div>
+        <div style="height:14px;"></div>
+        <div style="height:44px; border:2px solid #c78a43; background:#241711; margin-bottom:16px; color:#f7d8aa; display:flex; align-items:center; justify-content:center;">Email</div>
+        <div style="height:44px; border:2px solid #c78a43; background:#241711; margin-bottom:20px; color:#f7d8aa; display:flex; align-items:center; justify-content:center;">Password</div>
+        <div style="display:flex; gap:10px; justify-content:center; color:#ffe0a3;">
+          <div style="border:2px solid #df9f43; padding:8px 14px; background:#52230f;">Log In</div>
+          <div style="border:2px solid #7f5b35; padding:8px 14px; background:#201513;">Sign Up</div>
+        </div>
+      </div>
+
+      <div style="position:absolute; left:3%; bottom:4%; color:#f1d6a8; font-size:13px; line-height:1.5; max-width:280px;">
+        Generated layers: foreground houses, pixel trees, lamps/signposts, save-point glow, subtle fog/vignette.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="clear" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Clear direction</h3>
+      <p>This conveys the right idea: login as the first save-point/menu interaction at a village gate.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="too-literal" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Too literal / too game UI</h3>
+      <p>Use the village assets, but keep the current elegant auth form lighter and less framed.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="needs-more-town" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Needs more actual town</h3>
+      <p>Prioritize generated houses, trees, and street props around the form before changing the menu treatment.</p>
+    </div>
+  </div>
+</div>

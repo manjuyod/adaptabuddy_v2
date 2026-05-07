@@ -1,0 +1,61 @@
+<h2>Environment-First Asset Strategy</h2>
+<p class="subtitle">The baseline stays: existing village background, centered title, lightweight auth. This choice decides how we add RPG environment around the form.</p>
+
+<div class="cards">
+  <div class="card" data-choice="cutout-layers" onclick="toggleSelect(this)">
+    <div class="card-image" style="height:260px; padding:0; overflow:hidden; background:#0b1021;">
+      <div style="position:relative; height:100%; background:linear-gradient(180deg,#1d2540 0%,#d99a56 42%,#19251f 43%,#080b10 100%);">
+        <div style="position:absolute; inset:0; background:radial-gradient(circle at 50% 42%,rgba(255,219,138,.45),transparent 22%),linear-gradient(90deg,rgba(0,0,0,.68),transparent 36%,transparent 64%,rgba(0,0,0,.68));"></div>
+        <div style="position:absolute; left:0; top:16%; width:19%; height:74%; background:#121923; box-shadow:0 0 0 4px #332016;"></div>
+        <div style="position:absolute; right:0; top:14%; width:20%; height:76%; background:#121923; box-shadow:0 0 0 4px #332016;"></div>
+        <div style="position:absolute; left:34%; top:30%; width:32%; height:36%; border:2px dashed rgba(255,225,150,.72); background:rgba(0,0,0,.18); display:flex; align-items:center; justify-content:center; color:#ffe6b5; font-weight:700;">current form stays here</div>
+        <div style="position:absolute; left:28%; bottom:22%; width:8%; height:18%; background:#1d4d2d; box-shadow:10px -9px 0 #2c7041;"></div>
+        <div style="position:absolute; right:27%; bottom:19%; width:8%; height:22%; background:#1b4328; box-shadow:12px -11px 0 #2e7544;"></div>
+        <div style="position:absolute; left:42%; bottom:18%; width:4%; height:17%; background:#5a3518; box-shadow:0 -16px 0 #e79b45,0 -16px 24px #ffbd63;"></div>
+        <div style="position:absolute; right:41%; bottom:20%; width:4%; height:15%; background:#5a3518; box-shadow:0 -15px 0 #e79b45,0 -15px 24px #ffbd63;"></div>
+        <div style="position:absolute; left:47%; bottom:11%; width:6%; height:8%; border:2px solid #ffd98a; box-shadow:0 0 28px #ffbd63;"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Layered Cutouts</h3>
+      <p>Generate transparent prop layers: trees, lamps, signpost, small foreground bridge/cobblestone, save-point glow. Compose them over the existing background.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="full-scene-variant" onclick="toggleSelect(this)">
+    <div class="card-image" style="height:260px; padding:0; overflow:hidden; background:#111827;">
+      <div style="position:relative; height:100%; background:linear-gradient(180deg,#202b4a 0%,#d89052 38%,#20382d 39%,#111820 100%);">
+        <div style="position:absolute; inset:0; background:radial-gradient(circle at 48% 44%,rgba(255,230,160,.48),transparent 25%),linear-gradient(90deg,rgba(0,0,0,.55),transparent 42%,transparent 58%,rgba(0,0,0,.55));"></div>
+        <div style="position:absolute; left:8%; top:20%; width:25%; height:56%; background:#161e27; box-shadow:0 0 0 5px #3a2518,18px -22px 0 #26333d;"></div>
+        <div style="position:absolute; right:8%; top:18%; width:25%; height:58%; background:#161e27; box-shadow:0 0 0 5px #3a2518,-18px -22px 0 #26333d;"></div>
+        <div style="position:absolute; left:33%; top:31%; width:34%; height:34%; background:rgba(255,255,255,.13); border:2px solid rgba(255,225,150,.6); display:flex; align-items:center; justify-content:center; color:#ffe6b5; font-weight:700;">new baked scene</div>
+        <div style="position:absolute; left:0; right:0; bottom:0; height:26%; background:linear-gradient(90deg,#3e2c22,#6c4a2f,#3f3026);"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>New Full Scene Variant</h3>
+      <p>Generate a fresh auth background that already contains the town-gate props and lighting. Fewer layers, faster composition, but less reusable and riskier drift.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="css-pixel-props" onclick="toggleSelect(this)">
+    <div class="card-image" style="height:260px; padding:0; overflow:hidden; background:#0f172a;">
+      <div style="position:relative; height:100%; background:linear-gradient(180deg,#232b45 0%,#d29454 42%,#1d3127 43%,#0b1118 100%);">
+        <div style="position:absolute; inset:0; background:linear-gradient(90deg,rgba(0,0,0,.62),transparent 38%,transparent 62%,rgba(0,0,0,.62));"></div>
+        <div style="position:absolute; left:36%; top:31%; width:28%; height:35%; border:2px dashed rgba(255,225,150,.72); background:rgba(0,0,0,.2); display:flex; align-items:center; justify-content:center; color:#ffe6b5; font-weight:700;">form</div>
+        <div style="position:absolute; left:25%; bottom:19%; width:36px; height:54px; background:#5b3518; box-shadow:0 -20px 0 #efa84d,0 -20px 24px #ffbd63;"></div>
+        <div style="position:absolute; right:25%; bottom:19%; width:52px; height:70px; background:#174224; box-shadow:18px -18px 0 #2d7742;"></div>
+        <div style="position:absolute; left:47%; bottom:14%; width:70px; height:28px; border:3px solid #ffd98a;"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Code-Built Pixel Props</h3>
+      <p>Build simple pixel-style prop silhouettes in CSS/canvas first. Good for layout tests, but less polished than real generated art.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Recommendation</h3>
+  <p>Use <strong>Layered Cutouts</strong>. It matches your asset-iteration goal: generate houses, trees, lamps, and save-point elements one by one, keep the good background, and reuse props later on title/start pages.</p>
+</div>
