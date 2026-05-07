@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Title HD-2D Preview V1</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #08090d;
+        --panel: rgba(13, 16, 22, 0.86);
+        --line: rgba(255, 221, 159, 0.34);
+        --text: #fff1d0;
+        --muted: rgba(255, 241, 208, 0.66);
+        --gold: #f1c875;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 50% 0%, rgba(207, 155, 75, 0.14), transparent 34rem),
+          linear-gradient(180deg, #11131a, var(--bg));
+        color: var(--text);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      main {
+        width: min(1500px, calc(100vw - 32px));
+        margin: 0 auto;
+        padding: 28px 0 44px;
+      }
+
+      header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 18px;
+        align-items: end;
+        justify-content: space-between;
+        margin-bottom: 18px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 650;
+        letter-spacing: 0;
+      }
+
+      .subtitle {
+        margin: 6px 0 0;
+        max-width: 760px;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .badge {
+        border: 1px solid rgba(241, 200, 117, 0.46);
+        border-radius: 999px;
+        padding: 7px 11px;
+        color: var(--gold);
+        background: rgba(241, 200, 117, 0.08);
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .preview-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+        gap: 18px;
+        align-items: start;
+      }
+
+      .auth-scene {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255, 221, 159, 0.18);
+        border-radius: 8px;
+        background:
+          radial-gradient(circle at 50% 43%, rgba(255, 207, 123, 0.18), transparent 26%),
+          radial-gradient(circle at 74% 68%, rgba(130, 99, 55, 0.22), transparent 28%),
+          linear-gradient(180deg, #25262d 0%, #1a1b21 42%, #0b0d12 100%);
+        box-shadow: 0 20px 64px rgba(0, 0, 0, 0.46);
+        isolation: isolate;
+      }
+
+      .auth-scene.desktop {
+        aspect-ratio: 16 / 9;
+        min-height: 520px;
+      }
+
+      .auth-scene.mobile {
+        width: 100%;
+        aspect-ratio: 390 / 844;
+        min-height: 620px;
+      }
+
+      .auth-scene img,
+      .auth-layer {
+        position: absolute;
+        pointer-events: none;
+        user-select: none;
+      }
+
+      .base-bg {
+        display: none;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: saturate(0.96) contrast(1.08) brightness(0.76);
+      }
+
+      .grade {
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(circle at 50% 42%, rgba(255, 205, 116, 0.14), transparent 28%),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0.08) 36%, rgba(0, 0, 0, 0.12) 64%, rgba(0, 0, 0, 0.68)),
+          linear-gradient(180deg, rgba(0, 0, 0, 0.08), transparent 34%, rgba(0, 0, 0, 0.42));
+      }
+
+      .atmosphere {
+        z-index: 1;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center center;
+        opacity: 0.82;
+        mix-blend-mode: normal;
+        filter: saturate(0.9) brightness(0.82);
+      }
+
+      .house {
+        display: none;
+        z-index: 2;
+        right: -8%;
+        bottom: 10%;
+        width: 33%;
+        opacity: 0.72;
+        filter: saturate(0.86) brightness(0.82) drop-shadow(-18px 24px 24px rgba(0, 0, 0, 0.42));
+      }
+
+      .town-depth {
+        z-index: 2;
+        left: 50%;
+        bottom: 14%;
+        width: 92%;
+        transform: translateX(-50%);
+        opacity: 0.5;
+        filter: saturate(0.82) brightness(0.64) drop-shadow(0 20px 24px rgba(0, 0, 0, 0.42));
+      }
+
+      .town-side {
+        z-index: 3;
+        left: 50%;
+        bottom: 2%;
+        width: 112%;
+        transform: translateX(-50%);
+        opacity: 0.78;
+        filter: saturate(0.9) brightness(0.74) drop-shadow(0 22px 28px rgba(0, 0, 0, 0.48));
+      }
+
+      .town-props {
+        z-index: 6;
+        left: 50%;
+        bottom: -3%;
+        width: 96%;
+        transform: translateX(-50%);
+        opacity: 0.82;
+        filter: saturate(0.9) brightness(0.78) drop-shadow(0 16px 20px rgba(0, 0, 0, 0.36));
+      }
+
+      .trees-left {
+        z-index: 3;
+        left: -4%;
+        bottom: 11%;
+        width: 30%;
+        opacity: 0.78;
+        filter: saturate(0.78) brightness(0.64) drop-shadow(18px 20px 26px rgba(0, 0, 0, 0.42));
+      }
+
+      .trees-right {
+        z-index: 3;
+        right: 13%;
+        bottom: 12%;
+        width: 23%;
+        opacity: 0.42;
+        transform: scaleX(-1);
+        filter: saturate(0.72) brightness(0.56) blur(0.4px);
+      }
+
+      .foreground {
+        z-index: 4;
+        left: 50%;
+        bottom: -17%;
+        width: 124%;
+        transform: translateX(-50%) scaleY(0.82);
+        transform-origin: bottom center;
+        opacity: 0.72;
+        filter: saturate(0.78) brightness(0.68) drop-shadow(0 -18px 30px rgba(0, 0, 0, 0.34));
+      }
+
+      .title-asset {
+        z-index: 7;
+        left: 50%;
+        top: 6%;
+        width: min(600px, 52%);
+        transform: translateX(-50%);
+        opacity: 0.48;
+        mix-blend-mode: screen;
+        filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 14px rgba(255, 255, 255, 0.16));
+        pointer-events: none;
+      }
+
+      .auth-menu {
+        z-index: 8;
+        position: absolute;
+        left: 50%;
+        top: 56%;
+        width: min(390px, 38%);
+        min-width: 320px;
+        transform: translate(-50%, -50%);
+        color: rgba(255, 255, 255, 0.82);
+        text-align: center;
+        text-shadow: 0 4px 14px rgba(0, 0, 0, 0.82), 0 0 10px rgba(255, 255, 255, 0.12);
+      }
+
+      .field-line {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 44px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.34);
+        font-family: "Segoe UI Light", "Segoe UI", Arial, sans-serif;
+        font-size: 23px;
+        font-style: normal;
+        font-weight: 300;
+        letter-spacing: 0;
+        color: rgba(255, 255, 255, 0.74);
+      }
+
+      .field-line + .field-line {
+        margin-top: 9px;
+      }
+
+      .menu-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+        margin-top: 0;
+        font-family: "Segoe UI Light", "Segoe UI", Arial, sans-serif;
+        font-size: 17px;
+        font-weight: 300;
+        letter-spacing: 0;
+        color: rgba(255, 255, 255, 0.78);
+      }
+
+      .menu-action {
+        width: 190px;
+        padding: 8px 12px;
+        border-left: 2px solid transparent;
+        border-right: 2px solid transparent;
+      }
+
+      .menu-action.primary {
+        border-color: rgba(255, 255, 255, 0.36);
+        background: rgba(255, 255, 255, 0.035);
+      }
+
+      .mobile .atmosphere {
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-position: 20% center;
+        opacity: 0.76;
+      }
+
+      .mobile .house {
+        display: none;
+        right: -42%;
+        bottom: 12%;
+        width: 78%;
+        opacity: 0.58;
+      }
+
+      .mobile .town-depth {
+        left: 50%;
+        bottom: 23%;
+        width: 168%;
+        opacity: 0.32;
+      }
+
+      .mobile .town-side {
+        left: 50%;
+        bottom: 6%;
+        width: 136%;
+        opacity: 0.56;
+      }
+
+      .mobile .town-props {
+        bottom: -2%;
+        width: 124%;
+        opacity: 0.66;
+      }
+
+      .mobile .trees-left {
+        left: -42%;
+        bottom: 18%;
+        width: 74%;
+        opacity: 0.5;
+      }
+
+      .mobile .trees-right {
+        display: none;
+      }
+
+      .mobile .foreground {
+        bottom: -18%;
+        width: 244%;
+        transform: translateX(-50%) scaleY(0.8);
+        opacity: 0.58;
+      }
+
+      .mobile .title-asset {
+        top: 15%;
+        width: 82%;
+        opacity: 0.5;
+      }
+
+      .mobile .auth-menu {
+        top: 46%;
+        width: 72%;
+        min-width: 0;
+      }
+
+      .mobile .field-line {
+        height: 40px;
+        font-size: 22px;
+      }
+
+      .mobile .menu-actions {
+        gap: 10px;
+        margin-top: 0;
+        font-size: 15px;
+      }
+
+      .notes {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .note {
+        min-height: 116px;
+        border: 1px solid rgba(255, 221, 159, 0.16);
+        border-radius: 8px;
+        padding: 15px;
+        background: var(--panel);
+      }
+
+      .note strong {
+        display: block;
+        margin-bottom: 7px;
+        color: var(--gold);
+        font-size: 13px;
+        text-transform: uppercase;
+      }
+
+      .note p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      @media (max-width: 1080px) {
+        .preview-grid,
+        .notes {
+          grid-template-columns: 1fr;
+        }
+
+        .auth-scene.desktop {
+          min-height: 360px;
+        }
+
+        .auth-scene.mobile {
+          max-width: 430px;
+        }
+      }
+
+      @media (max-width: 720px) {
+        main {
+          width: min(430px, calc(100vw - 32px));
+          padding-top: 30px;
+        }
+
+        .auth-scene.desktop {
+          display: none;
+        }
+
+        .auth-scene.mobile {
+          max-width: none;
+          min-height: 774px;
+        }
+
+        .mobile .title-asset {
+          top: 15%;
+          width: 82%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <h1>Title HD-2D Preview V1</h1>
+          <p class="subtitle">Preview-only composition for the title screen routes. This mirrors the approved auth pass while replacing the auth form with a clean JRPG-style title menu.</p>
+        </div>
+        <div class="badge">No production wiring</div>
+      </header>
+
+      <section class="preview-grid" aria-label="Title preview desktop and mobile compositions">
+        <div class="auth-scene desktop" aria-label="Desktop title start composition preview">
+          <img class="auth-layer atmosphere" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/depth-atmosphere-v3.png" alt="">
+          <img class="auth-layer town-depth" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/town-depth-v1.png" alt="">
+          <img class="auth-layer town-side" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/town-side-buildings-v1.png" alt="">
+          <img class="auth-layer house" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/midground-architecture-v1.png" alt="">
+          <img class="auth-layer trees-left" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/natural-environment-v1.png" alt="">
+          <img class="auth-layer trees-right" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/natural-environment-v1.png" alt="">
+          <span class="grade"></span>
+          <img class="auth-layer title-asset" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/adaptabuddy-title-v2.png" alt="AdaptaBuddy">
+          <div class="auth-menu">
+            <div class="menu-actions">
+              <div class="menu-action primary">New Game</div>
+              <div class="menu-action">Continue</div>
+              <div class="menu-action">Settings</div>
+            </div>
+          </div>
+          <img class="auth-layer foreground" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/foreground-stage-v1-trimmed.png" alt="">
+          <img class="auth-layer town-props" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/town-props-v1.png" alt="">
+        </div>
+
+        <div class="auth-scene mobile" aria-label="Mobile title continue composition preview">
+          <img class="auth-layer atmosphere" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/depth-atmosphere-v3.png" alt="">
+          <img class="auth-layer town-depth" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/town-depth-v1.png" alt="">
+          <img class="auth-layer town-side" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/town-side-buildings-v1.png" alt="">
+          <img class="auth-layer house" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/midground-architecture-v1.png" alt="">
+          <img class="auth-layer trees-left" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/natural-environment-v1.png" alt="">
+          <span class="grade"></span>
+          <img class="auth-layer title-asset" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/adaptabuddy-title-v2.png" alt="AdaptaBuddy">
+          <div class="auth-menu">
+            <div class="menu-actions">
+              <div class="menu-action primary">Continue</div>
+              <div class="menu-action">New Game</div>
+              <div class="menu-action">Settings</div>
+            </div>
+          </div>
+          <img class="auth-layer foreground" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/foreground-stage-v1-trimmed.png" alt="">
+          <img class="auth-layer town-props" src="http://localhost:3000/backgrounds/hd2d/auth/preview-v1/town-props-v1.png" alt="">
+        </div>
+      </section>
+
+      <section class="notes" aria-label="Preview decision notes">
+        <article class="note">
+          <strong>Direction</strong>
+          <p>Mirror the approved auth composition so title and auth feel like the same opening sequence.</p>
+        </article>
+        <article class="note">
+          <strong>Production Scope</strong>
+          <p>Next implementation pass should apply the layer composition to the title routes without changing route targets.</p>
+        </article>
+        <article class="note">
+          <strong>Open Check</strong>
+          <p>Confirm whether the title menu should share the auth scene exactly or receive a slightly more open camera crop.</p>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>
