@@ -263,7 +263,7 @@ export const SeasonTransitionReadModelSchema = z
     awards: z.array(SeasonAwardSchema),
     nextCycleRequest: InitializeCycleRequestSchema,
     nextCyclePreview: NextCyclePreviewSchema,
-    replayReceipt: z.record(z.unknown()),
+    replayReceipt: z.record(z.string(), z.unknown()),
     createdAt: z.string().datetime().optional(),
   })
   .strict();
@@ -286,7 +286,7 @@ export const AdvanceCycleResponseSchema = z.discriminatedUnion("status", [
       nextCycleRequest: InitializeCycleRequestSchema,
       nextCyclePreview: NextCyclePreviewSchema,
       transitionId: z.string().min(1),
-      replayReceipt: z.record(z.unknown()),
+      replayReceipt: z.record(z.string(), z.unknown()),
     })
     .strict(),
   z

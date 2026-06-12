@@ -8,7 +8,7 @@ export const WorkoutRenderer = ({ workout }: Props) => {
   return (
     <div className="space-y-4">
       {workout.blocks.map((block) => (
-        <div key={block.name} className="rounded-lg border border-slate-800 bg-surface/80 p-4 shadow-sm">
+        <div key={block.name} className="rounded-lg border border-slate-800 bg-surface/80 p-4 shadow-xs">
           <div className="mb-3 flex items-center justify-between">
             <p className="text-sm uppercase tracking-wide text-slate-400">Block</p>
             <p className="text-sm font-semibold text-slate-100">{block.name}</p>

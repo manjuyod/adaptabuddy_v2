@@ -2,6 +2,7 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { serverEnv } from "../env";
+import { applySupabaseResponseHeaders } from "./server";
 
 const normalizeCookieOptions = (options: CookieOptions) => {
   const normalized: Record<string, string | number | boolean | Date> = {};
@@ -14,14 +15,23 @@ const normalizeCookieOptions = (options: CookieOptions) => {
 
 export const createSupabaseMiddlewareClient = (req: NextRequest) => {
   const res = NextResponse.next();
+  const authHeaders = new Headers();
   const supabase = createServerClient(serverEnv.SUPABASE_URL, serverEnv.SUPABASE_ANON_KEY, {
     cookies: {
-      get: (name: string) => req.cookies.get(name)?.value,
-      set: (name: string, value: string, options: CookieOptions) =>
-        res.cookies.set({ name, value, ...normalizeCookieOptions(options) }),
-      remove: (name: string, options: CookieOptions) =>
-        res.cookies.delete({ name, ...normalizeCookieOptions(options) })
+      getAll: () => req.cookies.getAll().map(({ name, value }) => ({ name, value })),
+      setAll: (setCookies, headers) => {
+        for (const { name, value, options } of setCookies) {
+          if (value === "") {
+            res.cookies.delete({ name, ...normalizeCookieOptions(options) });
+          } else {
+            res.cookies.set({ name, value, ...normalizeCookieOptions(options) });
+          }
+        }
+
+        applySupabaseResponseHeaders(res.headers, headers);
+        applySupabaseResponseHeaders(authHeaders, headers);
+      }
     }
   });
-  return { supabase, res };
+  return { supabase, res, authHeaders };
 };

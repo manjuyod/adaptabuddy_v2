@@ -180,10 +180,15 @@ describe("history reporting read models", () => {
       ],
     });
 
-    const result = (await getWorkoutDetail(userId, 42)) as any;
+    const result = await getWorkoutDetail(userId, 42);
 
     expect(result.status).toBe("success");
-    expect(result.workout.explanation).toMatchObject({
+    if (!result.workout) {
+      throw new Error("Expected workout detail");
+    }
+    const { workout } = result;
+
+    expect(workout.explanation).toMatchObject({
       sessionOutcomeClassification: "complete_compromised",
       warnings: ["future_choices_tightened"],
       progressionChanges: [
@@ -199,7 +204,7 @@ describe("history reporting read models", () => {
         reason: "completed_recommended_session",
       },
     });
-    expect(result.workout.reporting).toMatchObject({
+    expect(workout.reporting).toMatchObject({
       adherence: {
         adherenceStreak: 7,
         completedSessionCount: 13,
@@ -211,7 +216,7 @@ describe("history reporting read models", () => {
         remainingSessions: 11,
       },
     });
-    expect(result.workout.replayReference).toMatchObject({
+    expect(workout.replayReference).toMatchObject({
       traceId: "91",
       seedUsed: "seed-plan-session-baseline",
       inputHash: "sha256:input",
@@ -243,9 +248,13 @@ describe("history reporting read models", () => {
       exercises: [],
     });
 
-    const result = (await getWorkoutDetail(userId, 77)) as any;
+    const result = await getWorkoutDetail(userId, 77);
 
     expect(result.status).toBe("success");
+    if (!result.workout) {
+      throw new Error("Expected workout detail");
+    }
+
     expect(result.workout.explanation).toBeNull();
     expect(result.workout.reporting).toBeNull();
     expect(result.workout.replayReference).toBeNull();
@@ -371,9 +380,13 @@ describe("history reporting read models", () => {
       ],
     });
 
-    const result = (await getWorkoutDetail(userId, 55)) as any;
+    const result = await getWorkoutDetail(userId, 55);
 
     expect(result.status).toBe("success");
+    if (!result.workout) {
+      throw new Error("Expected workout detail");
+    }
+
     expect(result.workout.reporting).toMatchObject({
       progression: {
         totalExercises: 1,

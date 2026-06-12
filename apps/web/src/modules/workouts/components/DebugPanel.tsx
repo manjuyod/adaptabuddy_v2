@@ -24,13 +24,13 @@ export const DebugPanel = ({ debug }: Props) => {
         <div className="mt-3 space-y-2 text-xs text-slate-300">
           <div className="flex items-center justify-between">
             <span>Seed</span>
-            <code className="rounded bg-slate-900 px-2 py-1 text-slate-200">{debug.seed}</code>
+            <code className="rounded-sm bg-slate-900 px-2 py-1 text-slate-200">{debug.seed}</code>
           </div>
           <div>
             <p className="mb-1 text-slate-400">Selected IDs</p>
             <div className="flex flex-wrap gap-2">
               {debug.selected_ids.map((id) => (
-                <span key={id} className="rounded bg-slate-900 px-2 py-1 text-slate-200">
+                <span key={id} className="rounded-sm bg-slate-900 px-2 py-1 text-slate-200">
                   {id}
                 </span>
               ))}
@@ -40,7 +40,7 @@ export const DebugPanel = ({ debug }: Props) => {
             <p className="mb-1 text-slate-400">Rejected</p>
             <div className="space-y-1">
               {debug.rejected.map((entry) => (
-                <div key={`${entry.id}-${entry.reason}`} className="rounded bg-slate-900 px-2 py-1">
+                <div key={`${entry.id}-${entry.reason}`} className="rounded-sm bg-slate-900 px-2 py-1">
                   <span className="font-semibold text-slate-200">{entry.id}</span>
                   <span className="ml-2 text-slate-400">{entry.reason}</span>
                 </div>

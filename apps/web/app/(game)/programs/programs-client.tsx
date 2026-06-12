@@ -206,7 +206,7 @@ function ProgramCard({
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-semibold text-slate-100">{program.name}</h2>
             {isActive && (
-              <span className="rounded bg-emerald-600 px-2 py-1 text-xs text-white">
+              <span className="rounded-sm bg-emerald-600 px-2 py-1 text-xs text-white">
                 {activeCycleStatus === "completed" ? "Completed" : "Active"}
               </span>
             )}

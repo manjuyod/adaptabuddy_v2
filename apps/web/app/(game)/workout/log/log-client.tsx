@@ -610,7 +610,7 @@ export function LogClient() {
                   }`}
                 >
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-[auto_1fr_1fr_1fr_auto_auto] sm:items-center">
-                    <span className="inline-flex h-8 w-8 items-center justify-center rounded bg-slate-800 text-sm text-slate-300">
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-sm bg-slate-800 text-sm text-slate-300">
                       {setIndex + 1}
                     </span>
                     <input
@@ -624,7 +624,7 @@ export function LogClient() {
                       }
                       placeholder="Weight (kg)"
                       disabled={set.completed}
-                      className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-right text-slate-100 placeholder-slate-600 focus:border-indigo-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                      className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-right text-slate-100 placeholder-slate-600 focus:border-indigo-500 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-60"
                     />
                     <input
                       type="number"
@@ -636,7 +636,7 @@ export function LogClient() {
                       }
                       placeholder="Reps"
                       disabled={set.completed}
-                      className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-right text-slate-100 placeholder-slate-600 focus:border-indigo-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                      className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-right text-slate-100 placeholder-slate-600 focus:border-indigo-500 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-60"
                     />
                     <input
                       type="number"
@@ -649,7 +649,7 @@ export function LogClient() {
                       }
                       placeholder="RIR"
                       disabled={set.completed}
-                      className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-right text-slate-100 placeholder-slate-600 focus:border-indigo-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                      className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-right text-slate-100 placeholder-slate-600 focus:border-indigo-500 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-60"
                     />
                     <button
                       type="button"
@@ -698,7 +698,7 @@ export function LogClient() {
               value={overallRpe}
               onChange={(event) => setOverallRpe(event.target.value)}
               placeholder="7.5"
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 placeholder-slate-600 focus:border-indigo-500 focus:outline-none"
+              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 placeholder-slate-600 focus:border-indigo-500 focus:outline-hidden"
             />
           </div>
         </div>
@@ -713,7 +713,7 @@ export function LogClient() {
             onChange={(event) => setNotes(event.target.value)}
             rows={3}
             placeholder="How did the workout feel? Any adjustments needed?"
-            className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 placeholder-slate-600 focus:border-indigo-500 focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 placeholder-slate-600 focus:border-indigo-500 focus:outline-hidden"
           />
         </div>
       </div>

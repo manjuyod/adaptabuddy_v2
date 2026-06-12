@@ -71,9 +71,10 @@ export async function getWorkoutHistory(
 ): Promise<HistoryListResponse> {
   const parseResult = HistoryListRequestSchema.safeParse(pagination);
   if (!parseResult.success) {
+    const errors = parseResult.error.issues;
     return {
       status: "error",
-      errors: parseResult.error.errors.map((error) => error.message),
+      errors: errors.map((error) => error.message),
     };
   }
 
@@ -178,9 +179,10 @@ export async function getWorkoutDetail(
 ): Promise<HistoryDetailResponse> {
   const parseResult = HistoryDetailRequestSchema.safeParse({ workoutId });
   if (!parseResult.success) {
+    const errors = parseResult.error.issues;
     return {
       status: "error",
-      errors: parseResult.error.errors.map((error) => error.message),
+      errors: errors.map((error) => error.message),
     };
   }
 

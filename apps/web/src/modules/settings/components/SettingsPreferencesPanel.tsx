@@ -148,7 +148,7 @@ export function SettingsPreferencesPanel({
                 type="checkbox"
                 checked={equipment.includes(option.value)}
                 onChange={() => toggleEquipment(option.value)}
-                className="h-4 w-4 rounded border-slate-600 bg-slate-950 text-amber-400 focus:ring-amber-400"
+                className="h-4 w-4 rounded-sm border-slate-600 bg-slate-950 text-amber-400 focus:ring-amber-400"
                 data-testid={`equipment-${option.value}`}
               />
               <span>{option.label}</span>

@@ -43,7 +43,7 @@ export const BetaFeedbackSubmitRequestSchema = z.object({
   currentRoute: z.string().trim().min(1).optional(),
   diagnosticConsent: z.boolean().optional(),
   requestId: z.string().trim().min(1).optional(),
-  replayReference: z.record(z.unknown()).optional(),
+  replayReference: z.record(z.string(), z.unknown()).optional(),
   clientContext: BetaFeedbackClientContextSchema.optional(),
 });
 export type BetaFeedbackSubmitRequest = z.infer<typeof BetaFeedbackSubmitRequestSchema>;

@@ -121,7 +121,7 @@ export type ProgramSlotRow = z.infer<typeof ProgramSlotRowSchema>;
 
 export const WorkoutLogRowSchema = z.object({
   id: z.coerce.number().int().positive(),
-  user_id: z.string().uuid(),
+  user_id: z.guid(),
   program_id: z.coerce.number().int().positive().nullable().optional(),
   program_day_id: z.coerce.number().int().positive().nullable().optional(),
   completed_at: z.string().min(1),

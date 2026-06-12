@@ -16,31 +16,31 @@ export const DEFAULT_OPT_INS = {
   recoveryOverride: "normal" as const,
 };
 
-export const UserOptInSchema = z
-  .object({
-    allowExtremeVolume: z.boolean().default(DEFAULT_OPT_INS.allowExtremeVolume),
-    volumeMultiplierCap: z
-      .number()
-      .min(1)
-      .max(3)
-      .default(DEFAULT_OPT_INS.volumeMultiplierCap),
-    specializationMode: z.boolean().default(DEFAULT_OPT_INS.specializationMode),
-    specializedMuscles: z.array(z.string()).default(DEFAULT_OPT_INS.specializedMuscles),
-    allowDailyTraining: z.boolean().default(DEFAULT_OPT_INS.allowDailyTraining),
-    allowDoubleSession: z.boolean().default(DEFAULT_OPT_INS.allowDoubleSession),
-    chaosBlockEnabled: z.boolean().default(DEFAULT_OPT_INS.chaosBlockEnabled),
-    ignoreDeloadRecommendations: z
-      .boolean()
-      .default(DEFAULT_OPT_INS.ignoreDeloadRecommendations),
-    recoveryOverride: RecoveryOverrideSchema.default(DEFAULT_OPT_INS.recoveryOverride),
-  })
-  .default(DEFAULT_OPT_INS);
+const UserOptInFieldsSchema = z.object({
+  allowExtremeVolume: z.boolean().default(DEFAULT_OPT_INS.allowExtremeVolume),
+  volumeMultiplierCap: z
+    .number()
+    .min(1)
+    .max(3)
+    .default(DEFAULT_OPT_INS.volumeMultiplierCap),
+  specializationMode: z.boolean().default(DEFAULT_OPT_INS.specializationMode),
+  specializedMuscles: z.array(z.string()).default(DEFAULT_OPT_INS.specializedMuscles),
+  allowDailyTraining: z.boolean().default(DEFAULT_OPT_INS.allowDailyTraining),
+  allowDoubleSession: z.boolean().default(DEFAULT_OPT_INS.allowDoubleSession),
+  chaosBlockEnabled: z.boolean().default(DEFAULT_OPT_INS.chaosBlockEnabled),
+  ignoreDeloadRecommendations: z
+    .boolean()
+    .default(DEFAULT_OPT_INS.ignoreDeloadRecommendations),
+  recoveryOverride: RecoveryOverrideSchema.default(DEFAULT_OPT_INS.recoveryOverride),
+});
+
+export const UserOptInSchema = UserOptInFieldsSchema.default(DEFAULT_OPT_INS);
 
 export type UserOptIn = z.infer<typeof UserOptInSchema>;
 
 export const OptInUpdateRequestSchema = z
   .object({
-    optIns: UserOptInSchema.optional(),
+    optIns: UserOptInFieldsSchema.optional(),
     acknowledgedRisks: z.array(z.string()).optional(),
   })
   .refine((data) => data.optIns || data.acknowledgedRisks, {

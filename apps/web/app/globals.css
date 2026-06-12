@@ -1,6 +1,22 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-ui-deep-brown: #2e1f1a;
+  --color-ui-soft-brown: #4a332b;
+  --color-ui-muted-clay: #7a5c4f;
+  --color-ui-warm-parchment: #c9b29b;
+  --color-ui-light-cream: #f2e7d8;
+  --color-ui-gold-accent: #b88a44;
+  --color-ui-dark-gold: #8e6c3a;
+  --color-ui-muted-plum: #3a2f4f;
+  --color-status-success: #2a3f2f;
+  --color-status-warning: #8f6f2d;
+  --color-status-error: #6b2a2a;
+  --color-status-info: #2f3c5a;
+  --color-surface: #0f172a;
+  --color-surface-raised: #111827;
+  --radius-lg: 12px;
+}
 
 :root {
   color-scheme: dark;

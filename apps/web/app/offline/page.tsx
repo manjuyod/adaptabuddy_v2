@@ -12,7 +12,7 @@ export default function OfflinePage() {
       <button
         type="button"
         onClick={() => window.location.reload()}
-        className="rounded-lg border border-sky-400/70 bg-sky-500/15 px-4 py-2 text-sm font-medium text-sky-100 transition hover:bg-sky-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/70"
+        className="rounded-lg border border-sky-400/70 bg-sky-500/15 px-4 py-2 text-sm font-medium text-sky-100 transition hover:bg-sky-500/25 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sky-300/70"
       >
         Retry connection
       </button>

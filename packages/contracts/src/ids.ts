@@ -4,7 +4,7 @@ export const NumericIdStringSchema = z.string().regex(/^\d+$/);
 
 export const EntityIdSchema = z.union([
   z.number().int().positive(),
-  z.string().uuid(),
+  z.guid(),
   NumericIdStringSchema,
 ]);
 

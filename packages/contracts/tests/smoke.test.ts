@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { z } from "zod";
 import {
   ChaosPlanRequestSchema,
   CanonicalClassArchetypeSchema,
@@ -22,61 +21,108 @@ import {
 } from "../src";
 import * as contracts from "../src";
 
-const isSchema = (value: unknown): value is z.ZodTypeAny =>
+type ParseResult = { success: true; data: unknown } | { success: false; error?: unknown };
+type TestSchema = {
+  safeParse: (value: unknown) => ParseResult;
+  constructor?: { name?: string };
+  _def?: Record<string, unknown>;
+  def?: Record<string, unknown>;
+  unwrap?: () => TestSchema;
+  element?: TestSchema;
+  valueType?: TestSchema;
+  options?: TestSchema[] | string[];
+  values?: Set<unknown>;
+  enum?: Record<string, string | number>;
+  shape?: Record<string, TestSchema> | (() => Record<string, TestSchema>);
+};
+
+const isSchema = (value: unknown): value is TestSchema =>
   Boolean(value) && typeof (value as { safeParse?: unknown }).safeParse === "function";
 
-const getTypeName = (schema: z.ZodTypeAny) =>
-  (schema as unknown as { _def: { typeName: z.ZodFirstPartyTypeKind } })._def.typeName;
+const getSchemaKind = (schema: TestSchema) => schema.constructor?.name ?? "Unknown";
+const getSchemaDef = (schema: TestSchema) => schema._def ?? schema.def ?? {};
+const getInnerSchema = (schema: TestSchema) => {
+  if (typeof schema.unwrap === "function") {
+    return schema.unwrap();
+  }
 
-const buildValidValue = (schema: z.ZodTypeAny, depth = 0): unknown => {
+  const def = getSchemaDef(schema);
+  return (def.innerType ?? def.schema ?? def.type ?? def.in) as TestSchema | undefined;
+};
+const getObjectShape = (schema: TestSchema) => {
+  const def = getSchemaDef(schema);
+  const shape = schema.shape ?? (def.shape as TestSchema["shape"] | undefined);
+  if (!shape) {
+    throw new Error("Unable to inspect object schema shape");
+  }
+
+  return typeof shape === "function" ? shape() : shape;
+};
+const getSchemaOptions = (schema: TestSchema) => {
+  const def = getSchemaDef(schema);
+  const options = schema.options ?? (def.options as TestSchema[] | string[] | undefined);
+  if (!options) return undefined;
+  return options instanceof Map ? Array.from(options.values()) : options;
+};
+
+const buildValidValue = (schema: TestSchema, depth = 0): unknown => {
   if (depth > 20) {
     throw new Error("Schema nesting too deep while generating valid test value");
   }
 
-  const typeName = getTypeName(schema);
+  const typeName = getSchemaKind(schema);
 
-  if (typeName === z.ZodFirstPartyTypeKind.ZodOptional) {
-    const inner = (schema as unknown as { _def: { innerType: z.ZodTypeAny } })._def.innerType;
+  if (typeName === "ZodOptional") {
+    const inner = getInnerSchema(schema);
+    if (!inner) throw new Error("Unable to inspect optional schema");
     return buildValidValue(inner, depth + 1);
   }
 
-  if (typeName === z.ZodFirstPartyTypeKind.ZodNullable) {
-    const inner = (schema as unknown as { _def: { innerType: z.ZodTypeAny } })._def.innerType;
+  if (typeName === "ZodNullable") {
+    const inner = getInnerSchema(schema);
+    if (!inner) throw new Error("Unable to inspect nullable schema");
     return buildValidValue(inner, depth + 1);
   }
 
-  if (typeName === z.ZodFirstPartyTypeKind.ZodDefault) {
-    const inner = (schema as unknown as { _def: { innerType: z.ZodTypeAny } })._def.innerType;
+  if (typeName === "ZodDefault") {
+    const inner = getInnerSchema(schema);
+    if (!inner) throw new Error("Unable to inspect defaulted schema");
     return buildValidValue(inner, depth + 1);
   }
 
-  if (typeName === z.ZodFirstPartyTypeKind.ZodEffects) {
-    const inner = (schema as unknown as { _def: { schema: z.ZodTypeAny } })._def.schema;
+  if (typeName === "ZodEffects") {
+    const inner = getInnerSchema(schema);
+    if (!inner) throw new Error("Unable to inspect effects schema");
     return buildValidValue(inner, depth + 1);
   }
 
-  if (typeName === z.ZodFirstPartyTypeKind.ZodBranded) {
-    const inner = (schema as unknown as { _def: { type: z.ZodTypeAny } })._def.type;
+  if (typeName === "ZodBranded") {
+    const inner = getInnerSchema(schema);
+    if (!inner) throw new Error("Unable to inspect branded schema");
     return buildValidValue(inner, depth + 1);
   }
 
-  if (typeName === z.ZodFirstPartyTypeKind.ZodPipeline) {
-    const inner = (schema as unknown as { _def: { in: z.ZodTypeAny } })._def.in;
+  if (typeName === "ZodPipeline") {
+    const inner = getInnerSchema(schema);
+    if (!inner) throw new Error("Unable to inspect pipeline schema");
     return buildValidValue(inner, depth + 1);
   }
 
-  if (typeName === z.ZodFirstPartyTypeKind.ZodCatch) {
-    const inner = (schema as unknown as { _def: { innerType: z.ZodTypeAny } })._def.innerType;
+  if (typeName === "ZodCatch") {
+    const inner = getInnerSchema(schema);
+    if (!inner) throw new Error("Unable to inspect catch schema");
     return buildValidValue(inner, depth + 1);
   }
 
-  if (typeName === z.ZodFirstPartyTypeKind.ZodLazy) {
-    const getter = (schema as unknown as { _def: { getter: () => z.ZodTypeAny } })._def.getter;
+  if (typeName === "ZodLazy") {
+    const getter = getSchemaDef(schema).getter as (() => TestSchema) | undefined;
+    if (!getter) throw new Error("Unable to inspect lazy schema");
     return buildValidValue(getter(), depth + 1);
   }
 
-  if (typeName === z.ZodFirstPartyTypeKind.ZodString) {
+  if (typeName === "ZodString" || typeName === "ZodGUID") {
     const candidates = [
+      "11111111-1111-4111-8111-111111111111",
       "11111111-1111-1111-1111-111111111111",
       "user@example.com",
       "2026-02-13T00:00:00.000Z",
@@ -93,36 +139,39 @@ const buildValidValue = (schema: z.ZodTypeAny, depth = 0): unknown => {
     return match;
   }
 
-  if (typeName === z.ZodFirstPartyTypeKind.ZodNumber) {
+  if (typeName === "ZodNumber") {
     const candidates = [1, 0, 0.5, 2.5, 5, 10, 100];
     const match = candidates.find((candidate) => schema.safeParse(candidate).success);
     if (match === undefined) throw new Error("Unable to generate valid number value");
     return match;
   }
 
-  if (typeName === z.ZodFirstPartyTypeKind.ZodBoolean) {
+  if (typeName === "ZodBoolean") {
     return true;
   }
 
-  if (typeName === z.ZodFirstPartyTypeKind.ZodArray) {
-    const def = (schema as unknown as { _def: { type: z.ZodTypeAny; minLength?: { value: number } } })._def;
+  if (typeName === "ZodArray") {
+    const def = getSchemaDef(schema) as { minLength?: { value: number }; element?: TestSchema; type?: TestSchema };
     const min = Math.max(def.minLength?.value ?? 1, 1);
-    return Array.from({ length: min }, () => buildValidValue(def.type, depth + 1));
+    const element = schema.element ?? def.element ?? def.type;
+    if (!element) throw new Error("Unable to inspect array element schema");
+    return Array.from({ length: min }, () => buildValidValue(element, depth + 1));
   }
 
-  if (typeName === z.ZodFirstPartyTypeKind.ZodRecord) {
-    const valueType = (schema as unknown as { _def: { valueType: z.ZodTypeAny } })._def.valueType;
+  if (typeName === "ZodRecord") {
+    const valueType = schema.valueType ?? (getSchemaDef(schema).valueType as TestSchema | undefined);
+    if (!valueType) throw new Error("Unable to inspect record value schema");
     return { key: buildValidValue(valueType, depth + 1) };
   }
 
-  if (typeName === z.ZodFirstPartyTypeKind.ZodTuple) {
-    const items = (schema as unknown as { _def: { items: z.ZodTypeAny[] } })._def.items;
+  if (typeName === "ZodTuple") {
+    const items = getSchemaDef(schema).items as TestSchema[] | undefined;
+    if (!items) throw new Error("Unable to inspect tuple items");
     return items.map((item) => buildValidValue(item, depth + 1));
   }
 
-  if (typeName === z.ZodFirstPartyTypeKind.ZodObject) {
-    const def = (schema as unknown as { _def: { shape: (() => z.ZodRawShape) | z.ZodRawShape } })._def;
-    const rawShape = typeof def.shape === "function" ? def.shape() : def.shape;
+  if (typeName === "ZodObject") {
+    const rawShape = getObjectShape(schema);
     const value: Record<string, unknown> = {};
 
     for (const [key, childSchema] of Object.entries(rawShape)) {
@@ -132,8 +181,9 @@ const buildValidValue = (schema: z.ZodTypeAny, depth = 0): unknown => {
     return value;
   }
 
-  if (typeName === z.ZodFirstPartyTypeKind.ZodUnion) {
-    const options = (schema as unknown as { _def: { options: z.ZodTypeAny[] } })._def.options;
+  if (typeName === "ZodUnion") {
+    const options = getSchemaOptions(schema) as TestSchema[] | undefined;
+    if (!options) throw new Error("Unable to inspect union options");
     for (const option of options) {
       const candidate = buildValidValue(option, depth + 1);
       if (schema.safeParse(candidate).success) {
@@ -143,9 +193,11 @@ const buildValidValue = (schema: z.ZodTypeAny, depth = 0): unknown => {
     throw new Error("Unable to generate valid union value");
   }
 
-  if (typeName === z.ZodFirstPartyTypeKind.ZodDiscriminatedUnion) {
-    const def = (schema as unknown as { _def: { options: Map<string, z.ZodTypeAny> | z.ZodTypeAny[] } })._def;
-    const options = def.options instanceof Map ? Array.from(def.options.values()) : def.options;
+  if (typeName === "ZodDiscriminatedUnion") {
+    const options = getSchemaOptions(schema) as TestSchema[] | undefined;
+    if (!options) {
+      throw new Error("Unable to generate valid discriminated union value");
+    }
     const candidate = buildValidValue(options[0], depth + 1);
     if (!schema.safeParse(candidate).success) {
       throw new Error("Unable to generate valid discriminated union value");
@@ -153,18 +205,36 @@ const buildValidValue = (schema: z.ZodTypeAny, depth = 0): unknown => {
     return candidate;
   }
 
-  if (typeName === z.ZodFirstPartyTypeKind.ZodLiteral) {
-    return (schema as unknown as { _def: { value: unknown } })._def.value;
+  if (typeName === "ZodLiteral") {
+    if (schema.values instanceof Set) {
+      return Array.from(schema.values)[0];
+    }
+
+    const def = getSchemaDef(schema);
+    const values = def.values as unknown[] | undefined;
+    return values?.[0] ?? def.value;
   }
 
-  if (typeName === z.ZodFirstPartyTypeKind.ZodEnum) {
-    return (schema as unknown as { _def: { values: string[] } })._def.values[0];
+  if (typeName === "ZodEnum") {
+    const options = getSchemaOptions(schema);
+    if (Array.isArray(options) && typeof options[0] === "string") {
+      return options[0];
+    }
+
+    const def = getSchemaDef(schema);
+    const entries = (schema.enum ?? def.entries ?? def.values) as
+      | Record<string, string | number>
+      | string[]
+      | undefined;
+    if (Array.isArray(entries)) return entries[0];
+    if (entries) return Object.values(entries)[0];
+    throw new Error("Unable to generate valid enum value");
   }
 
-  if (typeName === z.ZodFirstPartyTypeKind.ZodNativeEnum) {
-    const rawValues = Object.values(
-      (schema as unknown as { _def: { values: Record<string, string | number> } })._def.values
-    );
+  if (typeName === "ZodNativeEnum") {
+    const values = getSchemaDef(schema).values as Record<string, string | number> | undefined;
+    if (!values) throw new Error("Unable to inspect native enum values");
+    const rawValues = Object.values(values);
     const match = rawValues.find(
       (value) => typeof value === "string" || typeof value === "number"
     );
@@ -172,23 +242,23 @@ const buildValidValue = (schema: z.ZodTypeAny, depth = 0): unknown => {
     return match;
   }
 
-  if (typeName === z.ZodFirstPartyTypeKind.ZodDate) {
+  if (typeName === "ZodDate") {
     return new Date("2026-02-13T00:00:00.000Z");
   }
 
-  if (typeName === z.ZodFirstPartyTypeKind.ZodNull) {
+  if (typeName === "ZodNull") {
     return null;
   }
 
-  if (typeName === z.ZodFirstPartyTypeKind.ZodUndefined) {
+  if (typeName === "ZodUndefined") {
     return undefined;
   }
 
-  if (typeName === z.ZodFirstPartyTypeKind.ZodUnknown) {
+  if (typeName === "ZodUnknown") {
     return "unknown";
   }
 
-  if (typeName === z.ZodFirstPartyTypeKind.ZodAny) {
+  if (typeName === "ZodAny") {
     return "any";
   }
 
@@ -202,7 +272,12 @@ const schemaEntries = Object.entries(contracts)
 describe("contracts smoke", () => {
   it("parses generated valid values for every exported schema", () => {
     for (const [name, schema] of schemaEntries) {
-      const value = buildValidValue(schema);
+      let value: unknown;
+      try {
+        value = buildValidValue(schema);
+      } catch (error) {
+        throw new Error(`${name}: ${(error as Error).message}`);
+      }
       const parsed = schema.safeParse(value);
       expect(parsed.success, `${name} should parse generated valid value`).toBe(true);
     }

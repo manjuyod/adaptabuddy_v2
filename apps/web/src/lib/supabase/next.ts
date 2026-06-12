@@ -14,17 +14,22 @@ const normalizeCookieOptions = (options: CookieOptions) => {
 export const createSupabaseServerComponentClient = async () => {
   const cookieStore = await cookies();
   return getClient({
-    get: (name: string) => cookieStore.get(name)
+    getAll: () => cookieStore.getAll()
   });
 };
 
 export const createSupabaseServerActionClient = async () => {
   const cookieStore = await cookies();
   return getClient({
-    get: (name: string) => cookieStore.get(name),
-    set: (name: string, value: string, options: CookieOptions) =>
-      cookieStore.set({ name, value, ...normalizeCookieOptions(options) }),
-    delete: (name: string, options: CookieOptions) =>
-      cookieStore.delete({ name, ...normalizeCookieOptions(options) })
+    getAll: () => cookieStore.getAll().map(({ name, value }) => ({ name, value })),
+    setAll: (allCookies) => {
+      for (const { name, value, options } of allCookies) {
+        if (value === "") {
+          cookieStore.delete({ name, ...normalizeCookieOptions(options) });
+        } else {
+          cookieStore.set({ name, value, ...normalizeCookieOptions(options) });
+        }
+      }
+    }
   });
 };

@@ -2,17 +2,25 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { createSupabaseMiddlewareClient } from "./src/lib/supabase/middleware";
 import { getAuthGuardRedirect } from "./src/lib/auth/guard";
+import { applySupabaseResponseHeaders } from "./src/lib/supabase/server";
 
-const withCookies = (source: NextResponse, target: NextResponse) => {
+const withAuthResponseState = (
+  source: NextResponse,
+  target: NextResponse,
+  authHeaders: Headers
+) => {
   for (const cookie of source.cookies.getAll()) {
     target.cookies.set(cookie);
   }
+
+  applySupabaseResponseHeaders(target.headers, Object.fromEntries(authHeaders));
+
   return target;
 };
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const { supabase, res } = createSupabaseMiddlewareClient(req);
+  const { supabase, res, authHeaders } = createSupabaseMiddlewareClient(req);
   const {
     data: { user }
   } = await supabase.auth.getUser();
@@ -50,7 +58,7 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  return withCookies(res, NextResponse.redirect(redirectUrl));
+  return withAuthResponseState(res, NextResponse.redirect(redirectUrl), authHeaders);
 }
 
 export const config = {

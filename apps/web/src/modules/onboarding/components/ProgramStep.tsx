@@ -137,7 +137,7 @@ export function ProgramBlendStep({
                     );
                   }}
                   placeholder={`${formatLiftLabel(slug)} baseline`}
-                  className="w-full rounded border border-slate-800 bg-slate-900/40 px-2 py-2 text-sm"
+                  className="w-full rounded-sm border border-slate-800 bg-slate-900/40 px-2 py-2 text-sm"
                   data-testid={`onboarding-strength-baseline-${slug}`}
                 />
               </label>
@@ -201,7 +201,7 @@ export function ProgramBlendStep({
                         );
                       }}
                       placeholder={`${challenge.label} max reps`}
-                      className="w-full rounded border border-slate-800 bg-slate-900/40 px-2 py-2 text-sm"
+                      className="w-full rounded-sm border border-slate-800 bg-slate-900/40 px-2 py-2 text-sm"
                       data-testid={`onboarding-challenge-baseline-${challenge.slug}`}
                     />
                   </label>
@@ -236,7 +236,7 @@ export function ProgramBlendStep({
                         clampPercent(Number(event.target.value)),
                       )
                     }
-                    className="mt-2 w-full rounded border border-slate-800 bg-slate-900/40 px-2 py-2 text-sm"
+                    className="mt-2 w-full rounded-sm border border-slate-800 bg-slate-900/40 px-2 py-2 text-sm"
                     data-testid={`onboarding-program-input-${program.id}`}
                   />
                 </label>

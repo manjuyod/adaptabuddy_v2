@@ -184,7 +184,7 @@ export function OptInSettingsPanel({
               type="checkbox"
               checked={optIns[definition.key]}
               onChange={(event) => handleToggle(definition, event.target.checked)}
-              className="mt-1 h-4 w-4 rounded border-slate-500 bg-slate-900 text-amber-400 focus:ring-amber-400"
+              className="mt-1 h-4 w-4 rounded-sm border-slate-500 bg-slate-900 text-amber-400 focus:ring-amber-400"
               data-testid={definition.testId}
             />
           </label>

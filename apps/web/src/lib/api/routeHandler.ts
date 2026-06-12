@@ -10,6 +10,12 @@ import { logServerEvent } from "@/lib/observability/logger";
 type ParseSuccess<T> = { success: true; data: T };
 type ParseFailure = { success: false; errors: string[]; status?: number };
 
+type ZodLikeIssue = { message: string };
+type ZodLikeError = {
+  issues?: ZodLikeIssue[];
+  errors?: ZodLikeIssue[];
+};
+
 export type ParseResult<T> = ParseSuccess<T> | ParseFailure;
 
 export type SchemaLike<T> = {
@@ -19,9 +25,7 @@ export type SchemaLike<T> = {
     | { success: true; data: T }
     | {
         success: false;
-        error: {
-          errors: Array<{ message: string }>;
-        };
+        error: ZodLikeError;
       };
 };
 
@@ -113,6 +117,18 @@ const normalizeCookieOptions = (options: CookieOptions) => {
   return normalized;
 };
 
+const mergeResponseHeaders = (
+  extraHeaders: Record<string, string> | undefined,
+  supabaseHeaders: Record<string, string>
+) => {
+  const merged = { ...(extraHeaders ?? {}) };
+  for (const [key, value] of Object.entries(supabaseHeaders)) {
+    merged[key] = value;
+  }
+
+  return Object.keys(merged).length > 0 ? merged : undefined;
+};
+
 export async function runAuthedRoute<TInput, TResult, TContext = undefined>(
   request: Request,
   config: RouteConfig<TInput, TResult, TContext>,
@@ -149,12 +165,21 @@ export async function runAuthedRoute<TInput, TResult, TContext = undefined>(
   }
 
   const cookieStore = await cookies();
+  const authHeaders: Record<string, string> = {};
+  const responseHeaders = () => mergeResponseHeaders(config.extraHeaders, authHeaders);
   const supabase = getClient({
-    get: (name: string) => cookieStore.get(name),
-    set: (name: string, value: string, options: CookieOptions) =>
-      cookieStore.set({ name, value, ...normalizeCookieOptions(options) }),
-    delete: (name: string, options: CookieOptions) =>
-      cookieStore.delete({ name, ...normalizeCookieOptions(options) }),
+    getAll: () => cookieStore.getAll().map(({ name, value }) => ({ name, value })),
+    setAll: (allCookies, headers) => {
+      for (const { name, value, options } of allCookies) {
+        if (value === "") {
+          cookieStore.delete({ name, ...normalizeCookieOptions(options) });
+        } else {
+          cookieStore.set({ name, value, ...normalizeCookieOptions(options) });
+        }
+      }
+
+      Object.assign(authHeaders, headers);
+    }
   });
 
   let userId: string | null = null;
@@ -184,7 +209,7 @@ export async function runAuthedRoute<TInput, TResult, TContext = undefined>(
           config.unauthorizedBody ?? defaultUnauthorizedBody,
           401,
           requestId,
-          config.extraHeaders
+          responseHeaders()
         );
       }
 
@@ -205,7 +230,7 @@ export async function runAuthedRoute<TInput, TResult, TContext = undefined>(
         config.unauthorizedBody ?? defaultUnauthorizedBody,
         401,
         requestId,
-        config.extraHeaders
+        responseHeaders()
       );
     }
   }
@@ -230,7 +255,7 @@ export async function runAuthedRoute<TInput, TResult, TContext = undefined>(
       config.validationErrorBody?.(parseResult.errors) ?? defaultValidationBody(parseResult.errors),
       status,
       requestId,
-      config.extraHeaders
+      responseHeaders()
     );
   }
 
@@ -261,7 +286,7 @@ export async function runAuthedRoute<TInput, TResult, TContext = undefined>(
         config.serviceErrorBody?.(result) ?? result,
         status,
         requestId,
-        config.extraHeaders
+        responseHeaders()
       );
     }
 
@@ -280,7 +305,7 @@ export async function runAuthedRoute<TInput, TResult, TContext = undefined>(
       config.successBody?.(result) ?? result,
       successStatus,
       requestId,
-      config.extraHeaders
+      responseHeaders()
     );
   } catch (error) {
     logServerEvent({
@@ -298,7 +323,7 @@ export async function runAuthedRoute<TInput, TResult, TContext = undefined>(
       config.unexpectedErrorBody ?? defaultUnexpectedBody,
       500,
       requestId,
-      config.extraHeaders
+      responseHeaders()
     );
   }
 }
@@ -312,11 +337,16 @@ export async function parseJsonWithSchema<T>(
 }
 
 export function parseWithSchema<T>(input: unknown, schema: SchemaLike<T>): ParseResult<T> {
+  const schemaErrorMessages = (error: ZodLikeError) => {
+    const issues = error.issues ?? error.errors ?? [];
+    return issues.map((entry) => entry.message);
+  };
+
   const parseResult = schema.safeParse(input);
   if (!parseResult.success) {
     return {
       success: false,
-      errors: parseResult.error.errors.map((error) => error.message),
+      errors: schemaErrorMessages(parseResult.error),
     };
   }
 

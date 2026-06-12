@@ -13,6 +13,7 @@ yarn.lock
 __pycache__/
 *.pyc
 .mcp.json
+/.stitch
 /.claude
 playwright-report
 test-results

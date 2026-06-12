@@ -556,7 +556,7 @@ export function WorkoutClient({
                       {needsAck ? (
                         <input
                           type="checkbox"
-                          className="mt-1 h-4 w-4 rounded border-slate-500 bg-slate-900 text-amber-400 focus:ring-amber-400"
+                          className="mt-1 h-4 w-4 rounded-sm border-slate-500 bg-slate-900 text-amber-400 focus:ring-amber-400"
                           checked={isChecked}
                           onChange={() => toggleAcknowledgment(warning.id)}
                           data-testid={`guardrail-ack-${warning.id}`}
@@ -781,7 +781,7 @@ export function WorkoutClient({
                             Target RIR: <span className="font-semibold">{loadRec.targetRir}</span>
                           </span>
                           {loadRec.isProgression ? (
-                            <span className="rounded bg-emerald-800 px-2 py-0.5 text-xs text-emerald-200">
+                            <span className="rounded-sm bg-emerald-800 px-2 py-0.5 text-xs text-emerald-200">
                               Progression
                             </span>
                           ) : null}
@@ -858,8 +858,8 @@ export function WorkoutClient({
 function WorkoutLoadingSkeleton() {
   return (
     <div className="space-y-4 animate-pulse">
-      <div className="h-4 w-48 rounded bg-slate-700/60" />
-      <div className="h-10 w-full rounded bg-slate-800/70" />
+      <div className="h-4 w-48 rounded-sm bg-slate-700/60" />
+      <div className="h-10 w-full rounded-sm bg-slate-800/70" />
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="h-28 rounded-xl border border-slate-700 bg-slate-900/40" />
         <div className="h-28 rounded-xl border border-slate-700 bg-slate-900/40" />

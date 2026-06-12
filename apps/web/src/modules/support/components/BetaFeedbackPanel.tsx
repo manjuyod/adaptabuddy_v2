@@ -265,7 +265,7 @@ export function BetaFeedbackPanel() {
           id="beta-feedback-diagnostic-consent"
           checked={diagnosticConsent}
           onChange={(event) => setDiagnosticConsent(event.target.checked)}
-          className="mt-1 h-4 w-4 rounded border-slate-600 bg-slate-950"
+          className="mt-1 h-4 w-4 rounded-sm border-slate-600 bg-slate-950"
           data-testid="beta-feedback-diagnostic-consent"
         />
         <span>
