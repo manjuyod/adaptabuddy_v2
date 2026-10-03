@@ -1,0 +1,17 @@
+[package]
+name = "analytics"
+edition.workspace = true
+version.workspace = true
+publish.workspace = true
+
+[dependencies]
+achievements = { path = "../achievements" }
+body-metrics = { path = "../body-metrics" }
+core-domain = { path = "../core-domain" }
+goals = { path = "../goals" }
+habits = { path = "../habits" }
+nutrition = { path = "../nutrition" }
+progression = { path = "../progression" }
+shared-types = { path = "../shared-types" }
+storage = { path = "../storage" }
+workouts = { path = "../workouts" }

@@ -1,5 +1,5 @@
-import { TitleMenuScreen } from "@/modules/title/components/title-menu-screen";
+import { redirect } from "next/navigation";
 
-export default function TitleContinuePage() {
-  return <TitleMenuScreen variant="continue" />;
+export default function DeprecatedTitleContinuePage() {
+  redirect("/dashboard");
 }

@@ -156,7 +156,7 @@ describe("Spec 8 onboarding wizard", () => {
     });
     await click("onboarding-next");
     expect(await screen.findByTestId("onboarding-step-confirmation")).toBeTruthy();
-    expect(screen.getByText(/class preset:\s*Classless/i)).toBeTruthy();
+    expect(screen.getByText(/training style:\s*Balanced/i)).toBeTruthy();
     expect(screen.getByText(/goal bias:\s*Strength/i)).toBeTruthy();
     expect(screen.getByText(/fatigue:\s*light/i)).toBeTruthy();
 

@@ -19,10 +19,10 @@ const equipmentLabelByValue = new Map(
 );
 
 const classPresetLabelByValue = new Map([
-  ["classless", "Classless"],
-  ["bb", "Big Body"],
+  ["classless", "Balanced"],
+  ["bb", "Size and Strength"],
   ["powa", "Power-Oriented"],
-  ["ninja", "Ninja"],
+  ["ninja", "Calisthenics Focus"],
 ]);
 
 const goalBiasLabelByValue = new Map([
@@ -55,18 +55,18 @@ export function ConfirmationStep({
         <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Step 6 of 6</p>
         <h2 className="mt-2 text-xl font-semibold text-slate-100">Confirm Setup</h2>
         <p className="mt-1 text-sm text-slate-400">
-          Review your profile setup before we generate your first cycle.
+          Review your profile setup before we generate your first training block.
         </p>
       </div>
 
       <div className="space-y-3 rounded-lg border border-slate-800 bg-slate-900/40 p-4 text-sm">
         <div>
-          <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Character</p>
-          <p className="mt-1 text-slate-200">Class preset: {formatClassPreset(classPresetId)}</p>
+          <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Profile</p>
+          <p className="mt-1 text-slate-200">Training style: {formatClassPreset(classPresetId)}</p>
           <p className="mt-1 text-slate-200">Goal bias: {formatGoalBias(goalBias)}</p>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Gear</p>
+          <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Equipment</p>
           <p className="mt-1 text-slate-200">{equipment.map((entry) => formatEquipment(entry)).join(", ")}</p>
         </div>
         <div>
@@ -78,13 +78,13 @@ export function ConfirmationStep({
           </p>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Cycle</p>
+          <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Training Block</p>
           <p className="mt-1 text-slate-200">
             {availableDaysPerWeek} days / week for {macrocycleWeeks} weeks
           </p>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Program Blend</p>
+          <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Training Plan</p>
           <p className="mt-1 text-slate-200">
             Total: {totalPercent.toFixed(0)}%
           </p>

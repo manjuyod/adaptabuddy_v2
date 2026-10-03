@@ -74,10 +74,10 @@ export default async function SettingsPage() {
         </p>
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
           <Link
-            href={ROUTES.start}
-            className="pixelated rounded-lg border border-amber-900 bg-gradient-to-b from-amber-400 to-amber-700 px-4 py-3 text-center text-sm font-semibold text-amber-50 shadow-[0_6px_0_#4a2b00] transition hover:-translate-y-0.5 hover:shadow-[0_8px_0_#4a2b00] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
+            href="/dashboard"
+            className="rounded-lg border border-emerald-700 bg-emerald-500/10 px-4 py-3 text-center text-sm font-semibold text-emerald-100 transition hover:border-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300"
           >
-            Back to Title
+            Health Dashboard
           </Link>
           <SignOutButton />
           {isDev ? (

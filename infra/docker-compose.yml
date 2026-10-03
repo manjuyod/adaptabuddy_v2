@@ -1,0 +1,64 @@
+services:
+  api:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: adaptabuddy-api
+    restart: unless-stopped
+    environment:
+      API_BIND_ADDR: 0.0.0.0:3000
+      RUST_LOG: ${RUST_LOG:-debug}
+      SUPABASE_URL: ${API_CONTAINER_SUPABASE_URL:-http://host.docker.internal:54321}
+      SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET:-}
+      DATABASE_URL: ${API_CONTAINER_DATABASE_URL:-postgresql://postgres:postgres@host.docker.internal:54322/postgres}
+      ALLOW_LOCAL_DEV_TOKEN: ${ALLOW_LOCAL_DEV_TOKEN:-false}
+    ports:
+      - "${API_PORT:-3000}:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:3000/api/v0/health >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  health-app:
+    image: node:20-alpine
+    container_name: adaptabuddy-health-app
+    profiles: ["web"]
+    working_dir: /workspace
+    command: ["sh", "-c", "npm install && npm run dev:health-app -- --hostname 0.0.0.0"]
+    environment:
+      API_BASE_URL: http://api:3000
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://127.0.0.1:3000}
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-http://127.0.0.1:54321}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-local-anon-key}
+    ports:
+      - "${HEALTH_APP_PORT:-3001}:3000"
+    volumes:
+      - ..:/workspace
+      - health_app_node_modules:/workspace/node_modules
+
+  postgres:
+    image: postgres:16
+    container_name: adaptabuddy-standalone-postgres
+    profiles: ["standalone-postgres"]
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-adaptabuddy}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-adaptabuddy}
+      POSTGRES_DB: ${POSTGRES_DB:-adaptabuddy_dev}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-adaptabuddy} -d ${POSTGRES_DB:-adaptabuddy_dev}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
+  health_app_node_modules:

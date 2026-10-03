@@ -127,19 +127,19 @@ export default async function DashboardPage() {
         {latestSeasonTransition ? (
           <div className="rounded-xl border border-amber-700/60 bg-amber-500/10 p-5 shadow-lg xl:col-span-3">
             <p className="text-xs uppercase tracking-[0.18em] text-amber-200">
-              Season Result
+              Progress Review
             </p>
             <div className="mt-3 grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
               <div>
                 <p className="text-2xl font-semibold text-slate-100">
-                  Rank {latestSeasonTransition.season_rank ?? "-"}
+                  Progress grade {latestSeasonTransition.season_rank ?? "-"}
                 </p>
                 <p className="mt-1 text-sm text-amber-100">
-                  {Number(latestSeasonTransition.awarded_xp ?? 0).toLocaleString()} XP awarded
+                  {Number(latestSeasonTransition.awarded_xp ?? 0).toLocaleString()} progress points awarded
                 </p>
                 {latestSeasonTransition.next_cycle_preview ? (
                   <p className="mt-2 text-sm text-slate-300">
-                    {latestSeasonTransition.next_cycle_preview.rankEffect ?? "Next season ready"} ·{" "}
+                    {latestSeasonTransition.next_cycle_preview.rankEffect ?? "Next training block ready"} ·{" "}
                     {latestSeasonTransition.next_cycle_preview.programBlendDirection ?? "balanced"} ·
                     difficulty {latestSeasonTransition.next_cycle_preview.difficultyAdjustment ?? 0}
                   </p>
@@ -155,7 +155,7 @@ export default async function DashboardPage() {
                   type="submit"
                   className="rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400"
                 >
-                  Start Next Season
+                  Start Next Training Block
                 </button>
               </form>
             </div>
@@ -184,7 +184,7 @@ export default async function DashboardPage() {
                     {cycleSummary.remainingSessions} sessions remaining
                   </p>
                   <div className="mt-3 grid gap-2 text-xs text-slate-400 sm:grid-cols-2">
-                    <span>Level {cycleSummary.level} · {cycleSummary.xp} XP</span>
+                    <span>Level {cycleSummary.level} · {cycleSummary.xp} progress points</span>
                     <span>Streak {cycleSummary.streak} · Missed {cycleSummary.missedCount}</span>
                   </div>
                 </div>

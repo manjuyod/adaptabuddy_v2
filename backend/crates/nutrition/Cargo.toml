@@ -1,0 +1,13 @@
+[package]
+name = "nutrition"
+edition.workspace = true
+version.workspace = true
+publish.workspace = true
+
+[dependencies]
+chrono.workspace = true
+core-domain = { path = "../core-domain" }
+events = { path = "../events" }
+shared-types = { path = "../shared-types" }
+storage = { path = "../storage" }
+uuid.workspace = true

@@ -10,12 +10,13 @@ export default defineConfig({
   },
   test: {
     environment: "node",
+    maxWorkers: 4,
     globals: true,
     include: ["tests/**/*.test.{ts,tsx}"]
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src")
+      "@": path.resolve(import.meta.dirname, "./src")
     }
   }
 });

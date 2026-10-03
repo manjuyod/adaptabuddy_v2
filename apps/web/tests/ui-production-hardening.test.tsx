@@ -147,11 +147,21 @@ describe("spec 12 production hardening UI", () => {
     navigationContext.pathname = "/workout/log";
     render(<NavigationBar />);
 
-    for (const label of ["Dashboard", "Workout", "Programs", "History", "Settings"]) {
+    for (const label of [
+      "Dashboard",
+      "Nutrition",
+      "Workouts",
+      "History",
+      "Habits",
+      "Goals",
+      "Metrics",
+      "Progress",
+      "Settings",
+    ]) {
       expect(screen.getAllByRole("link", { name: label }).length).toBeGreaterThan(0);
     }
 
-    const activeWorkoutLinks = screen.getAllByRole("link", { name: "Workout" });
+    const activeWorkoutLinks = screen.getAllByRole("link", { name: "Workouts" });
     activeWorkoutLinks.forEach((link) => {
       expect(link.getAttribute("data-active")).toBe("true");
     });

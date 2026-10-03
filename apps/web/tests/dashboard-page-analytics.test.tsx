@@ -315,7 +315,7 @@ describe("dashboard analytics migration", () => {
     expect(mockGetRecentWorkoutHistory).not.toHaveBeenCalled();
     expect(screen.getByText("Cycle 3 / 8")).toBeTruthy();
     expect(screen.getByText("37.5% complete")).toBeTruthy();
-    expect(screen.getByText("Level 4 · 260 XP")).toBeTruthy();
+    expect(screen.getByText("Level 4 · 260 progress points")).toBeTruthy();
     expect(screen.getByText("Streak 6 · Missed 1")).toBeTruthy();
     expect(screen.getByText("Normalized Upper")).toBeTruthy();
     expect(screen.getByText(/18%/)).toBeTruthy();
@@ -349,9 +349,9 @@ describe("dashboard analytics migration", () => {
     const page = await DashboardPage();
     render(page);
 
-    expect(screen.getByText("Season Result")).toBeTruthy();
-    expect(screen.getByText("Rank A")).toBeTruthy();
-    expect(screen.getByText("120 XP awarded")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Start Next Season" })).toBeTruthy();
+    expect(screen.getByText("Progress Review")).toBeTruthy();
+    expect(screen.getByText("Progress grade A")).toBeTruthy();
+    expect(screen.getByText("120 progress points awarded")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Start Next Training Block" })).toBeTruthy();
   });
 });

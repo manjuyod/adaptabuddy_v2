@@ -6,22 +6,43 @@
     "node": ">=20.19.0"
   },
   "workspaces": [
+    "frontend/*",
     "apps/*",
     "packages/*"
   ],
   "scripts": {
-    "dev": "node node_modules/next/dist/bin/next dev apps/web",
+    "dev:api": "cargo run --manifest-path backend/Cargo.toml -p api-server",
+    "dev:health-app": "npm run dev --workspace frontend/health-app",
+    "dev": "npm run dev:api",
+    "dev:web": "node node_modules/next/dist/bin/next dev apps/web",
     "build": "npm run build --workspace apps/web",
+    "build:api": "cargo build --manifest-path backend/Cargo.toml -p api-server",
+    "build:health-app": "npm run build --workspace frontend/health-app",
     "lint": "npm run lint --workspace apps/web",
+    "lint:health-app": "npm run lint --workspace frontend/health-app",
     "typecheck": "npm run typecheck --workspace apps/web",
+    "typecheck:health-app": "npm run typecheck --workspace frontend/health-app",
     "engine:season-loop": "cargo run --manifest-path packages/engine-rs/Cargo.toml --bin season_loop_backtest -- --scenario all",
-    "test": "npm run test --workspaces",
+    "test": "npm run test --workspace apps/web && npm run test --workspace packages/contracts && npm run test --workspace packages/core && npm run test --workspace packages/db",
+    "test:health-app": "npm run test --workspace frontend/health-app",
+    "test:backend": "cargo test --manifest-path backend/Cargo.toml",
+    "check:backend": "cargo fmt --manifest-path backend/Cargo.toml --all -- --check && cargo check --manifest-path backend/Cargo.toml && cargo clippy --manifest-path backend/Cargo.toml --all-targets -- -D warnings && cargo test --manifest-path backend/Cargo.toml",
     "test:engine": "cargo test --manifest-path packages/engine-rs/Cargo.toml",
     "ci:quality": "node scripts/ci-quality.mjs",
     "test:e2e:playwright": "npm run test:e2e:playwright --workspace apps/web",
-    "verify:deploy:smoke": "node apps/web/scripts/verify-deploy-smoke.mjs"
+    "verify:deploy:smoke": "node apps/web/scripts/verify-deploy-smoke.mjs",
+    "supabase:start": "npx supabase start",
+    "supabase:status": "npx supabase status",
+    "supabase:stop": "npx supabase stop",
+    "supabase:reset": "npx supabase db reset",
+    "supabase:lint": "npx supabase db lint --local --fail-on warning",
+    "supabase:link": "npx supabase link --project-ref vezfyhbrrpokheqipepa",
+    "supabase:pull:schema": "npx supabase db dump --linked --schema public,auth,storage --file supabase/schema.remote.sql",
+    "supabase:pull:data": "npx supabase db dump --linked --data-only --schema public,auth,storage --file supabase/seed.remote.sql",
+    "supabase:import:remote-data": "node scripts/supabase/import-remote-data.mjs"
   },
   "devDependencies": {
-    "mermaid": "^11.15.0"
+    "mermaid": "^11.15.0",
+    "supabase": "2.106.0"
   }
 }

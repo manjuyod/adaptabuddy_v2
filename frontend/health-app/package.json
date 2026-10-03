@@ -1,0 +1,16 @@
+{
+  "name": "@adaptabuddy/health-app",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Frontend migration workspace scaffold for Adaptabuddy.",
+  "scripts": {
+    "dev": "npm --prefix ../../apps/web run dev",
+    "build": "npm --prefix ../../apps/web run build",
+    "start": "npm --prefix ../../apps/web run start",
+    "lint": "npm --prefix ../../apps/web run lint",
+    "typecheck": "npm --prefix ../../apps/web run typecheck",
+    "test": "npm --prefix ../../apps/web run test",
+    "test:e2e:playwright": "npm --prefix ../../apps/web run test:e2e:playwright",
+    "verify:deploy:smoke": "npm --prefix ../../apps/web run verify:deploy:smoke"
+  }
+}

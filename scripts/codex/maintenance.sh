@@ -14,5 +14,6 @@ fi
 
 npm ci
 "$CARGO_BIN" fetch --manifest-path packages/engine-rs/Cargo.toml
+"$CARGO_BIN" fetch --manifest-path backend/Cargo.toml
 
 echo "[codex maintenance] dependencies refreshed"

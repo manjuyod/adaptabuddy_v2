@@ -1,0 +1,10 @@
+[package]
+name = "achievements"
+edition.workspace = true
+version.workspace = true
+publish.workspace = true
+
+[dependencies]
+core-domain = { path = "../core-domain" }
+shared-types = { path = "../shared-types" }
+storage = { path = "../storage" }

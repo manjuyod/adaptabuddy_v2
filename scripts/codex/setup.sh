@@ -19,5 +19,6 @@ echo "[codex setup] cargo: $("$CARGO_BIN" --version)"
 
 npm ci
 "$CARGO_BIN" fetch --manifest-path packages/engine-rs/Cargo.toml
+"$CARGO_BIN" fetch --manifest-path backend/Cargo.toml
 
 echo "[codex setup] complete"

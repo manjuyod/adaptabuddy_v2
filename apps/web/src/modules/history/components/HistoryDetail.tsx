@@ -60,7 +60,8 @@ export function HistoryDetail({ workout }: HistoryDetailProps) {
           <div className="mt-3 space-y-2 text-sm text-slate-300">
             <p>{formatOutcomeLabel(workout.explanation.sessionOutcomeClassification)}</p>
             <p>
-              XP: {workout.explanation.xp.xpDelta} · Streak: {workout.explanation.xp.streakDelta}
+              Progress points: {workout.explanation.xp.xpDelta} · Streak:{" "}
+              {workout.explanation.xp.streakDelta}
             </p>
             <p>{formatExplanationLabel(workout.explanation.xp.reason)}</p>
             {workout.explanation.warnings.map((warning) => (

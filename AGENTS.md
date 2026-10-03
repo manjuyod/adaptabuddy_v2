@@ -1,21 +1,31 @@
-# AdaptaBuddy vNext — Agent Guide
+# AdaptaBuddy vNext Agent Guide
 
 `CLAUDE.md` is the canonical process source for this repository. This file mirrors it for agent consumption and should not introduce competing architecture direction.
 
-## Overview
+## Current Direction
 
-Purpose: Work in an engine-first repository where the long-term center of gravity is a standalone deterministic training engine, while `apps/web` remains the current auth/UI/DB/orchestration shell.
+Purpose: build the mobile + Rust backend MVP.
+
+```text
+Kotlin Android app
+        |
+        v
+Rust API backend
+        |
+        v
+Supabase Auth + Postgres
+```
 
 Canonical references:
-- Architecture: `docs/architecture/engine_first_architecture.md`
-- Roadmap: `specs/overall_plan.md`
-- Process source: `CLAUDE.md`
 
-Spec and memory ledgers:
-- Active queue, latest completed numbered spec, and wave status: `specs/overall_plan.md`
-- Historical completed spec archive index: `docs/archive/specs/README.md`
-- Durable handoff/status memory: `docs/hippocampus/` and `specs/hippocampus/`
-- Latest private beta candidate evidence and promotion status: `docs/operations/private_beta_release_record.md`
+- Architecture: `docs/architecture.md`
+- Backend overview: `docs/architecture/backend-overview.md`
+- Service boundaries: `docs/architecture/service-boundaries.md`
+- Android MVP plan: `docs/architecture/mobile-android-mvp.md`
+- Security posture: `docs/security/mobile-auth-api-security.md`
+- API contracts: `docs/api/api-contracts.md`
+- Data model: `docs/data/data-model.md`
+- Active plan: `specs/overall_plan.md`
 
 ## Commands
 
@@ -23,135 +33,82 @@ Spec and memory ledgers:
 # Install dependencies
 npm install
 
-# Development server (runs apps/web)
-npm run dev
+# Local Supabase
+npx supabase status
+make supabase-start
+make supabase-reset
 
-# Repository quality checks
-npm run typecheck
-npm run lint
-npm run test
-cd apps/web && npm run build
+# Rust API
+make dev-api
 
-# Live Supabase E2E verification (manual apps/web pre-release check)
-RUN_SUPABASE_E2E_VERIFICATION=1 npm run test --workspace apps/web -- tests/supabase-e2e-verification.test.ts
+# Rust backend quality gate
+cargo fmt --manifest-path backend/Cargo.toml --all
+cargo check --manifest-path backend/Cargo.toml
+cargo clippy --manifest-path backend/Cargo.toml --all-targets -- -D warnings
+cargo test --manifest-path backend/Cargo.toml
 
-# Manual Playwright browser E2E (manual apps/web pre-release check)
-npm run test:e2e:playwright
-
-# First-time Playwright browser install
-cd apps/web && npx playwright install
-
-# apps/web deployment smoke verifier
-npm run verify:deploy:smoke
-
-# Default local pre-PR quality gate
-npm run ci:quality
+# Supabase validation
+npx supabase db reset
+npx supabase db lint --local --fail-on warning
 ```
-
-## GitNexus Working Context
-
-- Treat the generated GitNexus block near the end of this file as tool-owned context; keep durable human-authored guidance outside that block so future `gitnexus analyze` runs do not wipe it.
-- To refresh code intelligence from the repo root, run `gitnexus analyze --force`. If the global CLI is unavailable, use `npx gitnexus analyze --force`.
-- After refreshing, verify the indexed repo with GitNexus `list_repos`, then use the MCP tools for context and impact work: `query`, `context`, `impact`, `detect_changes`, `cypher`, `rename`, `route_map`, `api_impact`, `shape_check`, `tool_map`, `group_list`, and `group_sync`.
-- Preserve `.gitnexus/` and `.claude/skills/generated/*` as generated tool context. Preserve `specs/hippocampus/*` and `docs/hippocampus/*` as durable handoff/status memory.
-
-## Codex Cloud Workflow
-
-- Codex cloud setup and task policy live in `docs/operations/codex_cloud_workflow.md`.
-- Recommended setup script: `bash scripts/codex/setup.sh`.
-- Recommended maintenance script: `bash scripts/codex/maintenance.sh`.
-- Default pre-PR verification is `npm run ci:quality`.
-- Track Spark/Blaziken and regular Codex cloud usage separately; when both are near 10% remaining, pause Codex cloud usage until quota returns unless an urgent human-approved exception applies.
-- Keep normal cloud tasks off live Supabase: `RUN_SUPABASE_E2E_VERIFICATION=0` and `RUN_PLAYWRIGHT_E2E=0`.
-- Use live Supabase and Playwright E2E only for explicitly scoped pre-release verification.
-- For first-pass implementation of bounded coding tasks, route the initial patch through GPT-5.3 Codex Spark / Blaziken, then review and verify before PR handoff.
-- Skip Spark-first for high-risk architecture, auth/RLS/security, release promotion, or user-directed senior-agent implementation.
 
 ## Architecture Split
 
 ```text
-apps/web/            product shell: auth, UI, API, middleware, DB orchestration
-packages/engine-rs/  accepted Rust MVP engine baseline for `initialize_cycle` / `plan_session` / `complete_session`
-packages/core/       legacy TypeScript decision logic retained as reference context
-packages/contracts/  TypeScript adapter contracts and edge validation
-packages/db/         SQL and schema notes for app persistence only
+backend/       Rust Axum modular monolith and API source of truth
+mobile/        Android-first mobile workstream
+supabase/      Local Supabase config, migrations, seed data, and SQL checks
+migrations/    Migration stream notes
+docs/          Current MVP architecture, product, API, data, and security docs
 ```
 
-Current runtime note:
-- `apps/web` currently invokes Rust directly for `initialize_cycle`
-- cycle-backed completion now invokes Rust `complete_session` and applies normalized gamification/progression state from the engine patch
-- cycle-backed session generation now invokes Rust `plan_session` for raw active normalized sessions, while persisted filled payloads still short-circuit directly
+## Boundary Rules
 
-Boundary rules:
-- `apps/web` owns auth, transport, persistence, rate limiting, security headers, and RLS-backed enforcement.
-- `packages/engine-rs` is the accepted engine implementation baseline and owns the current standalone deterministic engine surface.
-- `packages/core` remains useful reference behavior but is not the active MVP implementation surface unless a task is explicitly migration- or parity-scoped.
-- `packages/contracts` is a TypeScript adapter layer, not the canonical long-term engine schema.
-- `users.stats_json` is an app persistence shape, not the canonical engine state model.
+- `/api/v0/me/...` is the canonical mobile/client API namespace.
+- Mobile clients authenticate with Supabase Auth and send the Supabase access JWT to Rust.
+- Rust validates JWTs on every protected route and attaches typed auth context.
+- Protected routes must use auth context ownership, not client-supplied owner IDs.
+- Mobile may hold the Supabase project URL and publishable key.
+- Mobile must never hold service-role keys, JWT secrets, database passwords, webhook secrets, or admin credentials.
+- RLS is required for directly exposed user-owned tables.
+- RPG, Unity, iOS, web, and admin surfaces are deferred.
+
+## Service Boundaries
+
+- Auth/API security owns JWT validation, route classes, and auth context.
+- User engine owns profile, body stats, exercise stats, muscle group summaries, and stat prompts.
+- Food engine owns diary entries, meal metadata, macros, nutrition targets, and BMR estimates.
+- Workout generation owns v0 plan/day/exercise creation.
+- Workout completion owns session lifecycle, exercise completion status, XP awards, and stat update hooks.
+- RPG remains deferred and must not block mobile health workflows.
 
 ## Non-Negotiable Rules
 
-1. Auth stays in cookies only.
-2. Validate external inputs at the app edge.
-3. Keep server secrets out of client bundles.
-4. Assume RLS enforcement for app persistence.
-5. Keep engine code pure and deterministic.
-6. Do not let DB rows or API wrapper shapes define the engine boundary.
-7. Do not mutate plans without explicit confirmation.
-
-## Engine-First Workflow
-
-Use this order unless the task explicitly scopes differently:
-
-1. Define or revise the engine boundary contract.
-2. Define invariants, deterministic fixtures, and replay expectations.
-3. Update the pure engine spec or implementation in `packages/engine-rs` for the accepted MVP baseline; use `packages/core` only when a task is explicitly migration- or parity-scoped.
-4. Update adapter contracts in `packages/contracts` only after engine behavior is settled.
-5. Add app/API/UI integration in `apps/web` only if explicitly in scope.
-
-## Key Files Reference
-
-| Purpose | Location |
-|---------|----------|
-| Canonical architecture direction | `docs/architecture/engine_first_architecture.md` |
-| Active roadmap | `specs/overall_plan.md` |
-| Rust engine logic | `packages/engine-rs/src/*` |
-| Legacy TypeScript engine logic | `packages/core/src/engine/*` |
-| TypeScript adapter contracts | `packages/contracts/src/*` |
-| App middleware | `apps/web/middleware.ts` |
-| Auth and route guards | `apps/web/src/lib/auth/guard.ts`, `apps/web/src/lib/routes.ts` |
-| Supabase clients | `apps/web/src/lib/supabase/{server,client,middleware}.ts` |
-| Env validation | `apps/web/src/lib/env.ts` |
-| Security headers | `apps/web/next.config.mjs`, `apps/web/src/lib/security/` |
-| DB migrations and notes | `packages/db/sql/*` |
-| apps/web operations docs | `docs/operations/*` |
-
-## Current Scope Notes
-
-- Existing web product-shell work remains valid context, but it is downstream of the engine-first roadmap.
-- Existing release docs remain valid only for `apps/web` runtime operations.
-- Active and planned engine specs are tracked by `specs/overall_plan.md`.
-- Historical completed specs live under `docs/archive/specs/` and are indexed by `docs/archive/specs/README.md`.
-- Durable handoff/status memory lives under `docs/hippocampus/` and `specs/hippocampus/`.
+1. Keep server secrets out of mobile and client bundles.
+2. Validate external inputs at the API edge.
+3. Validate Supabase JWTs before protected route handling.
+4. Use auth context ownership instead of client-supplied owner IDs.
+5. Preserve RLS for directly exposed tables.
+6. Keep Rust backend logic server-authoritative.
+7. Keep mobile simple and MVP-focused.
 
 ## Testing Expectations
 
 | Scope | Requirement |
-|-------|-------------|
-| Engine contract/spec work | Prefer deterministic fixtures, invariant checks, and replay-oriented verification |
-| Engine implementation changes | Add or update golden or determinism tests |
-| Adapter/API shape changes | Update TypeScript contracts and add schema smoke tests |
-| Product-shell changes | Run `npm run typecheck`, `npm run lint`, `npm run test`, and `cd apps/web && npm run build` before completion |
+| --- | --- |
+| Rust backend changes | Run `cargo fmt`, `cargo check`, `cargo clippy`, and `cargo test` for `backend/Cargo.toml` |
+| Auth/API changes | Add or update route boundary and ownership tests |
+| Storage/migration changes | Validate local Supabase migrations and RLS when CLI is available |
+| Docs-only cleanup | Run stale-reference searches and `git status` |
 
-## Open Architecture Risks
+## Current Next Pass
 
-- Whether the engine emits only deterministic state patches or patches plus domain events
-- How mixed app-owned and engine-owned data should be separated from current persistence shapes
+Harden the authenticated Android Home dashboard and complete the Habits, Add, Workout, and Food flows against `/api/v0/me/...`.
 
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **adaptabuddy_v2** (7065 symbols, 11972 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **adaptabuddy_v2** (7555 symbols, 12848 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

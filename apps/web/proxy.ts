@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { createSupabaseMiddlewareClient } from "./src/lib/supabase/middleware";
 import { getAuthGuardRedirect } from "./src/lib/auth/guard";
 import { applySupabaseResponseHeaders } from "./src/lib/supabase/server";
+import { clientEnv } from "./src/lib/env";
+import { createContentSecurityPolicy } from "./src/lib/security/content-security-policy";
 
 const withAuthResponseState = (
   source: NextResponse,
@@ -20,6 +22,17 @@ const withAuthResponseState = (
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const isDev = process.env.NODE_ENV === "development";
+  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+  const csp = createContentSecurityPolicy({
+    nonce,
+    supabaseUrl: clientEnv.NEXT_PUBLIC_SUPABASE_URL,
+    isDevelopment: isDev,
+  });
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("Content-Security-Policy", csp);
+
   const { supabase, res, authHeaders } = createSupabaseMiddlewareClient(req);
   const {
     data: { user }
@@ -27,7 +40,6 @@ export async function proxy(req: NextRequest) {
   const {
     data: { session }
   } = await supabase.auth.getSession();
-  const isDev = process.env.NODE_ENV === "development";
 
   if (isDev) {
     const cookieNames = req.cookies.getAll().map((cookie) => cookie.name);
@@ -46,7 +58,15 @@ export async function proxy(req: NextRequest) {
     isAuthenticated: Boolean(user ?? session?.user)
   });
 
-  if (!redirectTarget) return res;
+  if (!redirectTarget) {
+    const response = withAuthResponseState(
+      res,
+      NextResponse.next({ request: { headers: requestHeaders }, headers: res.headers }),
+      authHeaders
+    );
+    response.headers.set("Content-Security-Policy", csp);
+    return response;
+  }
 
   const redirectUrl = req.nextUrl.clone();
   redirectUrl.pathname = redirectTarget.pathname;
@@ -58,7 +78,9 @@ export async function proxy(req: NextRequest) {
     }
   }
 
-  return withAuthResponseState(res, NextResponse.redirect(redirectUrl), authHeaders);
+  const response = withAuthResponseState(res, NextResponse.redirect(redirectUrl), authHeaders);
+  response.headers.set("Content-Security-Policy", csp);
+  return response;
 }
 
 export const config = {

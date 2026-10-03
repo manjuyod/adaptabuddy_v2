@@ -1,0 +1,10 @@
+[package]
+name = "events"
+edition.workspace = true
+version.workspace = true
+publish.workspace = true
+
+[dependencies]
+chrono.workspace = true
+core-domain = { path = "../core-domain" }
+storage = { path = "../storage" }

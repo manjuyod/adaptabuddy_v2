@@ -36,11 +36,11 @@ type StepKey =
   | "confirmation";
 
 const steps: Array<{ key: StepKey; label: string }> = [
-  { key: "character", label: "Character" },
-  { key: "gear", label: "Gear" },
+  { key: "character", label: "Profile" },
+  { key: "gear", label: "Equipment" },
   { key: "recovery", label: "Recovery" },
-  { key: "cycle", label: "Cycle" },
-  { key: "program-blend", label: "Program Blend" },
+  { key: "cycle", label: "Training Block" },
+  { key: "program-blend", label: "Training Plan" },
   { key: "confirmation", label: "Confirm" },
 ];
 
@@ -373,14 +373,13 @@ export function OnboardingWizard({
     <div className="space-y-6" data-testid="onboarding-wizard">
       <header className="rounded-xl border border-slate-800 bg-surface/80 p-6 shadow-lg">
         <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
-          New Game Setup
+          Health Profile Setup
         </p>
         <h1 className="mt-2 text-2xl font-semibold text-slate-100">
           Create Your Training Profile
         </h1>
         <p className="mt-1 text-sm text-slate-400">
-          We&apos;ll use these choices to generate your first workout on the
-          dashboard.
+          We&apos;ll use these choices to personalize workouts, goals, and progress tracking.
         </p>
       </header>
 

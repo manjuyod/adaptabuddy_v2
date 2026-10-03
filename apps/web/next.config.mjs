@@ -108,33 +108,8 @@ const validateBuildEnv = () => {
 
 validateBuildEnv();
 
-const baseCspDirectives = [
-  "default-src 'self'",
-  "script-src 'self'",
-  "worker-src 'self'",
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
-  "connect-src 'self' https://*.supabase.co",
-  "font-src 'self'",
-  "manifest-src 'self'",
-  "frame-ancestors 'none'",
-  "form-action 'self'",
-  "base-uri 'self'"
-];
-
-const devCspDirectives = [
-  ...baseCspDirectives.filter((directive) => !directive.startsWith("script-src ")),
-  "script-src 'self' 'unsafe-eval' 'unsafe-inline'"
-];
-
+// Page CSP is generated in proxy.ts so Next and the browser share a per-request nonce.
 const securityHeaders = [
-  {
-    key: "Content-Security-Policy",
-    value:
-      process.env.NODE_ENV === "development"
-        ? devCspDirectives.join("; ")
-        : baseCspDirectives.join("; ")
-  },
   { key: "Referrer-Policy", value: "no-referrer" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },

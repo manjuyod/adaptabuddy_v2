@@ -1,6 +1,7 @@
 import "./globals.css";
 
 import type { Metadata, Viewport } from "next";
+import { connection } from "next/server";
 import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
 
 export const metadata: Metadata = {
@@ -25,7 +26,10 @@ export const viewport: Viewport = {
   themeColor: "#0b1021"
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Every rendered document needs the nonce generated for its incoming request.
+  await connection();
+
   return (
     <html lang="en">
       <body className="min-h-[100svh] bg-surface text-slate-100 antialiased">

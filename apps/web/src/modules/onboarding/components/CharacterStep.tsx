@@ -8,10 +8,10 @@ type CharacterStepProps = {
 };
 
 const classPresetOptions = [
-  { value: "classless", label: "Classless (balanced)" },
-  { value: "bb", label: "Big Body (BB)" },
+  { value: "classless", label: "Balanced" },
+  { value: "bb", label: "Size and Strength" },
   { value: "powa", label: "Power-Oriented" },
-  { value: "ninja", label: "Ninja (calisthenics focus)" },
+  { value: "ninja", label: "Calisthenics Focus" },
 ] as const;
 
 const goalBiasOptions: GoalBias[] = [
@@ -31,13 +31,13 @@ export function CharacterStep({
     <section className="space-y-4" data-testid="onboarding-step-character">
       <div>
         <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Step 1 of 6</p>
-        <h2 className="mt-2 text-xl font-semibold text-slate-100">Character</h2>
-        <p className="mt-1 text-sm text-slate-400">Choose your starting archetype and focus.</p>
+        <h2 className="mt-2 text-xl font-semibold text-slate-100">Profile</h2>
+        <p className="mt-1 text-sm text-slate-400">Choose your training style and focus.</p>
       </div>
 
       <div className="space-y-3">
         <p className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-300">
-          Class Preset
+          Training Style
         </p>
         <div className="grid gap-2 sm:grid-cols-2">
           {classPresetOptions.map((preset) => {

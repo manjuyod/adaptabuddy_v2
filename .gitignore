@@ -20,5 +20,26 @@ test-results
 /.playwright-cli
 apps/web/.playwright-cli/
 packages/engine-rs/target/
+backend/target/
+supabase/.branches/
+supabase/.temp/
+supabase/seed.remote.sql
+supabase/seed.remote.local.sql
+supabase/*remote*seed*.sql
+supabase/seed.*remote*.sql
+supabase/schema.remote.sql
+supabase/*remote*schema*.sql
+tmp/supabase-remote-pull/
+tmp/supabase-migrations-pre-baseline/
 .gitnexus
 /apps/web/public/backgrounds/inspiration/
+
+# Android
+local.properties
+.gradle/
+.idea/
+*.iml
+build/
+.externalNativeBuild/
+.cxx/
+captures/

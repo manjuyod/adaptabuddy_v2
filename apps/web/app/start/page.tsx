@@ -1,11 +1,9 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { resolveStartScreen } from "@/lib/start-screen";
 import { ROUTES } from "@/lib/routes";
 import { createSupabaseServerComponentClient } from "@/lib/supabase/next";
 import { logServerEvent } from "@/lib/observability/logger";
 import { toAuthedUser } from "@/modules/auth/session-user";
-import { TitleMenuScreen } from "@/modules/title/components/title-menu-screen";
 
 const PreferredStartScreenSchema = z.enum(["auto", "start", "continue"]);
 
@@ -92,7 +90,10 @@ export default async function StartPage() {
 
   const fallbackProfile = { has_save: false, preferred_start_screen: "auto" } as const;
   const profile = parsedProfile.success ? parsedProfile.data : fallbackProfile;
-  const route = resolveStartScreen(profile.has_save, profile.preferred_start_screen);
 
-  return <TitleMenuScreen variant={route} />;
+  if (profile.has_save) {
+    redirect("/dashboard");
+  }
+
+  redirect(ROUTES.onboarding);
 }

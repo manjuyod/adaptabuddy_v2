@@ -7,6 +7,12 @@ dist
 **/dist
 coverage
 **/coverage
+**/target
+**/.gradle
+**/build
+**/local.properties
+supabase/*remote*.sql
+tmp
 
 .git
 .gitignore

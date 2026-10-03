@@ -6,9 +6,13 @@ import { usePathname } from "next/navigation";
 
 const navigationItems = [
   { href: "/dashboard", label: "Dashboard" },
-  { href: "/workout", label: "Workout" },
-  { href: "/programs", label: "Programs" },
+  { href: "/nutrition", label: "Nutrition" },
+  { href: "/workout", label: "Workouts" },
   { href: "/history", label: "History" },
+  { href: "/habits", label: "Habits" },
+  { href: "/goals", label: "Goals" },
+  { href: "/body-metrics", label: "Metrics" },
+  { href: "/progress", label: "Progress" },
   { href: "/settings", label: "Settings" }
 ] as const;
 
@@ -34,7 +38,7 @@ export function NavigationBar() {
         data-testid="primary-navigation-desktop"
       >
         <div className="mx-auto max-w-5xl px-6">
-          <ul className="flex items-center gap-2 py-4">
+          <ul className="flex flex-wrap items-center gap-2 py-4">
             {navigationItems.map((item) => {
               const isActive = isRouteActive(pathname, item.href);
               return (
@@ -59,7 +63,7 @@ export function NavigationBar() {
         className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-800/80 bg-surface/95 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 backdrop-blur md:hidden"
         data-testid="primary-navigation-mobile"
       >
-        <ul className="mx-auto grid max-w-5xl grid-cols-5 gap-2">
+        <ul className="mx-auto flex max-w-5xl gap-2 overflow-x-auto">
           {navigationItems.map((item) => {
             const isActive = isRouteActive(pathname, item.href);
             return (
@@ -68,7 +72,7 @@ export function NavigationBar() {
                   href={item.href as Route}
                   aria-current={isActive ? "page" : undefined}
                   data-active={isActive ? "true" : "false"}
-                  className={`block rounded-lg border px-2 py-2 text-center text-xs font-medium transition ${
+                  className={`block min-w-20 rounded-lg border px-2 py-2 text-center text-xs font-medium transition ${
                     isActive
                       ? "border-emerald-500/70 bg-emerald-500/10 text-emerald-100"
                       : "border-slate-700 bg-slate-900/70 text-slate-300"

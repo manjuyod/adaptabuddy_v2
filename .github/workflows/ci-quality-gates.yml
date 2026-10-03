@@ -30,6 +30,8 @@ jobs:
             run: npm run build
           - name: Rust engine tests
             run: npm run test:engine
+          - name: Rust backend quality
+            run: npm run check:backend
 
     steps:
       - name: Checkout
@@ -49,3 +51,27 @@ jobs:
 
       - name: Run ${{ matrix.gate.name }}
         run: ${{ matrix.gate.run }}
+        env:
+          # Build-only public values; CI never contacts a Supabase project.
+          SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          SUPABASE_ANON_KEY: sb_publishable_ci_build_only
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_ci_build_only
+          RUN_SUPABASE_E2E_VERIFICATION: "0"
+          RUN_SUPABASE_SMOKE: "0"
+          RUN_SUPABASE_AUTH_SMOKE: "0"
+          RUN_PLAYWRIGHT_E2E: "0"
+
+  android:
+    name: Android build, lint, and unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: android-actions/setup-android@v4
+      - name: Validate Android
+        working-directory: mobile
+        run: bash ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug

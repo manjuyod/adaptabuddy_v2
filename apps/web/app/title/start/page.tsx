@@ -1,5 +1,5 @@
-import { TitleMenuScreen } from "@/modules/title/components/title-menu-screen";
+import { redirect } from "next/navigation";
 
-export default function TitleStartPage() {
-  return <TitleMenuScreen variant="start" />;
+export default function DeprecatedTitleStartPage() {
+  redirect("/onboarding");
 }
