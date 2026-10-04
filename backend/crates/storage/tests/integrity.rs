@@ -33,6 +33,7 @@ fn plan() -> WorkoutPlanView {
                 sets: 3,
                 reps: 8,
                 caution_notes: vec![],
+                prescription: None,
             }],
         }],
     }

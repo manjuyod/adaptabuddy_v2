@@ -7,6 +7,23 @@ const scriptDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDir, "..", "..");
 const remoteDump = resolve(repoRoot, "supabase", "seed.remote.sql");
 const localReplayDump = resolve(repoRoot, "supabase", "seed.remote.local.sql");
+const supabaseCli = resolve(
+  repoRoot,
+  "node_modules",
+  "supabase",
+  "dist",
+  "supabase.js",
+);
+// seed.remote.sql uses the schema captured before the exercise-catalog fields
+// and constraints were introduced. Replay it at this explicit boundary, then
+// migrate forward. Do not derive this from whichever migration sorts previous.
+const preCatalogMigrationVersion = "20261003091000";
+const preCatalogMigration = resolve(
+  repoRoot,
+  "supabase",
+  "migrations",
+  `${preCatalogMigrationVersion}_legacy_rpc_permissions.sql`,
+);
 const localDbUrl =
   process.env.LOCAL_SUPABASE_DB_URL ??
   "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
@@ -50,12 +67,12 @@ function run(command, args) {
 }
 
 function runNpx(args) {
-  if (process.platform === "win32") {
-    run("cmd.exe", ["/d", "/s", "/c", "npx", ...args]);
-    return;
-  }
+  run(process.execPath, [supabaseCli, ...args]);
+}
 
-  run("npx", args);
+if (!existsSync(supabaseCli)) {
+  console.error("Missing installed Supabase CLI. Run `npm install` first.");
+  process.exit(1);
 }
 
 if (!existsSync(remoteDump)) {
@@ -65,14 +82,45 @@ if (!existsSync(remoteDump)) {
   process.exit(1);
 }
 
-const replaySql = readFileSync(remoteDump, "utf8")
+if (!existsSync(preCatalogMigration)) {
+  console.error(
+    `Missing pre-catalog migration ${preCatalogMigrationVersion}_legacy_rpc_permissions.sql.`,
+  );
+  process.exit(1);
+}
+
+const remoteSql = readFileSync(remoteDump, "utf8");
+const exercisesInsertHeader = remoteSql.match(
+  /insert\s+into\s+"?public"?\."?exercises"?\s*\(([^)]*)\)\s*values/i,
+)?.[1];
+if (
+  exercisesInsertHeader &&
+  /(?:^|,)\s*"?(?:category|tracking_mode)"?\s*(?:,|$)/i.test(
+    exercisesInsertHeader,
+  )
+) {
+  console.error(
+    "seed.remote.sql contains catalog-format exercise columns and cannot be replayed on the pre-catalog schema.",
+  );
+  process.exit(1);
+}
+
+const replaySql = remoteSql
   .split(/\r?\n/)
   .filter((line) => !line.includes('"auth"."refresh_tokens_id_seq"'))
   .join("\n");
 
 writeFileSync(localReplayDump, replaySql, "utf8");
 
-runNpx(["supabase", "db", "reset", "--local"]);
+runNpx([
+  "db",
+  "reset",
+  "--db-url",
+  localDbUrl,
+  "--version",
+  preCatalogMigrationVersion,
+  "--no-seed",
+]);
 
 const truncateSql = `
 truncate table
@@ -96,6 +144,7 @@ cascade;
 
 run("psql", ["-v", "ON_ERROR_STOP=1", "-c", truncateSql, localDbUrl]);
 run("psql", ["-v", "ON_ERROR_STOP=1", "-f", localReplayDump, localDbUrl]);
+runNpx(["migration", "up", "--db-url", localDbUrl]);
 
 const countSql = `
 select table_name, row_count

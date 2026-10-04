@@ -4,6 +4,28 @@
 reject nonlocal database URLs before starting any database command. The import
 itself resets and replaces local data; it is not a verification command.
 
+Legacy dump imports reset without seeding to migration `20261003091000`, replay
+the old-schema dump, then apply newer migrations. This order lets the exercise
+catalog migration repair imported data before validating its new constraints.
+The reset, replay, and migration steps use the same checked loopback URL. Dumps
+with the new exercise catalog columns require a separately reviewed import
+format and are rejected before any database command.
+
+The source-backed catalog and its validation are described in
+[`docs/data/exercise-catalog-audit.md`](../../docs/data/exercise-catalog-audit.md).
+Run `supabase/sql/exercise_catalog_regression.sql` after migrations and seed to
+check catalog anatomy, categories, source metadata, program selection metadata,
+and reference-table permissions. Its fixtures roll back.
+
+`supabase/sql/exercise_replacement_coverage.sql` reports current home/gym
+candidate coverage, including replacements for an exercise whose equipment is
+unavailable. `supabase/sql/exercise_replacement_regression.sql` checks equipment
+AND/OR rules, variant deduplication, tracking differences, and required anatomy
+coverage; its fixtures also roll back. See
+[`docs/data/exercise-replacement-coverage.md`](../../docs/data/exercise-replacement-coverage.md)
+for the measured gaps and the distinction between catalog candidates and the
+current runtime swap behavior.
+
 The Rust storage integration tests are ignored by default because they insert
 fixtures. Run them against a disposable migrated PostgreSQL database, never a
 production database or a populated development database. These PowerShell
@@ -48,6 +70,7 @@ if ($LASTEXITCODE -ne 0) { throw 'SQL regression failed' }
 $env:STORAGE_TEST_DATABASE_URL = 'postgresql://postgres:local-audit-only@127.0.0.1:55432/postgres'
 cargo test --manifest-path backend/Cargo.toml -p storage -- --include-ignored
 cargo test --manifest-path backend/Cargo.toml -p api-server --test postgres_api -- --include-ignored
+cargo test --manifest-path backend/Cargo.toml -p api-server --test workout_replacements --test workout_replacement_boundaries -- --ignored --test-threads=1
 
 # Stop only the disposable container created above when finished.
 docker stop adaptabuddy-storage-test
@@ -65,8 +88,24 @@ random user IDs and delete their fixtures on success; failed fixtures remain
 only until the disposable container stops.
 
 This checks real PostgreSQL queries and schema behavior with a minimal auth
-schema. The repository's Supabase stack uses PostgreSQL 15; this standalone
-harness uses PostgreSQL 16.
+schema. Supabase config declares PostgreSQL 15; an already running local stack
+can use a different engine version. Check `show server_version` when recording
+validation results. The standalone harness above uses PostgreSQL 16.
+
+Replacement tests additionally verify catalog-backed browsing, variant
+deduplication, equipment AND/OR sets, exclusions across aliases, per-side/time/
+distance prescriptions, preserved cautions, and concurrent session/swap writes.
+These fixtures remain only in the disposable database; do not run them against
+the populated local Supabase instance.
+
+After catalog migrations, run `supabase/sql/exercise_catalog_regression.sql`,
+`supabase/sql/exercise_replacement_regression.sql`, and
+`supabase/sql/exercise_replacement_contract_regression.sql` through the same
+`psql -v ON_ERROR_STOP=1` invocation. They roll back their fixtures. The read-only
+`supabase/sql/exercise_replacement_contract_audit.sql` prints classifications,
+raw zero/one candidate counts and every explicit coverage requirement. See
+[the coverage report](../../docs/data/exercise-replacement-coverage.md) for the
+acceptance definition and measured results.
 
 ## Full local Supabase verification
 

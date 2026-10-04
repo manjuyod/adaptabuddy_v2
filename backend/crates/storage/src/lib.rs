@@ -2,9 +2,10 @@ use chrono::{DateTime, NaiveDate, Utc};
 use core_domain::{EventSource, HealthEvent, HealthEventKind, UserId};
 use serde_json::Value;
 use shared_types::{
-    BodyMetricView, ExerciseStatRequest, ExerciseStatView, FoodEntryPatchRequest, FoodEntryQuery,
-    FoodEntryRequest, FoodEntryView, FoodLogRequest, GoalView, HabitView, MuscleGroupStatView,
-    Profile, ProfilePatchRequest, WorkoutDayView, WorkoutExerciseView, WorkoutPlanView,
+    BodyMetricView, ExerciseReplacementCandidate, ExerciseStatRequest, ExerciseStatView,
+    FoodEntryPatchRequest, FoodEntryQuery, FoodEntryRequest, FoodEntryView, FoodLogRequest,
+    GoalView, HabitView, MuscleGroupStatView, Profile, ProfilePatchRequest,
+    ReplaceWorkoutExerciseRequest, WorkoutDayView, WorkoutExerciseView, WorkoutPlanView,
     WorkoutSessionCreateRequest, WorkoutSessionExerciseInput, WorkoutSessionExerciseView,
     WorkoutSessionRequest, WorkoutSessionView, XpEventView,
 };
@@ -900,6 +901,100 @@ impl AppStore {
                 Ok(result)
             }
         }
+    }
+
+    /// Reference catalog for browsing. Replacement eligibility is a separate
+    /// filter applied by the candidate operation.
+    pub async fn catalog_exercise_slugs(&self) -> Result<Vec<String>, StorageError> {
+        match &self.backend {
+            StoreBackend::Memory(_) => Ok(Vec::new()),
+            StoreBackend::Postgres(pool) => Ok(sqlx::query_scalar(
+                "select slug from public.exercises where is_active order by name, slug",
+            )
+            .fetch_all(pool)
+            .await?),
+        }
+    }
+
+    pub async fn replacement_candidates(
+        &self,
+        user_id: &UserId,
+        workout_exercise_id: Uuid,
+        available_equipment: Vec<String>,
+        excluded_slugs: Vec<String>,
+        excluded_families: Vec<String>,
+        excluded_muscles: Vec<String>,
+    ) -> Result<Vec<ExerciseReplacementCandidate>, StorageError> {
+        match &self.backend {
+            StoreBackend::Memory(_) => Err(StorageError::NotFound),
+            StoreBackend::Postgres(pool) => {
+                let source_slug =
+                    owned_catalog_source_slug(pool, user_id, workout_exercise_id).await?;
+                catalog_candidates(
+                    pool,
+                    &source_slug,
+                    &available_equipment,
+                    &excluded_slugs,
+                    &excluded_families,
+                    &excluded_muscles,
+                )
+                .await
+            }
+        }
+    }
+
+    pub async fn replace_planned_workout_exercise(
+        &self,
+        user_id: &UserId,
+        workout_exercise_id: Uuid,
+        request: ReplaceWorkoutExerciseRequest,
+    ) -> Result<WorkoutExerciseView, StorageError> {
+        let StoreBackend::Postgres(pool) = &self.backend else {
+            return Err(StorageError::NotFound);
+        };
+        let mut tx = pool.begin().await?;
+        let current = sqlx::query_as::<_, (Uuid, String)>("select we.workout_day_id, we.exercise_slug from public.workout_exercises we join public.workout_days wd on wd.id=we.workout_day_id and wd.user_id=we.user_id where we.id=$1 and we.user_id=$2 and wd.status='planned' for update")
+            .bind(workout_exercise_id).bind(user_id.0).fetch_optional(&mut *tx).await?.ok_or(StorageError::NotFound)?;
+        let has_session: bool = sqlx::query_scalar("select exists(select 1 from public.workout_sessions where user_id=$1 and workout_day_id=$2)")
+            .bind(user_id.0).bind(current.0).fetch_one(&mut *tx).await?;
+        if has_session {
+            return Err(StorageError::Conflict);
+        }
+        let source_slug = canonical_catalog_slug(&current.1).to_string();
+        let candidates = catalog_candidates_tx(
+            &mut tx,
+            &source_slug,
+            &request.available_equipment,
+            &request.excluded_exercise_slugs,
+            &request.excluded_families,
+            &request.excluded_muscles,
+        )
+        .await?;
+        let selected = candidates
+            .into_iter()
+            .find(|candidate| candidate.slug == request.replacement_slug)
+            .ok_or(StorageError::NotFound)?;
+        if request.prescription.tracking_mode != selected.tracking_mode {
+            return Err(StorageError::Conflict);
+        }
+        let prescription_json =
+            serde_json::to_value(&request.prescription).map_err(|_| StorageError::Conflict)?;
+        let result = sqlx::query_as::<_, (Uuid, Uuid, String, String, i32, i32, Vec<String>, Option<Value>)>(
+            "update public.workout_exercises set exercise_slug=$3,name=$4,sets=$5,reps=$6,prescription=$7 where id=$1 and user_id=$2 returning id,workout_day_id,exercise_slug,name,sets,reps,caution_notes,prescription")
+            .bind(workout_exercise_id).bind(user_id.0).bind(&selected.slug).bind(&selected.name)
+            .bind(request.prescription.sets.unwrap_or(0)).bind(request.prescription.reps.unwrap_or(0))
+            .bind(prescription_json).fetch_one(&mut *tx).await?;
+        tx.commit().await?;
+        Ok(WorkoutExerciseView {
+            id: result.0,
+            workout_day_id: result.1,
+            exercise_slug: result.2,
+            name: result.3,
+            sets: result.4,
+            reps: result.5,
+            caution_notes: result.6,
+            prescription: result.7.and_then(|v| serde_json::from_value(v).ok()),
+        })
     }
 
     pub async fn create_workout_session_v0(
@@ -1961,6 +2056,115 @@ fn apply_food_patch(entry: &mut FoodEntryView, patch: FoodEntryPatchRequest) {
     }
 }
 
+fn canonical_catalog_slug(slug: &str) -> &str {
+    match slug {
+        "squat" => "bodyweight_squat",
+        "row" => "dumbbell_row",
+        "bench_press" => "barbell_bench_press",
+        "deadlift" => "conventional_deadlift",
+        other => other,
+    }
+}
+
+async fn owned_catalog_source_slug(
+    pool: &PgPool,
+    user_id: &UserId,
+    exercise_id: Uuid,
+) -> Result<String, StorageError> {
+    let slug: String = sqlx::query_scalar("select we.exercise_slug from public.workout_exercises we join public.workout_days wd on wd.id=we.workout_day_id and wd.user_id=we.user_id where we.id=$1 and we.user_id=$2 and wd.status='planned'")
+        .bind(exercise_id).bind(user_id.0).fetch_optional(pool).await?.ok_or(StorageError::NotFound)?;
+    Ok(canonical_catalog_slug(&slug).to_owned())
+}
+
+async fn catalog_candidates(
+    pool: &PgPool,
+    source_slug: &str,
+    equipment: &[String],
+    excluded_slugs: &[String],
+    excluded_families: &[String],
+    excluded_muscles: &[String],
+) -> Result<Vec<ExerciseReplacementCandidate>, StorageError> {
+    catalog_candidates_query(
+        pool,
+        source_slug,
+        equipment,
+        excluded_slugs,
+        excluded_families,
+        excluded_muscles,
+    )
+    .await
+}
+
+async fn catalog_candidates_tx(
+    tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+    source_slug: &str,
+    equipment: &[String],
+    excluded_slugs: &[String],
+    excluded_families: &[String],
+    excluded_muscles: &[String],
+) -> Result<Vec<ExerciseReplacementCandidate>, StorageError> {
+    catalog_candidates_query(
+        &mut **tx,
+        source_slug,
+        equipment,
+        excluded_slugs,
+        excluded_families,
+        excluded_muscles,
+    )
+    .await
+}
+
+async fn catalog_candidates_query<'e, E>(
+    executor: E,
+    source_slug: &str,
+    equipment: &[String],
+    excluded_slugs: &[String],
+    excluded_families: &[String],
+    excluded_muscles: &[String],
+) -> Result<Vec<ExerciseReplacementCandidate>, StorageError>
+where
+    E: sqlx::Executor<'e, Database = sqlx::Postgres>,
+{
+    let equipment = serde_json::to_value(equipment).map_err(|_| StorageError::Conflict)?;
+    let rows = sqlx::query_as::<_, (String,String,String,String,Value,Value,String,Value,String)>(r#"
+      with source as (
+        select category, replacement_family, coalesce(variant_group, slug) variant_group
+        from public.exercises where slug=$1 and is_active and replacement_status='eligible'
+      )
+      select distinct on (coalesce(e.variant_group,e.slug)) e.slug,e.name,e.category,e.tracking_mode,e.instructions,e.source_urls,e.replacement_family,e.equipment_options,coalesce(e.variant_group,e.slug)
+      from public.exercises e cross join source s
+      where e.is_active and e.replacement_status='eligible'
+        and e.category=s.category and e.replacement_family=s.replacement_family
+        and coalesce(e.variant_group,e.slug)<>s.variant_group
+        and not (e.slug = any($2)) and not (e.replacement_family = any($3))
+        and exists (select 1 from jsonb_array_elements(e.equipment_options) opt where opt <@ $4::jsonb)
+        and not exists (
+          select 1 from public.exercises alias
+          join public.exercise_muscle_map em on em.exercise_id=alias.id
+          join public.muscle_groups mg on mg.id=em.muscle_group_id
+          where alias.is_active and alias.replacement_status='eligible'
+            and alias.category=e.category and alias.replacement_family=e.replacement_family
+            and coalesce(alias.variant_group,alias.slug)=coalesce(e.variant_group,e.slug)
+            and mg.slug=any($5)
+        )
+      order by coalesce(e.variant_group,e.slug),e.name,e.slug limit 50
+    "#).bind(source_slug).bind(excluded_slugs).bind(excluded_families).bind(equipment).bind(excluded_muscles).fetch_all(executor).await?;
+    Ok(rows
+        .into_iter()
+        .map(|r| ExerciseReplacementCandidate {
+            slug: r.0,
+            name: r.1,
+            category: r.2,
+            tracking_mode: r.3,
+            instructions: r.4,
+            source_urls: r.5,
+            replacement_family: r.6,
+            equipment_options: r.7,
+            variant_group: r.8,
+        })
+        .collect())
+}
+
 fn workout_status_from_exercises(exercises: &[WorkoutSessionExerciseInput]) -> String {
     if exercises.is_empty() {
         return "cancelled".to_string();
@@ -2019,9 +2223,21 @@ async fn postgres_workout_exercises(
     user_id: &UserId,
     workout_day_id: Uuid,
 ) -> Result<Vec<WorkoutExerciseView>, StorageError> {
-    let rows = sqlx::query_as::<_, (Uuid, Uuid, String, String, i32, i32, Vec<String>)>(
+    let rows = sqlx::query_as::<
+        _,
+        (
+            Uuid,
+            Uuid,
+            String,
+            String,
+            i32,
+            i32,
+            Vec<String>,
+            Option<Value>,
+        ),
+    >(
         r#"
-        select id, workout_day_id, exercise_slug, name, sets, reps, caution_notes
+        select id, workout_day_id, exercise_slug, name, sets, reps, caution_notes, prescription
         from public.workout_exercises
         where user_id = $1 and workout_day_id = $2
         order by created_at asc
@@ -2042,6 +2258,7 @@ async fn postgres_workout_exercises(
             sets: row.4,
             reps: row.5,
             caution_notes: row.6,
+            prescription: row.7.and_then(|value| serde_json::from_value(value).ok()),
         })
         .collect())
 }

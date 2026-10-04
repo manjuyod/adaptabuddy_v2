@@ -249,6 +249,91 @@ impl ValidateRequest for WorkoutSessionRequest {
     }
 }
 
+fn csv(value: &str) -> bool {
+    let values: Vec<_> = value.split(',').map(str::trim).collect();
+    !values.is_empty() && values.len() <= 64 && values.iter().all(|value| text(value))
+}
+
+fn exercise_list(values: &[String]) -> bool {
+    values.len() <= 64 && values.iter().all(|value| text(value))
+}
+
+impl ValidateRequest for ReplacementCandidatesQuery {
+    fn validate(&self) -> Result<(), &'static str> {
+        require(
+            csv(&self.available_equipment),
+            "availableEquipment must contain 1 to 64 nonblank equipment tokens",
+        )?;
+        for value in [
+            &self.excluded_exercise_slugs,
+            &self.excluded_families,
+            &self.excluded_muscles,
+        ] {
+            require(
+                value.as_deref().is_none_or(csv),
+                "replacement exclusions must be comma-separated nonblank tokens",
+            )?;
+        }
+        Ok(())
+    }
+}
+
+impl ValidateRequest for ReplaceWorkoutExerciseRequest {
+    fn validate(&self) -> Result<(), &'static str> {
+        require(text(&self.replacement_slug), "replacementSlug is required")?;
+        require(
+            exercise_list(&self.available_equipment) && !self.available_equipment.is_empty(),
+            "availableEquipment must contain 1 to 64 nonblank equipment tokens",
+        )?;
+        require(
+            exercise_list(&self.excluded_exercise_slugs)
+                && exercise_list(&self.excluded_families)
+                && exercise_list(&self.excluded_muscles),
+            "replacement exclusions may contain at most 64 nonblank tokens",
+        )?;
+        let p = &self.prescription;
+        require(
+            matches!(
+                p.tracking_mode.as_str(),
+                "reps" | "reps_each_side" | "duration" | "duration_each_side" | "duration_distance"
+            ),
+            "invalid prescription trackingMode",
+        )?;
+        require(
+            p.sets.is_none_or(|value| value > 0)
+                && p.reps.is_none_or(|value| value > 0)
+                && p.duration_seconds.is_none_or(|value| value > 0)
+                && p.distance_meters.is_none_or(|value| value > 0),
+            "prescription values must be positive",
+        )?;
+        require(
+            p.sets.is_none_or(|value| value <= 100)
+                && p.reps.is_none_or(|value| value <= 1_000)
+                && p.duration_seconds.is_none_or(|value| value <= 86_400)
+                && p.distance_meters.is_none_or(|value| value <= 1_000_000),
+            "prescription values exceed supported limits",
+        )?;
+        let timed = matches!(
+            p.tracking_mode.as_str(),
+            "duration" | "duration_each_side" | "duration_distance"
+        );
+        require(
+            if timed {
+                p.duration_seconds.is_some()
+                    && (p.tracking_mode != "duration_distance" || p.distance_meters.is_some())
+                    && (p.tracking_mode == "duration_distance" || p.distance_meters.is_none())
+                    && p.reps.is_none()
+            } else {
+                p.sets.is_some()
+                    && p.reps.is_some()
+                    && p.duration_seconds.is_none()
+                    && p.distance_meters.is_none()
+            },
+            "prescription fields are incompatible with trackingMode",
+        )
+    }
+}
+
 impl ValidateRequest for HabitRequest {
     fn validate(&self) -> Result<(), &'static str> {
         require(

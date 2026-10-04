@@ -33,14 +33,8 @@ pub async fn summary(store: &AppStore, user_id: &UserId) -> Result<WorkoutSummar
     })
 }
 
-pub fn exercises() -> Vec<&'static str> {
-    vec![
-        "squat",
-        "deadlift",
-        "bench_press",
-        "overhead_press",
-        "push_up",
-    ]
+pub async fn exercises(store: &AppStore) -> Result<Vec<String>, StorageError> {
+    store.catalog_exercise_slugs().await
 }
 
 pub async fn generate_plan(
@@ -165,18 +159,23 @@ pub async fn finish_session(
 }
 
 fn starter_exercises(day_id: Uuid, caution_notes: &[String]) -> Vec<WorkoutExerciseView> {
-    [("squat", "Squat"), ("push_up", "Push-up"), ("row", "Row")]
-        .into_iter()
-        .map(|(exercise_slug, name)| WorkoutExerciseView {
-            id: Uuid::new_v4(),
-            workout_day_id: day_id,
-            exercise_slug: exercise_slug.to_string(),
-            name: name.to_string(),
-            sets: 3,
-            reps: 8,
-            caution_notes: caution_notes.to_vec(),
-        })
-        .collect()
+    [
+        ("bodyweight_squat", "Bodyweight squat"),
+        ("push_up", "Push-up"),
+        ("dumbbell_row", "Dumbbell row"),
+    ]
+    .into_iter()
+    .map(|(exercise_slug, name)| WorkoutExerciseView {
+        id: Uuid::new_v4(),
+        workout_day_id: day_id,
+        exercise_slug: exercise_slug.to_string(),
+        name: name.to_string(),
+        sets: 3,
+        reps: 8,
+        caution_notes: caution_notes.to_vec(),
+        prescription: None,
+    })
+    .collect()
 }
 
 fn xp_for_completion(exercises: &[WorkoutSessionExerciseInput]) -> i32 {

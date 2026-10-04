@@ -2,40 +2,9 @@
 -- Do not create normal test users here. Tests should create users through
 -- Supabase Auth Admin so auth.users, JWTs, triggers, and public.users stay aligned.
 
-insert into public.muscle_groups (slug, name)
-values
-  ('chest', 'Chest'),
-  ('back', 'Back'),
-  ('legs', 'Legs'),
-  ('shoulders', 'Shoulders'),
-  ('core', 'Core')
-on conflict (slug) do update
-set name = excluded.name;
-
-insert into public.exercises (
-  slug,
-  name,
-  movement_pattern,
-  equipment,
-  is_bodyweight,
-  aliases,
-  tags,
-  media,
-  contraindications,
-  is_active
-)
-values
-  ('push_up', 'Push-up', 'horizontal_push', '["bodyweight"]'::jsonb, true, '[]'::jsonb, '["push"]'::jsonb, '{}'::jsonb, '[]'::jsonb, true),
-  ('bodyweight_squat', 'Bodyweight Squat', 'squat', '["bodyweight"]'::jsonb, true, '[]'::jsonb, '["legs"]'::jsonb, '{}'::jsonb, '[]'::jsonb, true),
-  ('dumbbell_row', 'Dumbbell Row', 'horizontal_pull', '["dumbbell"]'::jsonb, false, '[]'::jsonb, '["pull"]'::jsonb, '{}'::jsonb, '[]'::jsonb, true)
-on conflict (slug) do update
-set
-  name = excluded.name,
-  movement_pattern = excluded.movement_pattern,
-  equipment = excluded.equipment,
-  is_bodyweight = excluded.is_bodyweight,
-  tags = excluded.tags,
-  is_active = excluded.is_active;
+-- The complete exercise/muscle catalog is versioned in the 2026100310*
+-- migrations. Do not overwrite its corrected anatomy, categories or metadata
+-- with the former three-exercise smoke fixture during a reset.
 
 insert into public.programs (
   slug,
@@ -114,9 +83,9 @@ select
   'main',
   'locked',
   exercise_row.id,
-  'horizontal_push',
+  'push',
   '["bodyweight"]'::jsonb,
-  '["push"]'::jsonb,
+  '["pushup"]'::jsonb,
   '[]'::jsonb,
   2,
   4,

@@ -466,6 +466,62 @@ pub struct WorkoutExerciseView {
     pub sets: i32,
     pub reps: i32,
     pub caution_notes: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prescription: Option<WorkoutPrescription>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WorkoutPrescription {
+    pub tracking_mode: String,
+    #[serde(default)]
+    pub sets: Option<i32>,
+    #[serde(default)]
+    pub reps: Option<i32>,
+    #[serde(default)]
+    pub duration_seconds: Option<i32>,
+    #[serde(default)]
+    pub distance_meters: Option<i32>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReplacementCandidatesQuery {
+    pub available_equipment: String,
+    #[serde(default)]
+    pub excluded_exercise_slugs: Option<String>,
+    #[serde(default)]
+    pub excluded_families: Option<String>,
+    #[serde(default)]
+    pub excluded_muscles: Option<String>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReplaceWorkoutExerciseRequest {
+    pub replacement_slug: String,
+    pub available_equipment: Vec<String>,
+    #[serde(default)]
+    pub excluded_exercise_slugs: Vec<String>,
+    #[serde(default)]
+    pub excluded_families: Vec<String>,
+    #[serde(default)]
+    pub excluded_muscles: Vec<String>,
+    pub prescription: WorkoutPrescription,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExerciseReplacementCandidate {
+    pub slug: String,
+    pub name: String,
+    pub category: String,
+    pub tracking_mode: String,
+    pub instructions: Value,
+    pub source_urls: Value,
+    pub replacement_family: String,
+    pub equipment_options: Value,
+    pub variant_group: String,
 }
 
 #[derive(Clone, Debug, Serialize)]

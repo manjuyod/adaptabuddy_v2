@@ -7,11 +7,12 @@ use axum::{
 };
 use serde::Serialize;
 use shared_types::{
-    BodyMetricRequest, ExerciseStatRequest, FoodEntryPatchRequest, FoodEntryQuery,
-    FoodEntryRequest, FoodLogRequest, GoalPatchRequest, GoalRequest, HabitCheckInRequest,
-    HabitRequest, MeResponse, MobileDashboardBody, MobileDashboardHabits, MobileDashboardResponse,
-    MobileDashboardToday, MobileDashboardUser, MobileDashboardWorkout, NutritionTargetsRequest,
-    Profile, ProfilePatchRequest, SessionResponse, StatusResponse, UnityPlayerState, UserStatsView,
+    BodyMetricRequest, ExerciseReplacementCandidate, ExerciseStatRequest, FoodEntryPatchRequest,
+    FoodEntryQuery, FoodEntryRequest, FoodLogRequest, GoalPatchRequest, GoalRequest,
+    HabitCheckInRequest, HabitRequest, MeResponse, MobileDashboardBody, MobileDashboardHabits,
+    MobileDashboardResponse, MobileDashboardToday, MobileDashboardUser, MobileDashboardWorkout,
+    NutritionTargetsRequest, Profile, ProfilePatchRequest, ReplaceWorkoutExerciseRequest,
+    ReplacementCandidatesQuery, SessionResponse, StatusResponse, UnityPlayerState, UserStatsView,
     WorkoutPlanGenerateRequest, WorkoutSessionCreateRequest, WorkoutSessionFinishRequest,
     WorkoutSessionPatchRequest, WorkoutSessionRequest,
 };
@@ -110,6 +111,11 @@ pub fn app(state: AppState) -> Router {
             patch(patch_food_entry).delete(delete_food_entry),
         )
         .route("/api/v0/me/workouts/plan", get(workout_plans))
+        .route("/api/v0/me/workouts/exercises", get(workout_exercises))
+        .route(
+            "/api/v0/me/workouts/exercises/:id/replacements",
+            get(replacement_candidates).post(replace_workout_exercise),
+        )
         .route(
             "/api/v0/me/workouts/plan/generate",
             post(generate_workout_plan),
@@ -430,6 +436,66 @@ async fn workout_plans(
     Ok(Json(workouts::plans(&state.store, &context.user_id).await?))
 }
 
+async fn replacement_candidates(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Path(exercise_id): Path<Uuid>,
+    Query(query): Query<ReplacementCandidatesQuery>,
+) -> Result<Json<Vec<ExerciseReplacementCandidate>>, ApiError> {
+    let context = require_auth_context(&state, &headers, auth::RouteClass::User).await?;
+    query.validate().map_err(ApiError::InvalidRequest)?;
+    Ok(Json(
+        state
+            .store
+            .replacement_candidates(
+                &context.user_id,
+                exercise_id,
+                csv_tokens(&query.available_equipment),
+                query
+                    .excluded_exercise_slugs
+                    .as_deref()
+                    .map(csv_tokens)
+                    .unwrap_or_default(),
+                query
+                    .excluded_families
+                    .as_deref()
+                    .map(csv_tokens)
+                    .unwrap_or_default(),
+                query
+                    .excluded_muscles
+                    .as_deref()
+                    .map(csv_tokens)
+                    .unwrap_or_default(),
+            )
+            .await?,
+    ))
+}
+
+async fn replace_workout_exercise(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Path(exercise_id): Path<Uuid>,
+    Json(request): Json<ReplaceWorkoutExerciseRequest>,
+) -> Result<Json<shared_types::WorkoutExerciseView>, ApiError> {
+    let context = require_auth_context(&state, &headers, auth::RouteClass::User).await?;
+    request.validate().map_err(ApiError::InvalidRequest)?;
+    Ok(Json(
+        state
+            .store
+            .replace_planned_workout_exercise(&context.user_id, exercise_id, request)
+            .await?,
+    ))
+}
+
+fn csv_tokens(value: &str) -> Vec<String> {
+    value
+        .split(',')
+        .map(str::trim)
+        .filter(|token| !token.is_empty())
+        .map(str::to_owned)
+        .collect()
+}
+
 async fn create_workout_session_v0(
     State(state): State<AppState>,
     headers: HeaderMap,
@@ -498,9 +564,9 @@ async fn workout_history(
 async fn workout_exercises(
     State(state): State<AppState>,
     headers: HeaderMap,
-) -> Result<Json<Vec<&'static str>>, ApiError> {
+) -> Result<Json<Vec<String>>, ApiError> {
     require_user(&state, &headers).await?;
-    Ok(Json(workouts::exercises()))
+    Ok(Json(workouts::exercises(&state.store).await?))
 }
 
 async fn create_habit(

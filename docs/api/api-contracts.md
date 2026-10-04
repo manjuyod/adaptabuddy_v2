@@ -20,6 +20,9 @@ The canonical mobile/client namespace is `/api/v0/me/...`. `/me/...` aliases are
 - `DELETE /api/v0/me/food/entries/:id`
 - `GET /api/v0/me/workouts/plan`
 - `POST /api/v0/me/workouts/plan/generate`
+- `GET /api/v0/me/workouts/exercises`
+- `GET /api/v0/me/workouts/exercises/:id/replacements`
+- `POST /api/v0/me/workouts/exercises/:id/replacements`
 - `GET /api/v0/me/workouts/sessions`
 - `POST /api/v0/me/workouts/sessions`
 - `GET /api/v0/me/workouts/sessions/:id`
@@ -27,6 +30,40 @@ The canonical mobile/client namespace is `/api/v0/me/...`. `/me/...` aliases are
 - `POST /api/v0/me/workouts/sessions/:id/finish`
 
 All user routes require `Authorization: Bearer <supabase access token>`.
+
+## Workout exercise replacements
+
+`GET /api/v0/me/workouts/exercises` returns active catalog slugs as a JSON string
+array. The older `/api/v0/workouts/exercises` and `/workouts/exercises` aliases
+retain that response shape and now read the same catalog. The in-memory test
+store has no reference catalog and returns an empty list.
+
+`GET /api/v0/me/workouts/exercises/:id/replacements` returns catalog candidates for an
+owned, planned workout exercise. `availableEquipment` is required and is a comma-separated
+list of equipment tokens. Optional comma-separated `excludedExerciseSlugs`,
+`excludedFamilies`, and `excludedMuscles` remove candidates. A candidate is active,
+editorially `eligible`, in the source exercise's category and functional family, outside its
+variant group, and has at least one complete equipment option in the supplied inventory.
+Results contain at most 50 distinct variant groups. Source equipment need not
+be available; only candidates must fit the supplied inventory.
+An empty list means no compatible catalog replacement; the API never widens the movement goal.
+
+`POST` to the same path applies an owned planned replacement. Its JSON body supplies
+`replacementSlug`, `availableEquipment`, optional exclusion arrays, and an explicit
+`prescription`. The prescription's `trackingMode` must exactly match the selected catalog
+exercise. Repetition modes require positive `sets` and `reps`; duration modes require
+positive `durationSeconds`, and `duration_distance` also requires `distanceMeters`.
+Distance is forbidden on other modes; timed modes cannot contain `reps`.
+Limits are 100 sets, 1,000 repetitions, 86,400 seconds, and 1,000,000 meters.
+These input bounds are not recommended exercise dosages. For per-side modes,
+repetitions or seconds apply to each side. Changed prescriptions are returned in
+the optional `prescription` object on plan exercises; legacy `reps` is zero for
+timed prescriptions. No load, duration or injury suitability is inferred.
+The API rejects cross-user exercises, unavailable candidates, and a workout day with any
+session so that started or completed history is never rewritten.
+Existing caution notes are retained. Unknown/unavailable candidates return
+`404`; catalog tracking-mode mismatches and already-started days return `409`;
+malformed prescription shapes or out-of-range values return `400`.
 
 Profile PATCH accepts partial JSON: omitted fields retain their current values,
 and explicit `null` clears nullable fields. `unitSystem` cannot be null. Profile
